@@ -78,3 +78,14 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Calcs stays global: switching to a team robot doesn't change your Calcs profile.
 - Credits: KO-dex shows only for robots with KO-dex data. Team robots get an NHRL wiki credit.
 - Service worker cache: `supernova-v10`.
+
+## v11: sourced builder and weapon facts
+
+- Phantom IV builder: Nik Buchholz (Team Bloodsport), per Ezequiel and the builder's own project page. Weapon: spinner with a blade, per Robot Combat Events and the builder's page. Whether it spins horizontally or vertically isn't stated anywhere.
+- Phantom III (history): Nik Buchholz, overhead bar spinner (horizontal), per the NHRL wiki and the builder's page.
+- Juxtaposition builder: Kekoto Maane, per the BrettZone Hero's Gallery and the Builders Database.
+- Luna builder: Connor Howard, per the BrettZone Hero's Gallery. Luna's weapon is still unknown.
+- Barbie builder: Brian Boxell, per the BrettZone Hero's Gallery.
+- Barbie and Ken's weapon is still unknown.
+- Each filled field has a per-field source credit (`facts` in data/team.js) shown on the robot's hub and its Team-tab detail.
+- Service worker cache: `supernova-v11`.

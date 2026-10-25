@@ -38,6 +38,7 @@ for b, r in out.items():
 C = json.load(open(f'{TD}/combined_fights.json'))['bots']; R = json.load(open(f'{TD}/team_roster.json'))
 roster = {r['bot']: r for r in R['roster']}
 WIKI = 'https://wiki.nhrl.io/wiki/index.php?title='
+HG = 'https://brettzone.nhrl.io/brettZone/v2/heros/'
 def bz(c): return 'https://brettzone.nhrl.io/brettZone/v2/b/' + c
 events = []; evi = {}
 def ev(n):
@@ -89,7 +90,7 @@ def card(id, title, extra):
         recBZ=[v['recordBrettzoneScan']['W'], v['recordBrettzoneScan']['L']], streak=v['currentStreakCombined'],
         lastDate=last[0] if last else None, lastEvent=lastEvent if (last and last[5] >= 0) else (lastEvent and ('last BrettZone event: ' + lastEvent)),
         firstDate=fs[0][0] if fs else None, counts=dict(v['counts']), wikiDupesDropped=v.get('wikiOnlyExcluded', 0),
-        sources=extra.get('sources', []), appBot=extra.get('appBot'), bz=v.get('brettzoneCleanName'), wiki=extra.get('wikiTitle', title), fights=fs)
+        facts=extra.get('facts'), sources=extra.get('sources', []), appBot=extra.get('appBot'), bz=v.get('brettzoneCleanName'), wiki=extra.get('wikiTitle', title), fights=fs)
     return c
 BOTS = [
  ('supernova','Supernova',dict(cls=12,appBot='supernova',channel='blink-supernova',sources=[['BrettZone',bz('supernova')],['NHRL wiki',WIKI+'Supernova']])),
@@ -99,22 +100,22 @@ BOTS = [
  ('caldera12','Caldera 12',dict(cls=12,channel='caldera',note='Listed as “Caldera” (12lb) on the NHRL Teams 2024 page.',sources=[['BrettZone',bz('caldera12')],['NHRL wiki',WIKI+'Caldera_12'],['NHRL Teams 2024 page','https://www.nhrl.io/meet-the-teams']])),
  ('clyde','Clyde',dict(cls=3,channel='Alex and Gabe (#alex-and-gabe-clyde)',sources=[['BrettZone',bz('clyde')],['NHRL wiki',WIKI+'Clyde']])),
  ('pof','The Power of Friendship!',dict(cls=3,weapon='Twin drills (multibot)',channel='juxtaposition-pof-cereal',note='One extra freestyle exhibition (Mar 2024) is listed under “Power of Friendship” on BrettZone and isn’t included.',sources=[['BrettZone',bz('thepoweroffriendship')],['NHRL wiki',WIKI+'The_Power_of_Friendship!']])),
- ('juxtaposition','Juxtaposition',dict(cls=3,builder='Not documented',channel='juxtaposition-pof-cereal',sources=[['BrettZone',bz('juxtaposition')],['NHRL wiki',WIKI+'Juxtaposition']])),
+ ('juxtaposition','Juxtaposition',dict(cls=3,builder='Kekoto Maane',channel='juxtaposition-pof-cereal',facts=dict(builder='BrettZone Hero’s Gallery (April builder shot: “Juxtaposition, Kekoto Maane”); Builders Database lists Juxtaposition under Kekoto and Malang Maane’s team',weapon='NHRL wiki (Weapon: Hammersaw)'),sources=[['BrettZone',bz('juxtaposition')],['NHRL wiki',WIKI+'Juxtaposition'],['BrettZone Hero’s Gallery',HG+'juxtaposition'],['Builders Database','https://www.buildersdb.com/teams/5030']])),
  ('cerealkiller','Cereal Killer',dict(cls=3,channel='juxtaposition-pof-cereal',sources=[['BrettZone',bz('cerealkiller')],['NHRL wiki',WIKI+'Cereal_Killer']])),
  ('plottwist','Plot Twist',dict(cls=3,channel='plot-twist-luna',sources=[['BrettZone',bz('plottwist')],['NHRL wiki',WIKI+'Plot_Twist']])),
- ('phantomiv','Phantom IV',dict(cls=3,roster='Phantom IV',wikiTitle=None,builder='Unknown',weapon='Unknown',channel='phantom-thumb-war',note='The newest Phantom. No wiki page yet, so builder and weapon are unknown.',sources=[['BrettZone',bz('phantomiv')]])),
+ ('phantomiv','Phantom IV',dict(cls=3,roster='Phantom IV',wikiTitle=None,builder='Nik Buchholz (Team Bloodsport)',weapon='Spinner (blade)',channel='phantom-thumb-war',note='The newest Phantom (2026), a full redesign of Phantom III. No NHRL wiki page yet. The sources say “spinner” with a blade but not whether it spins horizontally or vertically.',facts=dict(builder='Ezequiel (team), and the builder’s own project page (“an all-new version of Phantom, my 3lb combat robot”); Team Bloodsport per bloodsportbattlebot.com',weapon='Robot Combat Events (“Spinner”) and the builder’s project page (blade, laminate leaf-spring design)'),sources=[['BrettZone',bz('phantomiv')],['Nik Buchholz: Phantom IV','https://nikbuchholz.weebly.com/phantom-iv---3lb-combat-robot.html'],['Robot Combat Events','https://www.robotcombatevents.com/groups/87/resources/20209'],['Team Bloodsport','https://www.bloodsportbattlebot.com/robots/phantom-ii']])),
  ('stoneforge','Stoneforge',dict(cls=3,builder='James Nguyen',weapon='Modular (drum / eggbeater)',sources=[['BrettZone',bz('stoneforge')],['NHRL wiki',WIKI+'Stoneforge']])),
  ('fullydefined','Fully Defined',dict(cls=3,builder='Ian MacInerney',weapon='Vertical spinner (hub motor)',sources=[['BrettZone',bz('fullydefined')],['NHRL wiki',WIKI+'Fully_Defined']])),
  ('fireball','Fireball',dict(cls=3,note='No fights since Dec 2023 (likely retired).',sources=[['BrettZone',bz('fireball')],['NHRL wiki',WIKI+'Fireball']])),
- ('luna','Luna',dict(cls=12,builder='Not documented',weapon='Not documented',channel='plot-twist-luna',sources=[['BrettZone',bz('luna')],['NHRL wiki',WIKI+'Luna']])),
+ ('luna','Luna',dict(cls=12,builder='Connor Howard',weapon='Unknown',facts=dict(builder='BrettZone Hero’s Gallery (April 2026 builder shot: “Luna, Connor Howard”); NHRL wiki still says TBA',weapon='Unknown: NHRL wiki says TBA'),channel='plot-twist-luna',sources=[['BrettZone',bz('luna')],['NHRL wiki',WIKI+'Luna'],['BrettZone Hero’s Gallery',HG+'luna']])),
  ('alan','Alan',dict(cls=30,channel='alan-rapier',sources=[['BrettZone',bz('alan')],['NHRL wiki',WIKI+'Alan']])),
- ('barbie','Barbie',dict(cls=30,builder='Not documented',weapon='Vertical eggbeater spinner',sources=[['BrettZone',bz('barbie')],['NHRL wiki',WIKI+'Barbie']])),
- ('barbieandken','Barbie and Ken',dict(cls=30,builder='Drivers: Brian Boxell and James Nguyen',weapon='Not documented',sources=[['BrettZone',bz('barbieandken')],['NHRL wiki',WIKI+'Barbie_and_Ken'],['NHRL Teams 2024 page','https://www.nhrl.io/meet-the-teams']])),
+ ('barbie','Barbie',dict(cls=30,builder='Brian Boxell',weapon='Vertical eggbeater spinner',facts=dict(builder='BrettZone Hero’s Gallery (May 2026 Pro Tour builder shots: “Barbie, Brian Boxell”); NHRL wiki still says TBA',weapon='NHRL wiki (Weapon: Vertical Eggbeater Spinner)'),sources=[['BrettZone',bz('barbie')],['NHRL wiki',WIKI+'Barbie'],['BrettZone Hero’s Gallery',HG+'barbie']])),
+ ('barbieandken','Barbie and Ken',dict(cls=30,builder='Drivers: Brian Boxell and James Nguyen',weapon='Unknown',facts=dict(builder='NHRL Teams 2024 page (drivers only; builder not listed)',weapon='Unknown: NHRL wiki says TBA'),sources=[['BrettZone',bz('barbieandken')],['NHRL wiki',WIKI+'Barbie_and_Ken'],['NHRL Teams 2024 page','https://www.nhrl.io/meet-the-teams']])),
  ('thumbwar','Thumb War',dict(cls=30,channel='phantom-thumb-war',sources=[['BrettZone',bz('thumbwar')],['NHRL wiki',WIKI+'Thumb_War']])),
 ]
 cards = [card(*b) for b in BOTS]
 # Phantom III as history inside Phantom IV
-p3 = card('phantomiii', 'Phantom III', dict(cls=3, builder='Nick Buchholz (driver, wiki)', weapon='Overhead bar', sources=[['NHRL wiki', WIKI+'Phantom_III']]))
+p3 = card('phantomiii', 'Phantom III', dict(cls=3, builder='Nik Buchholz (Team Bloodsport)', weapon='Overhead bar spinner (horizontal)', facts=dict(builder='Builder’s project page (“my third-generation 3lb Beetleweight”); NHRL wiki lists him as driver (as “Nick Buchholz”)', weapon='NHRL wiki (Weapon: Overhead Bar; category Horizontal Spinners); Robot Combat Events (“Spinner”)'), sources=[['NHRL wiki', WIKI+'Phantom_III'], ['Nik Buchholz: Phantom III', 'https://nikbuchholz.weebly.com/phantom-iii---3lb-combat-robot.html'], ['Robot Combat Events', 'https://www.robotcombatevents.com/groups/87/resources/3928']]))
 for c in cards:
     if c['id'] == 'phantomiv': c['history'] = p3
 planned = [dict(id=n.lower().replace(' ', ''), name=n, channel=ch, planned=True) for n, ch in

@@ -87,6 +87,7 @@
       (b.channel ? '<div>Team channel</div><div><span class="tchan">#' + esc(b.channel) + '</span></div>' : '') + '</div>' +
       (b.note ? '<div class="note" style="margin-top:8px">' + esc(b.note) + '</div>' : '') +
       (conf.length ? conf.map(function (x) { return '<div class="tflag bad" style="margin-top:8px">⚠ ' + esc(x[0]) + ' vs ' + esc(x[2]) + ' (' + esc(x[1]) + '): ' + esc(x[3]) + '</div>'; }).join('') : '') +
+      (b.facts ? '<div class="tfacts">' + (b.facts.builder ? '<div><b>Builder:</b> ' + esc(b.facts.builder) + '</div>' : '') + (b.facts.weapon ? '<div><b>Weapon:</b> ' + esc(b.facts.weapon) + '</div>' : '') + '</div>' : '') +
       '<div class="links tlinks">' + (b.sources || []).map(function (s) { return '<a class="btn ghost sm" href="' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[0]) + ' ↗</a>'; }).join('') + '</div>' +
       (isHistory ? '' : '<button class="btn" data-openbot="' + esc(b.appBot || b.id) + '" style="margin-top:10px">Open ' + esc(b.name) + ' hub</button>') + '</div>';
     return h;
@@ -111,7 +112,7 @@
   function creditsHtml() {
     return '<div class="card credit tcredit"><h3>Credits</h3><div class="note credits">' +
       '<b>Fight data</b>: <a href="https://brettzone.nhrl.io" target="_blank" rel="noopener">BrettZone (brettzone.nhrl.io)</a> by <b>NHRL</b>.<br>' +
-      '<b>Older fights, specs and builders</b>: <a href="https://wiki.nhrl.io/" target="_blank" rel="noopener">NHRL wiki</a> (each bot’s Full Fight History). Team lineup: <a href="https://www.nhrl.io/meet-the-teams" target="_blank" rel="noopener">nhrl.io/meet-the-teams</a>.<br>' +
+      '<b>Older fights, specs and builders</b>: <a href="https://wiki.nhrl.io/" target="_blank" rel="noopener">NHRL wiki</a> (each bot’s Full Fight History). Team lineup: <a href="https://www.nhrl.io/meet-the-teams" target="_blank" rel="noopener">nhrl.io/meet-the-teams</a>. Some builders and weapons come from the <a href="https://brettzone.nhrl.io/brettZone/v2/heros" target="_blank" rel="noopener">BrettZone Hero’s Gallery</a>, <a href="https://www.robotcombatevents.com/" target="_blank" rel="noopener">Robot Combat Events</a>, the <a href="https://www.buildersdb.com/" target="_blank" rel="noopener">Builders Database</a> and builders’ own pages (credited on each robot).<br>' +
       '<b>Team</b>: Too Hot to Handle / Too Hot Robotics, captained by <b>Brian Boxell</b>. The look follows his <a href="https://github.com/bdboxell/robocalc" target="_blank" rel="noopener">ROBO CALC</a> (our own CSS).<br>' +
       '<b>Ratings</b>: <a href="https://kodex.bot" target="_blank" rel="noopener">KO-dex</a>, an independent fan project (Supernova and Blink, snapshot).<br>' +
       '<b>Ember calculators</b>: <a href="https://level5robotics.com" target="_blank" rel="noopener">Level 5 Robotics</a>.</div></div>';

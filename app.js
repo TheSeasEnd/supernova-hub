@@ -213,7 +213,7 @@
     var h = statusLine();
     if (!hero && !r) h += '<div class="card idcard"><div class="idrow"><span class="tcls-chip">' + bot.weightClass + 'lb</span>' + (bot.team && bot.team.channel ? '<span class="tchan">#' + esc(bot.team.channel) + '</span>' : '') + '<span class="idn">' + s.events.length + ' events · ' + s.n + ' fights</span></div>' +
       '<div class="tc-kv" style="margin-top:8px"><span>Builder</span><span>' + esc((bot.team && bot.team.builder) || 'Unknown') + '</span><span>Weapon</span><span>' + esc((bot.team && bot.team.weapon) || 'Unknown') + '</span><span>Span</span><span>' + fmtDate(F[0].start) + ' – ' + fmtDate(F[F.length - 1].start) + '</span></div>' +
-      (bot.team && bot.team.note ? '<div class="note" style="margin-top:8px">' + esc(bot.team.note) + '</div>' : '') + '</div>';
+      (bot.team && bot.team.note ? '<div class="note" style="margin-top:8px">' + esc(bot.team.note) + '</div>' : '') + factsHtml(bot.team) + '</div>';
     else h += '<div class="card hero">' + (hero ? '<img src="' + esc(hero) + '" alt="' + esc(bot.name) + ' (BrettZone still)" onerror="this.remove()">' : '') +
       '<div class="ov"></div><div class="cap"><div>' + (r ? '<div class="rank">' + esc(r.label) + '</div><div class="rank"><b>#' + r.value + '</b> <span class="asof">as of ' + esc(r.asOf) + '</span></div>' : '') + '</div>' +
       '<div class="rank" style="text-align:right">' + s.events.length + ' events<br>' + s.n + ' fights</div></div></div>';
@@ -253,6 +253,14 @@
     el.innerHTML = h;
   }
 
+  // Per-field source credit for builder / weapon (data/team.js "facts") plus the robot's source links.
+  function factsHtml(c) {
+    if (!c || !c.facts) return '';
+    var f = c.facts, h = '<div class="tfacts">' + (f.builder ? '<div><b>Builder:</b> ' + esc(f.builder) + '</div>' : '') + (f.weapon ? '<div><b>Weapon:</b> ' + esc(f.weapon) + '</div>' : '') + '</div>';
+    var links = (c.sources || []).filter(function (s) { return !/^BrettZone$|^NHRL wiki$/.test(s[0]); });
+    if (links.length) h += '<div class="links tlinks">' + links.map(function (s) { return '<a class="btn ghost sm" href="' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[0]) + ' ↗</a>'; }).join('') + '</div>';
+    return h;
+  }
   function plannedCard() {
     return statusLine() + '<div class="card tbuildcard"><span class="tbuild">IN BUILD</span><div class="tc-name big2" style="margin-top:10px">' + esc(bot.name) + '</div>' +
       '<div class="note" style="margin-top:6px">A planned Too Hot to Handle robot. No fights yet, so there are no stats.' + (bot.channel ? ' Team channel <span class="tchan">#' + esc(bot.channel) + '</span>.' : '') + '</div>' +
@@ -326,8 +334,8 @@
       '<b>Ratings &amp; fight types</b>: ' + kxCredit() + ' (<a href="https://kodex.bot" target="_blank" rel="noopener">kodex.bot</a>). ' + kxLabel() + '.<br>' +
       '<b>Font</b>: Chakra Petch (SIL Open Font License), self-hosted.</div></div>';
     if (bot.specs && bot.wikiUrl) h += '<div class="card"><h2>' + esc(bot.name) + '</h2><div class="kv">' + bot.specs.map(function (kv) { return '<div>' + esc(kv[0]) + '</div><div>' + esc(kv[1]) + '</div>'; }).join('') + '</div>' +
-      '<div class="note" style="margin-top:8px">Specs from the <a href="' + bot.wikiUrl + '" target="_blank" rel="noopener">NHRL wiki</a>.' + (bot.snapshot && bot.snapshot.heroImage ? ' Hero photo: BrettZone still.' : '') + '</div></div>';
-    else if (bot.specs) h += '<div class="card"><h2>' + esc(bot.name) + '</h2><div class="kv">' + bot.specs.map(function (kv) { return '<div>' + esc(kv[0]) + '</div><div>' + esc(kv[1]) + '</div>'; }).join('') + '</div><div class="note" style="margin-top:8px">' + (bot.planned ? 'From the team’s Discord channel list.' : 'No NHRL wiki page yet, so builder and weapon are unknown.') + '</div></div>';
+      '<div class="note" style="margin-top:8px">' + (bot.team && bot.team.facts ? '' : 'Specs from the <a href="' + bot.wikiUrl + '" target="_blank" rel="noopener">NHRL wiki</a>.') + (bot.snapshot && bot.snapshot.heroImage ? ' Hero photo: BrettZone still.' : '') + '</div>' + factsHtml(bot.team) + '</div>';
+    else if (bot.specs) h += '<div class="card"><h2>' + esc(bot.name) + '</h2><div class="kv">' + bot.specs.map(function (kv) { return '<div>' + esc(kv[0]) + '</div><div>' + esc(kv[1]) + '</div>'; }).join('') + '</div><div class="note" style="margin-top:8px">' + (bot.planned ? 'From the team’s Discord channel list.' : 'No NHRL wiki page yet.') + '</div>' + factsHtml(bot.team) + '</div>';
     h += '<div class="card"><h2>About</h2><div class="note">A personal, unofficial stats app, not affiliated with NHRL. Add it to your home screen: Safari → Share → “Add to Home Screen”, or Chrome → ⋮ → “Install app”.</div></div>';
     el.innerHTML = h;
   }

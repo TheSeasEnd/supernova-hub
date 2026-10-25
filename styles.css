@@ -373,3 +373,6 @@ h1{text-transform:uppercase}
 .tcard.planned{cursor:pointer}
 .fight.tf .right .tsrc{margin-top:2px}
 .links .btn{white-space:normal;max-width:100%;height:auto;min-height:40px;text-align:center}
+.tfacts{margin-top:8px;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.tfacts b{color:var(--text);font-weight:600}
+.tfacts div+div{margin-top:3px}

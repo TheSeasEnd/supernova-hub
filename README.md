@@ -143,3 +143,10 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - The Ember calculators (Level 5 Robotics) are no longer embedded. They're link-outs that open in a new tab (`target=_blank rel=noopener`), styled like the other link-out calculators, with their descriptions and the Level 5 Robotics credit kept.
 - ROBO CALC is the only embedded calculator. ROBO CALC is a responsive page (content up to ~900px, two-column modules above 768px), so on desktop the frame gets its natural width (up to 1000px, centred) and the full window height, with no scaling. "Open in browser" is kept both in the list and on the embed screen.
 - Service worker cache: `supernova-v16`.
+
+## v17: Comet added
+
+- Comet (3lb, builder/driver Connor Howard, vertical spinner) joins the roster, per Ezequiel. Sources: NHRL wiki Comet and Connor Howard pages (Connor also builds team bots Plot Twist and Luna), and BrettZone (`comet`, 3lb only).
+- 29–13 combined (26–10 without forfeits). All 42 fights appear in both the BrettZone tournament scan and the wiki table. Comet shows in the switcher (3lb group), the Team tab card and team totals, and has its own hub. Its photo is a BrettZone Hero’s Gallery hero shot (October 2025, still #117), credited.
+- Archetype: vertical spinner (wiki category Vertical Spinners). Discord channel isn't known. “Sun, moon, and comet” (Feb 2026) is a different bot and isn't included.
+- Service worker cache: `supernova-v17`.

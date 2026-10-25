@@ -26,6 +26,7 @@ P = [
     wk('phantomiii', 'wiki_phantomiii.png', 'Phantom III.png', 'Phantom III'),
     wk('stoneforge', 'wiki_stoneforge.jpg', 'Stoneforge V5.jpg', 'Stoneforge, updated robot picture (modular configurations)'),
     wk('fullydefined', 'wiki_fullydefined.png', 'Fullydefined 3lb Sept22.png', 'Fully Defined, September 2022 event'),
+    bz('comet', 'bz_comet_117.jpg', 117, 'October 2025', 'comet'),
     wk('fireball', 'wiki_fireball.png', 'Fireball-removebg.png', 'Fireball'),
     bz('luna', 'bz_luna_389.jpg', 389, 'April 2026', 'luna'),
     bz('alan', 'bz_alan_585.jpg', 585, 'April 2026 (“BotHero_ALAN”)', 'alan'),

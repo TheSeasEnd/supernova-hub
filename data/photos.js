@@ -126,6 +126,15 @@ window.BOT_PHOTOS = {
 "caption": "Fully Defined, September 2022 event",
 "url": "https://wiki.nhrl.io/wiki/index.php?title=File:Fullydefined_3lb_Sept22.png"
 },
+"comet": {
+"src": "img/bots/comet.webp",
+"w": 600,
+"h": 339,
+"cut": false,
+"credit": "BrettZone Hero’s Gallery",
+"caption": "October 2025 hero shot (still #117)",
+"url": "https://brettzone.nhrl.io/brettZone/v2/heros/comet"
+},
 "fireball": {
 "src": "img/bots/fireball.webp",
 "w": 600,

@@ -95,3 +95,13 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Luna: vertical spinner. Barbie: beater bar (vertical eggbeater). Barbie and Ken: multibot, Barbie's weapon a beater bar and Ken's a drum. Juxtaposition's builder, Kekoto Maane, is confirmed by the team.
 - These override the wiki-category archetype map (`TEAM_TYPES` in tools/build_data.py). Archetypes show them with a "Per team" badge.
 - Service worker cache: `supernova-v12`.
+
+## v13: robot photos
+
+- Each robot's hub Overview, Team card and Team detail now show a photo, bundled as roughly 600px webp in `img/bots/` (about 270 KB total) and cached by the service worker. Every photo has a credit line linking to its source. They're built by `tools/build_photos.py`, and the metadata is in `data/photos.js`.
+- Sources:
+  - BrettZone Hero's Gallery stills: Eruption, Caldera 12, Clyde, Luna, Alan, Barbie, and the Supernova/Blink thumbnails.
+  - NHRL wiki page images: Caldera, The Power of Friendship!, Juxtaposition, Cereal Killer, Plot Twist, Phantom III, Stoneforge, Fully Defined, Fireball, Thumb War.
+  - The builder's site (nikbuchholz.weebly.com): Phantom IV.
+- Barbie and Ken has no photo; none was found. Planned robots show a "No robot yet" placeholder.
+- The Supernova and Blink hubs keep their existing BrettZone hero images.

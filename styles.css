@@ -376,3 +376,20 @@ h1{text-transform:uppercase}
 .tfacts{margin-top:8px;font-size:12.5px;line-height:1.45;color:var(--muted)}
 .tfacts b{color:var(--text);font-weight:600}
 .tfacts div+div{margin-top:3px}
+
+/* ===== v13: robot photos ===== */
+.tphoto{margin:0 0 10px;position:relative;border-radius:6px;overflow:hidden;background:radial-gradient(ellipse at 50% 60%,#2a2a2a,#121212)}
+.tphoto img{display:block;width:100%;height:180px;object-fit:cover}
+.tphoto.cut img{object-fit:contain;padding:8px;box-sizing:border-box}
+.tphoto figcaption{font-size:11px;line-height:1.35;color:var(--muted);padding:5px 8px;background:rgba(0,0,0,.55)}
+.tphoto figcaption a{color:var(--hot)}
+.tphoto.thumb{margin:-2px 0 10px}
+.tphoto.thumb img{height:120px}
+.tphoto.thumb figcaption{position:absolute;right:0;bottom:0;padding:2px 6px;font-size:10px;border-top-left-radius:4px}
+.tphoto.none{height:96px;display:flex;align-items:center;justify-content:center;border:1px dashed #555;background:repeating-linear-gradient(45deg,#161616 0 10px,#1b1b1b 10px 20px);margin-bottom:10px}
+.tphoto.none span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.photocard{padding:8px}
+.photocard .tphoto{margin:0}
+.linkcard.withthumb{display:flex;align-items:center;gap:10px}
+.linkcard .lthumb{width:64px;height:44px;object-fit:cover;border-radius:4px;flex:none;background:#1a1a1a}
+.linkcard.withthumb span:not(.chev){flex:1}

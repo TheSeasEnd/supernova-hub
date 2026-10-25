@@ -37,7 +37,7 @@
     var list = d.bots.filter(function (b) { return filter === 'all' || String(b.cls) === filter; });
     if (filter !== 'build') h += list.map(cardHtml).join('');
     if (filter === 'all' || filter === 'build') h += '<div class="sectiontitle pad">In build</div>' + d.planned.map(function (p) {
-      return '<div class="card tcard planned" data-plan="' + esc(p.id) + '" role="button"><div class="tc-top"><div class="tc-name">' + esc(p.name) + '</div><span class="tbuild">IN BUILD</span></div>' +
+      return '<div class="card tcard planned" data-plan="' + esc(p.id) + '" role="button"><div class="tc-top"><div class="tc-name">' + esc(p.name) + '</div><span class="tbuild">IN BUILD</span></div>' + placeholderHtml() +
         '<div class="note">Planned, no fights yet.' + (p.channel ? ' Team channel <span class="tchan">#' + esc(p.channel) + '</span>' : '') + '</div></div>';
     }).join('');
     h += '<div class="note pad">Tap a robot to open its hub (Overview, Fights, Archetypes). The hub’s Overview links to source detail. Each fight is tagged by source: <b>BZ</b> BrettZone, <b>WIKI</b> NHRL wiki, <b>BOTH</b> found in both and counted once.</div>';
@@ -45,9 +45,19 @@
     el.innerHTML = h;
   }
 
+  // Bundled robot photo (data/photos.js) with a credit line; 'thumb' = Team list card, else full width.
+  function photoHtml(id, name, thumb) {
+    var p = window.BOT_PHOTOS && window.BOT_PHOTOS[id];
+    if (!p) return '';
+    return '<figure class="tphoto' + (p.cut ? ' cut' : '') + (thumb ? ' thumb' : '') + '"><img src="' + esc(p.src) + '" alt="' + esc(name) + ': ' + esc(p.caption) + '" width="' + p.w + '" height="' + p.h + '" loading="lazy" decoding="async" onerror="this.parentNode.remove()">' +
+      '<figcaption>Photo: ' + (thumb ? esc(p.credit) : '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.credit) + ' ↗</a> · ' + esc(p.caption)) + '</figcaption></figure>';
+  }
+  window.TeamPhoto = photoHtml;
+  function placeholderHtml() { return '<div class="tphoto none"><span>No robot yet</span></div>'; }
   function cardHtml(b) {
     var c = b.counts || {};
     return '<a class="card tcard' + (b.appBot ? ' mine' : '') + '" href="#team/' + esc(b.id) + '" data-team="' + esc(b.id) + '">' +
+      photoHtml(b.id, b.name, true) +
       '<div class="tc-top"><div class="tc-name">' + esc(b.name) + '</div><span class="tcls-chip">' + b.cls + 'lb</span>' + streakPill(b.streak) + '</div>' +
       '<div class="tc-rec">' + recHtml(b.rec) + '<span class="tc-noff">no FF ' + b.recNoFF[0] + '–' + b.recNoFF[1] + '</span><span class="chev">›</span></div>' +
       '<div class="tc-kv"><span>Last</span><span>' + esc((b.lastEvent || '').replace(/^NHRL /, '') || '—') + (b.lastDate ? ' · ' + fmtD(b.lastDate) : '') + '</span>' +
@@ -76,7 +86,7 @@
   function detailBlock(b, isHistory) {
     var c = b.counts || {}, d = D();
     var conf = d.conflicts.filter(function (x) { return x[0] === b.name; });
-    var h = '<div class="card"><div class="record"><div><div class="k2">' + (isHistory ? 'Record (history)' : 'Combined record') + '</div><div class="big">' + recHtml(b.rec, 'tr') + '</div></div>' +
+    var h = (window.BOT_PHOTOS && window.BOT_PHOTOS[b.id] ? '<div class="card photocard">' + photoHtml(b.id, b.name, false) + '</div>' : '') + '<div class="card"><div class="record"><div><div class="k2">' + (isHistory ? 'Record (history)' : 'Combined record') + '</div><div class="big">' + recHtml(b.rec, 'tr') + '</div></div>' +
       '<div class="stat" style="margin-left:auto;text-align:right"><div class="v ' + (b.streak && b.streak[0] === 'W' ? 'win' : 'loss') + '">' + esc(b.streak || '—') + '</div><div class="k">Current streak</div></div></div>' +
       '<div class="recnotes"><div>Without forfeits: <b>' + b.recNoFF[0] + '–' + b.recNoFF[1] + '</b> · BrettZone only: <b>' + b.recBZ[0] + '–' + b.recBZ[1] + '</b></div>' +
       '<div>' + b.fights.length + ' fights: ' + (c.both || 0) + ' in both, ' + (c.brettzone || 0) + ' BrettZone only, ' + (c.wiki || 0) + ' wiki only' + (b.firstDate ? ' · ' + fmtD(b.firstDate) + ' – ' + fmtD(b.lastDate) : '') + '</div>' +
@@ -112,7 +122,7 @@
   function creditsHtml() {
     return '<div class="card credit tcredit"><h3>Credits</h3><div class="note credits">' +
       '<b>Fight data</b>: <a href="https://brettzone.nhrl.io" target="_blank" rel="noopener">BrettZone (brettzone.nhrl.io)</a> by <b>NHRL</b>.<br>' +
-      '<b>Older fights, specs and builders</b>: <a href="https://wiki.nhrl.io/" target="_blank" rel="noopener">NHRL wiki</a> (each bot’s Full Fight History). Team lineup: <a href="https://www.nhrl.io/meet-the-teams" target="_blank" rel="noopener">nhrl.io/meet-the-teams</a>. Some builders and weapons come from the <a href="https://brettzone.nhrl.io/brettZone/v2/heros" target="_blank" rel="noopener">BrettZone Hero’s Gallery</a>, <a href="https://www.robotcombatevents.com/" target="_blank" rel="noopener">Robot Combat Events</a>, the <a href="https://www.buildersdb.com/" target="_blank" rel="noopener">Builders Database</a> and builders’ own pages (credited on each robot).<br>' +
+      '<b>Older fights, specs and builders</b>: <a href="https://wiki.nhrl.io/" target="_blank" rel="noopener">NHRL wiki</a> (each bot’s Full Fight History). Team lineup: <a href="https://www.nhrl.io/meet-the-teams" target="_blank" rel="noopener">nhrl.io/meet-the-teams</a>. Robot photos: <a href="https://brettzone.nhrl.io/brettZone/v2/heros" target="_blank" rel="noopener">BrettZone Hero’s Gallery</a>, the NHRL wiki and builders’ own sites (credited under each photo). Some builders and weapons come from the <a href="https://brettzone.nhrl.io/brettZone/v2/heros" target="_blank" rel="noopener">BrettZone Hero’s Gallery</a>, <a href="https://www.robotcombatevents.com/" target="_blank" rel="noopener">Robot Combat Events</a>, the <a href="https://www.buildersdb.com/" target="_blank" rel="noopener">Builders Database</a> and builders’ own pages (credited on each robot).<br>' +
       '<b>Team</b>: Too Hot to Handle / Too Hot Robotics, captained by <b>Brian Boxell</b>. The look follows his <a href="https://github.com/bdboxell/robocalc" target="_blank" rel="noopener">ROBO CALC</a> (our own CSS).<br>' +
       '<b>Ratings</b>: <a href="https://kodex.bot" target="_blank" rel="noopener">KO-dex</a>, an independent fan project (Supernova and Blink, snapshot).<br>' +
       '<b>Ember calculators</b>: <a href="https://level5robotics.com" target="_blank" rel="noopener">Level 5 Robotics</a>.</div></div>';

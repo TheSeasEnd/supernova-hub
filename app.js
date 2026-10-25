@@ -211,7 +211,8 @@
     if (!F.length) { el.innerHTML = statusLine() + '<div class="card">No fight data yet.</div>'; return; }
     var hero = bot.snapshot && bot.snapshot.heroImage, r = bot.rank;
     var h = statusLine();
-    if (!hero && !r) h += '<div class="card idcard"><div class="idrow"><span class="tcls-chip">' + bot.weightClass + 'lb</span>' + (bot.team && bot.team.channel ? '<span class="tchan">#' + esc(bot.team.channel) + '</span>' : '') + '<span class="idn">' + s.events.length + ' events · ' + s.n + ' fights</span></div>' +
+    var tid = bot.team ? bot.team.id : bot.id;
+    if (!hero && !r) h += '<div class="card idcard">' + (window.TeamPhoto ? window.TeamPhoto(tid, bot.name, false) : '') + '<div class="idrow"><span class="tcls-chip">' + bot.weightClass + 'lb</span>' + (bot.team && bot.team.channel ? '<span class="tchan">#' + esc(bot.team.channel) + '</span>' : '') + '<span class="idn">' + s.events.length + ' events · ' + s.n + ' fights</span></div>' +
       '<div class="tc-kv" style="margin-top:8px"><span>Builder</span><span>' + esc((bot.team && bot.team.builder) || 'Unknown') + '</span><span>Weapon</span><span>' + esc((bot.team && bot.team.weapon) || 'Unknown') + '</span><span>Span</span><span>' + fmtDate(F[0].start) + ' – ' + fmtDate(F[F.length - 1].start) + '</span></div>' +
       (bot.team && bot.team.note ? '<div class="note" style="margin-top:8px">' + esc(bot.team.note) + '</div>' : '') + factsHtml(bot.team) + '</div>';
     else h += '<div class="card hero">' + (hero ? '<img src="' + esc(hero) + '" alt="' + esc(bot.name) + ' (BrettZone still)" onerror="this.remove()">' : '') +
@@ -244,7 +245,7 @@
     if (bot.team && bot.group !== 'mine') h += '<div class="card"><h2>Sources</h2><div class="tc-foot" style="margin-top:0">' + ['x', 'b', 'w'].filter(function (k) { return s.src[k]; }).map(function (k) { return '<span class="tsrc ' + k + '">' + SRCTAG[k][0] + ' ' + s.src[k] + '</span>'; }).join('') + '</div>' +
       '<div class="note" style="margin-top:8px">BOTH = in BrettZone and the NHRL wiki (counted once, BrettZone’s result) · BZ = BrettZone only · WIKI = NHRL wiki only (before 2024).</div>' +
       '<a class="card linkcard" style="margin:10px 0 0" href="#team/' + esc(bot.team.id) + '" data-nav="team/' + esc(bot.team.id) + '"><span>Source detail and conflict notes</span><span class="chev">›</span></a></div>';
-    if (bot.team && bot.team.history) { var hh = bot.team.history; h += '<a class="card linkcard" href="#team/' + esc(bot.team.id) + '" data-nav="team/' + esc(bot.team.id) + '"><span>History: ' + esc(hh.name) + ' ' + hh.rec[0] + '–' + hh.rec[1] + ' (' + esc(hh.builder) + ')</span><span class="chev">›</span></a>'; }
+    if (bot.team && bot.team.history) { var hh = bot.team.history; h += '<a class="card linkcard' + (window.BOT_PHOTOS && window.BOT_PHOTOS[hh.id] ? ' withthumb' : '') + '" href="#team/' + esc(bot.team.id) + '" data-nav="team/' + esc(bot.team.id) + '">' + (window.BOT_PHOTOS && window.BOT_PHOTOS[hh.id] ? '<img class="lthumb" src="' + esc(window.BOT_PHOTOS[hh.id].src) + '" alt="' + esc(hh.name) + '" loading="lazy">' : '') + '<span>History: ' + esc(hh.name) + ' ' + hh.rec[0] + '–' + hh.rec[1] + ' (' + esc(hh.builder) + ')</span><span class="chev">›</span></a>'; }
     var rep = s.opponents.filter(function (o) { return o.w + o.l > 1; }).sort(function (a, b) { return (b.w + b.l) - (a.w + a.l); });
     var repMore = rep.length > 10 ? rep.length - 10 : 0; rep = rep.slice(0, 10);
     if (rep.length) h += '<div class="card"><h2>Rematches' + (repMore ? ' · top 10' : '') + '</h2>' + rep.map(function (o) { return '<div class="kv"><div>' + esc(o.name) + '</div><div><b>' + o.w + '–' + o.l + '</b></div></div>'; }).join('') + (repMore ? '<div class="note">+ ' + repMore + ' more opponents fought more than once.</div>' : '') + '</div>';
@@ -262,7 +263,7 @@
     return h;
   }
   function plannedCard() {
-    return statusLine() + '<div class="card tbuildcard"><span class="tbuild">IN BUILD</span><div class="tc-name big2" style="margin-top:10px">' + esc(bot.name) + '</div>' +
+    return statusLine() + '<div class="card tbuildcard"><div class="tphoto none"><span>No robot yet</span></div><span class="tbuild">IN BUILD</span><div class="tc-name big2" style="margin-top:10px">' + esc(bot.name) + '</div>' +
       '<div class="note" style="margin-top:6px">A planned Too Hot to Handle robot. No fights yet, so there are no stats.' + (bot.channel ? ' Team channel <span class="tchan">#' + esc(bot.channel) + '</span>.' : '') + '</div>' +
       '<a class="btn ghost sm" style="margin-top:12px" href="#team" data-nav="team">Back to the team</a></div>';
   }

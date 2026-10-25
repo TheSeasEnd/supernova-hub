@@ -494,3 +494,12 @@ body.scroll-locked{position:fixed;left:0;right:0;overflow:hidden;width:100%}
 .sheetlist{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;min-height:0;flex:1 1 auto;touch-action:pan-y}
 @media (min-width: 900px){ .sheetpanel{max-height:calc(100vh - 40px)} .sheetlist{max-height:calc(100vh - 170px)} }
 @media (max-width: 899px){ .sheetlist{max-height:calc(86vh - 150px)} }
+
+/* v16: ROBO CALC embed on desktop. The calculator is a responsive page (content max-width ~900px,
+   two-column modules above 768px), so the frame is given its natural desktop width (up to 1000px),
+   centred, and the full window height. No transform scaling is needed. */
+@media (min-width: 900px) {
+  #view-calc.active.embedmode{display:flex;flex-direction:column;align-items:center;height:calc(100vh - 64px);box-sizing:border-box}
+  #view-calc.embedmode > *{width:100%;max-width:1000px}
+  #view-calc.embedmode .framewrap{flex:1 1 auto;min-height:520px;height:auto;background:#121212}
+}

@@ -137,3 +137,9 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
   - The robot list is its own scroll container (max-height, `overflow-y:auto`, `overscroll-behavior:contain`).
   - The page behind is locked while the switcher is open (body `position:fixed` keeps your scroll position, which is restored on close; this works for wheel and touch).
 - Service worker cache: `supernova-v15`.
+
+## v16: calculators
+
+- The Ember calculators (Level 5 Robotics) are no longer embedded. They're link-outs that open in a new tab (`target=_blank rel=noopener`), styled like the other link-out calculators, with their descriptions and the Level 5 Robotics credit kept.
+- ROBO CALC is the only embedded calculator. ROBO CALC is a responsive page (content up to ~900px, two-column modules above 768px), so on desktop the frame gets its natural width (up to 1000px, centred) and the full window height, with no scaling. "Open in browser" is kept both in the list and on the embed screen.
+- Service worker cache: `supernova-v16`.

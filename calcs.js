@@ -1,6 +1,6 @@
 /* Calculators tab: a list of calculators (credited to their owners) + our own native
-   Battery Sag / Max Amps estimator. External tools are embedded (iframe) only where the owner's
-   site allows framing; others open in the browser. No third-party calculator code is copied here. */
+   Battery Sag / Max Amps estimator. Only ROBO CALC is embedded (iframe); Ember (Level 5 Robotics)
+   and the rest open in a new browser tab. No third-party calculator code is copied here. */
 (function () {
   'use strict';
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -11,28 +11,28 @@
     { id: 'battery', kind: 'native', group: 'Built in', title: 'Battery Sag / Max Amps',
       desc: 'Pack resistance, max amps before your sag limit, loaded voltage vs. component draw, watt-hours.',
       credit: 'Built into this app · our own estimate math' },
-    { id: 'robocalc', kind: 'embed', group: 'Embedded calculators', title: 'ROBO CALC',
+    { id: 'robocalc', kind: 'embed', group: 'Embedded calculator', title: 'ROBO CALC',
       desc: 'Combat Robotics Calculator Tool: weapon, drive and more.',
       url: 'https://bdboxell.github.io/robocalc/',
       credit: 'Calculator by <a href="https://github.com/bdboxell/robocalc" target="_blank" rel="noopener">Brian Boxell / Too Hot Robotics</a>',
       note: 'CSV import/export may not work inside the embedded view on phones. Use “Open in browser” for that.' },
-    { id: 'ember-wh', kind: 'embed', group: 'Embedded calculators', title: 'Ember · Watt-Hour Calculator',
+    { id: 'ember-wh', kind: 'link', group: 'Ember by Level 5 Robotics (opens in browser)', title: 'Ember · Watt-Hour Calculator',
       desc: 'Battery energy in watt-hours (handy for event battery limits).', url: EMBER + '/watt-hour', credit: EMBER_CREDIT },
-    { id: 'ember-battery', kind: 'embed', group: 'Embedded calculators', title: 'Ember · Battery Size Calculator',
+    { id: 'ember-battery', kind: 'link', group: 'Ember by Level 5 Robotics (opens in browser)', title: 'Ember · Battery Size Calculator',
       desc: 'Size a pack for your robot’s loads.', url: EMBER + '/battery-size', credit: EMBER_CREDIT },
-    { id: 'ember-cd', kind: 'embed', group: 'Embedded calculators', title: 'Ember · Center Distance',
+    { id: 'ember-cd', kind: 'link', group: 'Ember by Level 5 Robotics (opens in browser)', title: 'Ember · Center Distance',
       desc: 'Gears, chain and timing belt center distance.', url: EMBER + '/center-distance', credit: EMBER_CREDIT },
-    { id: 'ember-vbelt', kind: 'embed', group: 'Embedded calculators', title: 'Ember · Center Distance (V-belt mode)',
+    { id: 'ember-vbelt', kind: 'link', group: 'Ember by Level 5 Robotics (opens in browser)', title: 'Ember · Center Distance (V-belt mode)',
       desc: 'Center distance with the V-belt mode preselected.', url: EMBER + '/center-distance?type=vbelt', credit: EMBER_CREDIT },
-    { id: 'ember-home', kind: 'embed', group: 'Embedded calculators', title: 'Ember · all calculators',
+    { id: 'ember-home', kind: 'link', group: 'Ember by Level 5 Robotics (opens in browser)', title: 'Ember · all calculators',
       desc: 'Drivetrain, weapon, motor torque, scale factors, tach, tournament and more.', url: EMBER + '/', credit: EMBER_CREDIT },
-    { id: 'fingertech', kind: 'link', group: 'Open in browser (site blocks embedding)', title: 'FingerTech Pulley & Belt Calculator',
+    { id: 'fingertech', kind: 'link', group: 'Other calculators (open in browser)', title: 'FingerTech Pulley & Belt Calculator',
       desc: 'Pulley and belt how-to and calculator.', url: 'https://www.fingertechrobotics.com/how-to_pulley_belt.php',
       credit: 'By <a href="https://www.fingertechrobotics.com" target="_blank" rel="noopener">FingerTech Robotics</a>' },
-    { id: 'sdpsi', kind: 'link', group: 'Open in browser (site blocks embedding)', title: 'SDP/SI Center Distance Designer',
+    { id: 'sdpsi', kind: 'link', group: 'Other calculators (open in browser)', title: 'SDP/SI Center Distance Designer',
       desc: 'Belt/pulley center distance designer.', url: 'https://sdp-si.com/tools/center-distance-designer.php',
       credit: 'By <a href="https://sdp-si.com" target="_blank" rel="noopener">SDP/SI (Stock Drive Products / Sterling Instrument)</a>' },
-    { id: 'gates', kind: 'link', group: 'Open in browser (site blocks embedding)', title: 'Gates Belt Tension Calculator',
+    { id: 'gates', kind: 'link', group: 'Other calculators (open in browser)', title: 'Gates Belt Tension Calculator',
       desc: 'Recommended belt installation tension.', url: 'https://calculators.gates.com/BeltTension',
       credit: 'By <a href="https://www.gates.com" target="_blank" rel="noopener">Gates Corporation</a>' }
   ];
@@ -51,7 +51,7 @@
         '<div class="ci-desc">' + esc(c.desc) + '</div><div class="ci-credit">' + c.credit + '</div></div><div class="ci-act">' + action +
         (c.kind === 'embed' ? '<a class="ci-ext" href="' + esc(c.url) + '" target="_blank" rel="noopener">Open in browser ↗</a>' : '') + '</div></div>';
     });
-    h += '<div class="note" style="padding:0 4px">External calculators belong to their owners and load live from their sites. Nothing is copied into this app. Embedded ones load in a frame; the sites in the last group don’t allow embedding, so they open in your browser.</div>';
+    h += '<div class="note" style="padding:0 4px">External calculators belong to their owners and load live from their sites. Nothing is copied into this app. ROBO CALC loads in a frame here; the others open in a new browser tab.</div>';
     root.innerHTML = h;
   }
 

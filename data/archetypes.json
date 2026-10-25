@@ -1,0 +1,473 @@
+{
+ "version": 1,
+ "checkedAt": "2026-10-25",
+ "note": "Editable mapping of opponents to archetypes. Taxonomy follows the NHRL wiki weapon-type categories. Strengths/weaknesses are general knowledge summarised from RobotCombatWiki and Combat Robots Wiki, not about specific robots. Confidence: high = stated on the robot’s NHRL wiki page; none = could not verify (archetype “unknown”).",
+ "taxonomySource": "https://wiki.nhrl.io/wiki/index.php?title=Category:Robots_by_weapon_type",
+ "selfArchetypes": {
+  "supernova": {
+   "archetype": "eggbeater",
+   "evidence": "NHRL wiki Robot Facts: Weapon “Vertical Spinner/ Eggbeater”.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Supernova"
+   ]
+  }
+ },
+ "archetypes": [
+  {
+   "id": "vertical-spinner",
+   "name": "Vertical spinner",
+   "family": "vertical",
+   "nhrlCategory": "Vertical Spinners",
+   "definition": "Weapon spins on a horizontal axis so the teeth come up from underneath and strike upward (bar, disc or eggbeater).",
+   "strengths": [
+    "Big upward hits that throw opponents",
+    "Recoil goes into the floor, so it stays planted",
+    "Often self-rights with the weapon (gyro)"
+   ],
+   "weaknesses": [
+    "Gyro effect makes fast turns hard",
+    "Only dangerous from the front: flankers can push it",
+    "Weapon-to-weapon hits with other verts/drums are hard on both"
+   ],
+   "matchupNote": "Vert vs vert/drum: close and violent; faster tip speed tends to win weapon-to-weapon hits.",
+   "sources": [
+    "https://robotcombatwiki.com/wiki/Vertical_Spinners",
+    "https://wiki.combatrobots.org/weapons/spinner-types/",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Vertical_Spinners"
+   ]
+  },
+  {
+   "id": "drum",
+   "name": "Drum",
+   "family": "vertical",
+   "nhrlCategory": "Drums",
+   "definition": "Short, wide spinning cylinder mounted low across the front, spinning upward.",
+   "strengths": [
+    "Easy to aim: covers the whole front",
+    "Compact and tough, weapon supported on both sides",
+    "Recoil goes into the floor"
+   ],
+   "weaknesses": [
+    "Smaller diameter means less energy and bite than a big vert",
+    "Sensitive to arena seams and debris",
+    "Only dangerous from the front"
+   ],
+   "matchupNote": "Drum vs vert: weapon-to-weapon hits are common and hard on belts, bearings and teeth.",
+   "sources": [
+    "https://robotcombatwiki.com/wiki/Drum_Spinners",
+    "https://wiki.combatrobots.org/weapons/spinner-types/",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Drums"
+   ]
+  },
+  {
+   "id": "eggbeater",
+   "name": "Eggbeater",
+   "family": "vertical",
+   "nhrlCategory": "Eggbeaters",
+   "definition": "Vertical spinner whose weapon is an open loop (square or rounded frame) between two supports: between a drum and a bar.",
+   "strengths": [
+    "Stores more energy than a disc of the same mass and diameter",
+    "Wide hitting area; forgiving to aim"
+   ],
+   "weaknesses": [
+    "High air drag can overload the weapon motor or ESC",
+    "Shares vert weaknesses (gyro, front-only)"
+   ],
+   "matchupNote": "",
+   "sources": [
+    "https://robotcombatwiki.com/wiki/Vertical_Spinners",
+    "https://wiki.combatrobots.org/weapons/spinner-types/",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Eggbeaters"
+   ]
+  },
+  {
+   "id": "horizontal-spinner",
+   "name": "Horizontal spinner",
+   "family": "horizontal",
+   "nhrlCategory": "Horizontal Spinners",
+   "definition": "Weapon spins flat, parallel to the floor, on a vertical axis (bar or disc; mid-height “midcutter” or overhead).",
+   "strengths": [
+    "Wide attack zone, easier to aim than a vert",
+    "No gyro wheel-lift when turning",
+    "Long reach; good against exposed wheels and parts"
+   ],
+   "weaknesses": [
+    "Recoil throws it sideways, into walls or hazards",
+    "Tipping (e.g. on a wedge) can cause a gyro tumble",
+    "Low wedges and verts can get under the weapon"
+   ],
+   "matchupNote": "For a vertical spinner this matchup is “often favorable”: the vert can hit the blade from underneath and throw the whole robot.",
+   "sources": [
+    "https://robotcombatwiki.com/wiki/Horizontal_Spinners",
+    "https://wiki.combatrobots.org/weapons/spinner-types/",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Horizontal_Spinners"
+   ]
+  },
+  {
+   "id": "undercutter",
+   "name": "Undercutter",
+   "family": "horizontal",
+   "nhrlCategory": "Undercutters",
+   "definition": "Horizontal spinner mounted very low, just above the floor, hitting wheels, forks, wedge edges and the underside.",
+   "strengths": [
+    "Pokes under opponents; hard for wedges or verts to reach",
+    "Tears off wheels and breaks forks",
+    "Described as generally the most competitive horizontal"
+   ],
+   "weaknesses": [
+    "Recoil and wall bounce like other horizontals",
+    "Can be deflected by hard wedges"
+   ],
+   "matchupNote": "",
+   "sources": [
+    "https://robotcombatwiki.com/wiki/Glossary",
+    "https://wiki.combatrobots.org/weapons/spinner-types/",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Undercutters"
+   ]
+  },
+  {
+   "id": "full-body-spinner",
+   "name": "Full-body spinner (shell / ring)",
+   "family": "full-body",
+   "nhrlCategory": "Full Body Spinners",
+   "definition": "The robot’s shell or a ring around it spins as the weapon.",
+   "strengths": [
+    "360° attack area",
+    "Very heavy weapon; shell also works as armour"
+   ],
+   "weaknesses": [
+    "Long spin-up; hard to build, often unreliable",
+    "Shell spinners can’t drive inverted"
+   ],
+   "matchupNote": "",
+   "sources": [
+    "https://robotcombatwiki.com/wiki/Weapons",
+    "https://wiki.combatrobots.org/weapons/spinner-types/",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Full_Body_Spinners"
+   ]
+  },
+  {
+   "id": "meltybrain",
+   "name": "Meltybrain",
+   "family": "full-body",
+   "nhrlCategory": "Meltybrain Spinners",
+   "definition": "Whole robot spins and can still translate by pulsing its drive once per rotation.",
+   "strengths": [
+    "360° attack while still able to move"
+   ],
+   "weaknesses": [
+    "Chaotic; complex control electronics/code"
+   ],
+   "matchupNote": "",
+   "sources": [
+    "https://robotcombatwiki.com/wiki/Glossary",
+    "https://wiki.combatrobots.org/weapons/spinner-types/",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Meltybrain_Spinners"
+   ]
+  },
+  {
+   "id": "flipper",
+   "name": "Flipper",
+   "family": "control",
+   "nhrlCategory": "Flippers",
+   "definition": "Fast actuator that launches the opponent up and over.",
+   "strengths": [
+    "Wins by control and displacement with little self-damage",
+    "Can double as a self-righting mechanism"
+   ],
+   "weaknesses": [
+    "Lives or dies on ground game: needs to get under first",
+    "Needs a burst of energy; reset time on spring designs"
+   ],
+   "matchupNote": "For a vertical spinner this is “a dangerous matchup”: if the flipper gets underneath, a vert that can’t self-right can lose quickly.",
+   "sources": [
+    "https://wiki.combatrobots.org/weapons/flippers-lifters/",
+    "https://robotcombatwiki.com/wiki/Weapons",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Flippers"
+   ]
+  },
+  {
+   "id": "lifter",
+   "name": "Lifter",
+   "family": "control",
+   "nhrlCategory": "Lifters",
+   "definition": "Slow, powerful arm that raises the opponent to unbalance, carry or pin it.",
+   "strengths": [
+    "High control, low self-damage",
+    "Can flip opponents that can’t self-right"
+   ],
+   "weaknesses": [
+    "Slow; limited flip height",
+    "Depends on getting under the opponent"
+   ],
+   "matchupNote": "",
+   "sources": [
+    "https://wiki.combatrobots.org/weapons/flippers-lifters/",
+    "https://robotcombatwiki.com/wiki/Weapons",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Lifters"
+   ]
+  },
+  {
+   "id": "grappler",
+   "name": "Grappler",
+   "family": "control",
+   "nhrlCategory": "Grapplers",
+   "definition": "Lifter with a second arm that clamps the opponent and lifts it clear of the floor (grappler / suplexer).",
+   "strengths": [
+    "Can carry or pin opponents"
+   ],
+   "weaknesses": [
+    "Must get hold of the opponent first"
+   ],
+   "matchupNote": "",
+   "sources": [
+    "https://wiki.combatrobots.org/weapons/flippers-lifters/",
+    "https://robotcombatwiki.com/wiki/Glossary",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Grapplers"
+   ]
+  },
+  {
+   "id": "axe",
+   "name": "Hammer / axe",
+   "family": "overhead",
+   "nhrlCategory": "Axes",
+   "definition": "Swings an arm down onto the opponent.",
+   "strengths": [
+    "Hits the top armour, which few robots protect"
+   ],
+   "weaknesses": [
+    "Tends to be slower, with exposed arms"
+   ],
+   "matchupNote": "For a vertical spinner this is “usually favorable”, but a hammer that lands on the weapon or electronics can do real damage.",
+   "sources": [
+    "https://robotcombatwiki.com/wiki/Glossary",
+    "https://robotcombatwiki.com/wiki/Vertical_Spinners",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Axes"
+   ]
+  },
+  {
+   "id": "hammersaw",
+   "name": "Hammersaw",
+   "family": "overhead",
+   "nhrlCategory": "Hammersaws",
+   "definition": "Overhead arm carrying a small spinner, saw or drill, swung down onto the opponent’s top armour.",
+   "strengths": [
+    "High odds of hitting internals through thin top armour"
+   ],
+   "weaknesses": [
+    "Mechanically complex"
+   ],
+   "matchupNote": "",
+   "sources": [
+    "https://wiki.combatrobots.org/weapons/spinner-types/",
+    "https://robotcombatwiki.com/wiki/Weapons",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Hammersaws"
+   ]
+  },
+  {
+   "id": "rammer",
+   "name": "Rammer / wedge / control",
+   "family": "control",
+   "nhrlCategory": "Rammers",
+   "definition": "No real active weapon: wins by getting under, pushing and controlling the opponent (wedges, forks, plows).",
+   "strengths": [
+    "Being underneath breaks the opponent’s traction and disables many weapons",
+    "Durable; aims for judges’ decisions"
+   ],
+   "weaknesses": [
+    "Needs high acceleration, traction and a skilled driver",
+    "Plain wedges struggle to get under modern forks"
+   ],
+   "matchupNote": "For a vertical spinner it “depends on who gets underneath”.",
+   "sources": [
+    "https://wiki.combatrobots.org/weapons/control-wedges/",
+    "https://robotcombatwiki.com/wiki/Weapons",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Rammers"
+   ]
+  },
+  {
+   "id": "crusher",
+   "name": "Crusher",
+   "family": "control",
+   "nhrlCategory": null,
+   "definition": "Squeezes or pierces the opponent with a powerful jaw or arm. (Not a separate NHRL wiki weapon category.)",
+   "strengths": [
+    "Control plus piercing damage"
+   ],
+   "weaknesses": [
+    "Must grab the opponent first"
+   ],
+   "matchupNote": "",
+   "sources": [
+    "https://robotcombatwiki.com/wiki/Glossary"
+   ]
+  },
+  {
+   "id": "multibot",
+   "name": "Multibot",
+   "family": "multibot",
+   "nhrlCategory": "Multibots",
+   "definition": "Two or more separate robots that together make the weight limit.",
+   "strengths": [
+    "Two threats at once; harder to fully knock out"
+   ],
+   "weaknesses": [
+    "Each robot is lighter, with less armour and weapon each"
+   ],
+   "matchupNote": "",
+   "sources": [
+    "https://robotcombatwiki.com/wiki/Glossary",
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Multibots"
+   ]
+  },
+  {
+   "id": "unique",
+   "name": "Unique weapon",
+   "family": "other",
+   "nhrlCategory": "Unique Weapons",
+   "definition": "Weapon that doesn’t fit the standard types.",
+   "strengths": [],
+   "weaknesses": [],
+   "matchupNote": "",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Category:Unique_Weapons"
+   ]
+  },
+  {
+   "id": "unknown",
+   "name": "Unknown / unverified",
+   "family": "unknown",
+   "nhrlCategory": null,
+   "definition": "No public source found for this robot’s weapon type yet. Set it yourself if you know it.",
+   "strengths": [],
+   "weaknesses": [],
+   "matchupNote": "",
+   "sources": []
+  }
+ ],
+ "bots": {
+  "blackjack": {
+   "name": "Black Jack",
+   "archetype": "vertical-spinner",
+   "subtype": null,
+   "confidence": "high",
+   "evidence": "NHRL wiki Robot Facts: Weapon “Vertical Spinner”; Category:Vertical Spinners.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Black_Jack"
+   ]
+  },
+  "sonofkram": {
+   "name": "Son of Kram",
+   "archetype": "drum",
+   "subtype": null,
+   "confidence": "high",
+   "evidence": "NHRL wiki Category:Drums (Weapon: “Stack” laser cut AR500 and 6061).",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Son_of_Kram"
+   ]
+  },
+  "thatsalotoftpu": {
+   "name": "That's a lot of TPU",
+   "archetype": "unknown",
+   "subtype": null,
+   "confidence": "none",
+   "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category; BrettZone has no weapon info.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=That%27s_a_lot_of_TPU",
+    "https://brettzone.nhrl.io/brettZone/v2/b/that-s-a-lot-of-tpu"
+   ]
+  },
+  "ftp": {
+   "name": "FTP",
+   "archetype": "unknown",
+   "subtype": null,
+   "confidence": "none",
+   "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=FTP"
+   ]
+  },
+  "ragebait": {
+   "name": "Ragebait",
+   "archetype": "unknown",
+   "subtype": null,
+   "confidence": "none",
+   "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Ragebait",
+    "https://brettzone.nhrl.io/brettZone/v2/b/ragebait"
+   ]
+  },
+  "torrent": {
+   "name": "Torrent",
+   "archetype": "vertical-spinner",
+   "subtype": null,
+   "confidence": "high",
+   "evidence": "NHRL wiki Robot Facts: Weapon “Vertical Spinner”; Category:Vertical Spinners.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Torrent"
+   ]
+  },
+  "maximizer": {
+   "name": "Maximizer",
+   "archetype": "undercutter",
+   "subtype": null,
+   "confidence": "high",
+   "evidence": "NHRL wiki Category:Undercutters; page describes a “thagomizer concept” robot with a 15 mm Hardox weapon and AR500 wedge.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Maximizer"
+   ]
+  },
+  "stag12": {
+   "name": "Stag 12",
+   "archetype": "unknown",
+   "subtype": null,
+   "confidence": "none",
+   "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Stag_12"
+   ]
+  },
+  "honeyfied": {
+   "name": "Honey-fied",
+   "archetype": "horizontal-spinner",
+   "subtype": null,
+   "confidence": "high",
+   "evidence": "NHRL wiki Robot Facts: Weapon “Horizontal Spinner”; Category:Horizontal Spinners.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Honey-fied"
+   ]
+  },
+  "larg": {
+   "name": "Larg",
+   "archetype": "horizontal-spinner",
+   "subtype": "midcutter",
+   "confidence": "high",
+   "evidence": "NHRL wiki Robot Facts: Weapon “Horizontal Midcutter Spinner”; Category:Horizontal Spinners.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Larg"
+   ]
+  },
+  "minunandplusle": {
+   "name": "Minun and Plusle",
+   "archetype": "multibot",
+   "subtype": "vertical spinners",
+   "confidence": "high",
+   "evidence": "NHRL wiki Robot Facts: Weapon “Multibot”; Categories: Multibots and Vertical Spinners.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Minun_and_Plusle"
+   ]
+  },
+  "modus": {
+   "name": "Modus",
+   "archetype": "unknown",
+   "subtype": null,
+   "confidence": "none",
+   "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category; BrettZone has no weapon info.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Modus",
+    "https://brettzone.nhrl.io/brettZone/v2/b/modus"
+   ]
+  }
+ }
+}

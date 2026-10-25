@@ -47,7 +47,7 @@ window.KODEX = {
    "record": {
     "w": 10,
     "l": 4,
-    "note": "KO-dex counts the April 2026 forfeit win vs BONK, which isn’t in BrettZone’s fight list."
+    "note": "KO-dex counts the April 2026 forfeit win vs BONK, which BrettZone’s per-bot list leaves out. This app now counts it too."
    },
    "fights": {
     "nhrl_nov25_12lb|EX-698d29212ee24dff": {
@@ -191,7 +191,7 @@ window.KODEX = {
    "record": {
     "w": 13,
     "l": 17,
-    "note": "KO-dex counts 5 forfeits: two March 2023 losses (IDKWTFID, Spectroscope), a March 2025 win vs The Trundler, and the March 2026 win vs Storm Surge and loss vs Project LiftOff-3."
+    "note": "KO-dex counts 5 forfeits: two March 2023 losses (IDKWTFID, Spectroscope), a March 2025 win vs The Trundler, and the March 2026 win vs Storm Surge and loss vs Project LiftOff-3. This app counts the same fights plus the Sept 2023 freestyle exhibition win vs Something."
    },
    "fights": {
     "nhrl_sep23_3lb|EX-0bdd80270d3d4c76": {

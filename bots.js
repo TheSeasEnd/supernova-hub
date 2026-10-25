@@ -6,7 +6,7 @@ window.BOTS = [
     name: 'Supernova',
     apiName: 'supernova',          // BrettZone clean name for /bots/{apiName}/fights
     weightClass: 12,
-    subtitle: '12lb · NHRL · Too Hot Robotics',
+    subtitle: '12lb · NHRL · Too Hot to Handle',
     enabled: true,
     // KO-dex: bundled snapshot only (data/kodex.js); never fetched from kodex.bot.
     kodex: (window.KODEX && window.KODEX.bots.supernova) || null,
@@ -19,16 +19,16 @@ window.BOTS = [
       ['Builder / driver', 'Ezequiel Gonzalez Solano'], ['Weight class', '12lb (NHRL)'],
       ['Weapon', 'Vertical spinner / eggbeater'], ['Body', '6061 aluminum, TPU, alloy steel'], ['Power', '6S LiPo']
     ],
-    footnoteTitle: 'Why the wiki says 10–4',
-    recordFootnote: 'The NHRL wiki and BrettZone rankings show <b>10–4</b>: that includes an April 2026 forfeit win that isn’t in the BrettZone fight list, so it isn’t counted here.',
-    eventNotes: { nhrl_apr26_12lb: 'The wiki also credits a forfeit win here that BrettZone’s fight list doesn’t include (wiki: 4–1).' }
+    footnoteTitle: 'Which fights are counted',
+    recordFootnote: 'Counted: every decided fight in BrettZone’s tournament fight lists, forfeits included. That adds the April 2026 forfeit win vs BONK, which BrettZone’s per-bot list leaves out. KO-dex and the NHRL wiki also have <b>10–4</b>. Without the forfeit it’s <b>9–4</b>.',
+    eventNotes: {}
   },
   {
     id: 'blink',
     name: 'Blink',
     apiName: 'blink',
     weightClass: 3,
-    subtitle: '3lb · NHRL',
+    subtitle: '3lb · NHRL · Too Hot to Handle',
     enabled: true,
     // This Blink is the 3lb bot, so KO-dex's blink-3 page applies.
     kodex: (window.KODEX && window.KODEX.bots.blink) || null,
@@ -40,8 +40,8 @@ window.BOTS = [
       ['Weapon', 'Single disk (vertical spinner)'], ['Weapon drive', 'Badass 2315'], ['Drive', 'Rectified Robotics brushless'],
       ['Body', 'UHMW, TPU'], ['Power', 'LiHV 4S 1100 mAh']
     ],
-    footnoteTitle: 'Why the wiki says 13–15',
-    recordFootnote: 'The NHRL wiki and BrettZone rankings show <b>13–15</b> (28 fights). They also count two March 2026 forfeits that BrettZone lists without a fight time (W vs Stormsurge, L vs Project LiftOff-3) and a March 1, 2025 forfeit win vs The Trundler that isn’t in BrettZone’s fight list. Forfeits aren’t counted here.',
+    footnoteTitle: 'Which fights are counted',
+    recordFootnote: 'Counted: every decided fight in BrettZone’s tournament fight lists (31), forfeits included. That adds 4 fights BrettZone’s per-bot list leaves out: the two March 2023 qualifier forfeits (L vs IDKWTFID, L vs Spectroscope), the Sept 2023 freestyle exhibition (W JD vs Something) and the March 1, 2025 forfeit win vs The Trundler. It also keeps the two March 2026 forfeits that have no fight time (W vs Stormsurge, L vs Project LiftOff-3). Without forfeits it’s <b>12–14</b>. The NHRL wiki and BrettZone rankings show <b>13–15</b> because they leave out forfeits from before 2024 and freestyle exhibitions.',
     eventNotes: {},
     profileDefaults: {
       name: 'Blink', weightClassLb: 3,

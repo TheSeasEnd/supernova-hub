@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#121212">
-<meta name="description" content="Supernova Hub — NHRL combat robot stats for Supernova (12lb) and Blink (3lb)">
+<meta name="description" content="Supernova Hub — NHRL combat robot stats for Supernova (12lb), Blink (3lb) and team Too Hot to Handle">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -34,6 +34,7 @@
 <main id="main">
   <section id="view-overview" class="view active" aria-label="Overview"></section>
   <section id="view-fights" class="view" aria-label="Fights and events"></section>
+  <section id="view-team" class="view" aria-label="Team"></section>
   <section id="view-archetypes" class="view" aria-label="Archetypes"></section>
   <section id="view-calc" class="view calcview" aria-label="Calculators"></section>
   <section id="view-more" class="view" aria-label="More"></section>
@@ -41,11 +42,14 @@
 <nav class="tabs" role="tablist">
   <button data-tab="overview" class="active" role="tab"><svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 3h4v18h-4zM17 9h4v12h-4z"/></svg><span>Overview</span></button>
   <button data-tab="fights" role="tab"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span>Fights</span></button>
+  <button data-tab="team" role="tab"><svg viewBox="0 0 24 24"><path d="M12 2c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 2 1.2 3 2.2 3.3C10.6 8 11.2 5 12 2z"/></svg><span>Team</span></button>
   <button data-tab="archetypes" role="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/></svg><span>Archetypes</span></button>
   <button data-tab="calc" role="tab"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 7h6M9 12h1M14 12h1M9 16h1M14 16h1"/></svg><span>Calcs</span></button>
   <button data-tab="more" role="tab"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>More</span></button>
 </nav>
 <div id="sheet" class="sheet" hidden><div class="sheetpanel" role="dialog" aria-label="Switch robot"><div id="sheetBody"></div></div></div>
+<script src="data/complete-fights.js"></script>
+<script src="data/team.js"></script>
 <script src="data/snapshot.js"></script>
 <script src="data/snapshot-blink.js"></script>
 <script src="data/kodex.js"></script>
@@ -53,6 +57,7 @@
 <script src="profile.js"></script>
 <script src="calcs.js"></script>
 <script src="archetypes.js"></script>
+<script src="teamview.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

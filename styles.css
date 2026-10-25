@@ -309,3 +309,51 @@ h1{text-transform:uppercase}
 .kxbtn{display:flex;justify-content:center;margin-top:12px;min-height:48px;align-items:center}
 .kxcredit{margin-top:10px;font-size:12px}
 .kxlistnote{margin:4px 4px 10px;font-size:12px}
+
+/* ===== v9: complete fight lists, forfeits, Team tab (Too Hot to Handle) ===== */
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ff{background:#8a8f9c}
+.method.FF,.method.DQ{background:#8a8f9c}
+.snapline{display:block;width:100%;text-align:center;font-size:10.5px;color:var(--muted);opacity:.85}
+.status.left .snapline{text-align:left}
+.recnotes{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.45}
+.recnotes b{color:var(--text)}
+.recnotes sup{color:var(--hot);font-weight:700}
+.tabs button{font-size:9px;letter-spacing:.02em}
+.tbanner{position:relative;overflow:hidden;border:1px solid var(--hot);border-radius:6px;margin-bottom:10px;background:#121212;min-height:112px}
+.tbanner .flames{position:absolute;inset:0;background:radial-gradient(120% 90% at 15% 120%,rgba(255,43,240,.55),transparent 55%),radial-gradient(90% 110% at 85% 130%,rgba(255,166,33,.75),transparent 60%),linear-gradient(180deg,#121212 20%,#2a1208)}
+.tb-in{position:relative;padding:14px}
+.tb-k{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--hot);font-weight:700}
+.tb-name{font-family:'Chakra Petch',system-ui,sans-serif;font-style:italic;font-weight:700;font-size:30px;line-height:1.05;letter-spacing:.02em;color:#fff;text-shadow:3px 3px 0 rgba(255,43,240,.65)}
+.tb-name span{color:var(--hot)}
+.tb-sub{margin-top:6px;font-size:12px;color:#ffd08a}
+.big .tr .w{color:var(--win)}.big .tr .l{color:var(--loss)}.big .tr .d{color:var(--muted);font-weight:400;margin:0 2px}
+.tcls .v{font-size:20px}
+.tcard{display:block;text-decoration:none;color:inherit;border-left:3px solid var(--hot)}
+.tcard.mine{border-color:var(--mag);border-left-color:var(--mag);box-shadow:0 0 0 1px rgba(255,43,240,.25) inset}
+.tcard.planned{border-left-color:#555;opacity:.85}
+.tc-top{display:flex;align-items:center;gap:8px}
+.tc-name{font-family:'Chakra Petch',system-ui,sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:17px;flex:1;min-width:0}
+.tc-name.big2{font-size:24px}
+.tdhead{display:flex;align-items:center;gap:8px;margin:6px 2px 6px}
+.tcls-chip{font-size:11px;font-weight:700;padding:2px 7px;border-radius:3px;border:1px solid var(--hot);color:var(--hot)}
+.tstreak{font-size:11px;font-weight:800;padding:2px 7px;border-radius:3px;color:#121212}
+.tstreak.W{background:var(--win)}.tstreak.L{background:var(--loss)}
+.tbuild{font-size:11px;font-weight:800;letter-spacing:.08em;padding:3px 8px;border-radius:3px;border:1px dashed var(--mag);color:var(--mag)}
+.tc-rec{display:flex;align-items:baseline;gap:10px;margin:6px 0 8px}
+.trec{font-family:'Chakra Petch',system-ui,sans-serif;font-style:italic;font-weight:700;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.trec .w{color:var(--win)}.trec .l{color:var(--loss)}.trec .d{color:var(--muted);font-weight:400;margin:0 2px}
+.tc-noff{font-size:12px;color:var(--muted)}
+.tc-rec .chev{margin-left:auto;color:var(--mag);font-size:24px;line-height:1}
+.tc-kv{display:grid;grid-template-columns:62px 1fr;gap:3px 8px;font-size:12.5px}
+.tc-kv span:nth-child(odd){color:var(--muted);text-transform:uppercase;font-size:10.5px;letter-spacing:.08em;padding-top:2px}
+.tc-foot{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.tchan{font-size:11px;padding:2px 7px;border-radius:3px;background:rgba(255,43,240,.12);color:#ff9cf6;border:1px solid rgba(255,43,240,.4)}
+.tsrc{font-size:10px;font-weight:800;letter-spacing:.06em;padding:2px 6px;border-radius:3px;border:1px solid var(--line);color:var(--muted)}
+.tsrc.x{border-color:var(--win);color:var(--win)}.tsrc.b{border-color:var(--to);color:var(--to)}.tsrc.w{border-color:var(--hot);color:var(--hot)}
+.tmine{font-size:11px;color:var(--mag);font-weight:700;margin-left:auto}
+.fight.tf .right{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.tflag{font-size:11.5px;color:#ffd08a;margin-top:3px}
+.tflag.bad{color:#ff8a95}
+.tlinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.ttot .recnotes{margin-bottom:10px}

@@ -6,7 +6,8 @@
   var API = 'https://brettzone.nhrl.io/brettZone/api.php';
   var MIN_GAP_MS = 5000, AUTO_MS = 60000;
   var TZ = 'America/New_York';
-  var TABS = ['overview', 'fights', 'archetypes', 'calc', 'more'];
+  var TABS = ['overview', 'fights', 'team', 'archetypes', 'calc', 'more'];
+  var DEEP_MS = 15 * 60000, DEEP_GAP_MS = 1500, DEEP_MAX = 6;
 
   var BOTS = window.BOTS || [];
   var bot = null; // current bot config
@@ -28,26 +29,42 @@
   function botUrl(clean) { return 'https://brettzone.nhrl.io/brettZone/v2/b/' + encodeURIComponent(clean); }
 
   /* ---------- data & stats ---------- */
-  function normalise(raw) {
+  // BrettZone's /bots/{bot}/fights misses some decided fights (forfeits, fights with no start time, unlisted events).
+  // So the fight list is a union, keyed by tournamentID|gameID (later sources win):
+  // bundled complete snapshot (every tournament fight list) < bundled bot-endpoint snapshot < live tournament re-scan < live bot endpoint.
+  function completeList() { var c = window.COMPLETE_FIGHTS; return (c && c.bots && c.bots[bot.id]) || []; }
+  function mergedRaw() {
+    var m = {}, keys = [];
+    function add(list) { (list || []).forEach(function (f) { if (!f || !f.tournamentID) return; var k = f.tournamentID + '|' + f.gameID; if (!m[k]) keys.push(k); m[k] = Object.assign({}, m[k] || {}, f); }); }
+    add(completeList());
+    add(bot.snapshot && bot.snapshot.data && bot.snapshot.data.fights);
+    var deep = state.deep && state.deep.extras; if (deep) Object.keys(deep).forEach(function (t) { add(deep[t]); });
+    add(state.data && state.data.fights);
+    return keys.map(function (k) { return m[k]; });
+  }
+  function isExhibition(f) { return +f.isFreestyle === 1 || /freestyle|\bxp\b/i.test(f.tournamentName || ''); }
+  function normalise(list) {
     var me0 = bot.apiName;
-    return ((raw && raw.fights) || []).map(function (f) {
+    var F = list.map(function (f) {
       var me = String(f.player1clean).toLowerCase() === me0 ? 1 : 2, op = 3 - me;
+      var w = +f['player' + me + 'wins'], l = +f['player' + op + 'wins'], method = f.winAnnotation || '';
       return {
         tournamentID: f.tournamentID, tournamentName: f.tournamentName, gameID: f.gameID, name: f.name, round: +f.round,
-        opp: f['player' + op], oppClean: f['player' + op + 'clean'],
-        won: +f['player' + me + 'wins'] > +f['player' + op + 'wins'], method: f.winAnnotation || '',
-        start: +f.startTime, length: +f.matchLength
+        opp: f['player' + op], oppClean: f['player' + op + 'clean'], w: w, l: l,
+        won: w > l, method: method, forfeit: method === 'FF' || method === 'DQ', exhibition: isExhibition(f),
+        start: +f.startTime || +f.endTime || 0, noTime: !(+f.startTime > 0),
+        // BrettZone reports matchLength = stopTime - 0 for fights with no start time; only trust real lengths.
+        length: (+f.startTime > 0 && +f.matchLength > 0 && +f.matchLength < 1200 && !(method === 'FF' || method === 'DQ')) ? +f.matchLength : 0
       };
-    }).filter(function (f) { return f.start > 0 && f.method !== 'FF'; }).sort(function (a, b) { return a.start - b.start; });
+    }).filter(function (f) { return f.w + f.l > 0 && f.method !== 'BY' && String(f.oppClean).toLowerCase() !== 'bye'; }); // drop unplayed 0-0 placeholders and byes
+    // A fight with no time at all goes to the end of its event (bracket) or the start (qualifying).
+    var tmin = {}, tmax = {};
+    F.forEach(function (f) { if (f.start) { tmin[f.tournamentID] = Math.min(tmin[f.tournamentID] || Infinity, f.start); tmax[f.tournamentID] = Math.max(tmax[f.tournamentID] || 0, f.start); } });
+    F.forEach(function (f) { if (!f.start) f.start = f.round >= 0 ? (tmax[f.tournamentID] || 0) + 1 : (tmin[f.tournamentID] || 0); });
+    return F.sort(function (a, b) { return a.start - b.start || String(a.name).localeCompare(String(b.name)); });
   }
-  // Forfeits: BrettZone lists some with no start time / matchLength; never counted in stats.
-  function forfeits(raw) {
-    var me0 = bot.apiName;
-    return ((raw && raw.fights) || []).filter(function (f) { return !(+f.startTime > 0) || f.winAnnotation === 'FF'; }).map(function (f) {
-      var me = String(f.player1clean).toLowerCase() === me0 ? 1 : 2, op = 3 - me;
-      return { tournamentID: f.tournamentID, gameID: f.gameID, opp: f['player' + op], won: +f['player' + me + 'wins'] > +f['player' + op + 'wins'] };
-    });
-  }
+  function rec(list) { var w = 0, l = 0; list.forEach(function (f) { f.won ? w++ : l++; }); return { w: w, l: l }; }
+  var Y2024 = Date.UTC(2024, 0, 1, 5) / 1000;
 
   function stageLabel(f) {
     var rn = state.rounds[f.tournamentID + '/' + f.gameID];
@@ -60,26 +77,32 @@
   }
 
   function computeStats(F) {
-    var s = { n: F.length, w: 0, l: 0, winBy: { KO: 0, TO: 0, JD: 0 }, lossBy: { KO: 0, TO: 0, JD: 0 }, total: 0, bestStreak: 0 };
+    var s = { n: F.length, w: 0, l: 0, winBy: { KO: 0, TO: 0, JD: 0, FF: 0 }, lossBy: { KO: 0, TO: 0, JD: 0, FF: 0 }, total: 0, bestStreak: 0 };
     var run = 0;
     F.forEach(function (f) {
-      if (f.won) { s.w++; if (f.method in s.winBy) s.winBy[f.method]++; run++; s.bestStreak = Math.max(s.bestStreak, run); }
-      else { s.l++; if (f.method in s.lossBy) s.lossBy[f.method]++; run = 0; }
-      s.total += f.length;
+      var mk = f.forfeit ? 'FF' : f.method;
+      if (f.won) { s.w++; if (mk in s.winBy) s.winBy[mk]++; run++; s.bestStreak = Math.max(s.bestStreak, run); }
+      else { s.l++; if (mk in s.lossBy) s.lossBy[mk]++; run = 0; }
     });
+    s.noFF = rec(F.filter(function (f) { return !f.forfeit; }));
+    s.wikiRule = rec(F.filter(function (f) { return !(f.forfeit && f.start < Y2024) && !/freestyle/i.test(f.tournamentName || ''); }));
+    s.nForfeit = F.filter(function (f) { return f.forfeit; }).length;
+    s.nNoTime = F.filter(function (f) { return f.noTime; }).length;
+    var T = F.filter(function (f) { return f.length > 0; }); // fight-time stats only use fights with a recorded length
+    s.timed = T.length; T.forEach(function (f) { s.total += f.length; });
     s.rate = s.n ? s.w / s.n : 0;
     var cur = 0, type = null;
     for (var i = F.length - 1; i >= 0; i--) { var t = F[i].won ? 'W' : 'L'; if (type === null) type = t; if (t !== type) break; cur++; }
     s.streak = type ? { type: type, n: cur } : null;
     s.last5 = F.slice(-5).map(function (f) { return f.won ? 'W' : 'L'; });
-    s.avg = s.n ? s.total / s.n : 0;
-    var lens = F.map(function (f) { return f.length; }), minL = Math.min.apply(null, lens), maxL = Math.max.apply(null, lens);
-    s.shortest = F.filter(function (f) { return f.length === minL; });
-    s.longest = F.filter(function (f) { return f.length === maxL; });
-    s.fastestKO = F.filter(function (f) { return f.won && f.method === 'KO'; }).sort(function (a, b) { return a.length - b.length; })[0] || null;
+    s.avg = s.timed ? s.total / s.timed : 0;
+    var lens = T.map(function (f) { return f.length; }), minL = Math.min.apply(null, lens), maxL = Math.max.apply(null, lens);
+    s.shortest = T.filter(function (f) { return f.length === minL; });
+    s.longest = T.filter(function (f) { return f.length === maxL; });
+    s.fastestKO = T.filter(function (f) { return f.won && f.method === 'KO'; }).sort(function (a, b) { return a.length - b.length; })[0] || null;
     var ev = {}, order = [];
     F.forEach(function (f) { if (!ev[f.tournamentID]) { ev[f.tournamentID] = { id: f.tournamentID, name: f.tournamentName, fights: [], w: 0, l: 0 }; order.push(f.tournamentID); } var e = ev[f.tournamentID]; e.fights.push(f); f.won ? e.w++ : e.l++; });
-    s.events = order.map(function (id) { var e = ev[id], last = e.fights[e.fights.length - 1]; e.date = e.fights[0].start; e.lastStage = stageLabel(last); e.lastWon = last.won; return e; });
+    s.events = order.map(function (id) { var e = ev[id], last = e.fights[e.fights.length - 1]; e.date = Math.min.apply(null, e.fights.map(function (f) { return f.start; })); e.lastStage = stageLabel(last); e.lastWon = last.won; return e; });
     var op = {}; F.forEach(function (f) { var o = op[f.oppClean] || (op[f.oppClean] = { name: f.opp, clean: f.oppClean, w: 0, l: 0 }); f.won ? o.w++ : o.l++; });
     s.opponents = Object.keys(op).map(function (k) { return op[k]; });
     return s;
@@ -98,8 +121,10 @@
     var label = state.source === 'live' ? 'Live' : state.source === 'cache' ? 'Saved' : 'Offline snapshot';
     return '<div class="status' + (state.error ? ' warn' : '') + '"><span class="dot-live' + (live ? ' on' : '') + '"></span>' + label +
       (state.fetchedAt ? ' · updated <span data-ago>' + ago(state.fetchedAt) + '</span> (' + fmtTime(state.fetchedAt) + ')' : '') +
-      (state.error ? ' · BrettZone unreachable, showing saved data' : '') + (state.loading ? ' · refreshing…' : '') + '</div>';
+      (state.error ? ' · BrettZone unreachable, showing saved data' : '') + (state.loading || state.deepLoading ? ' · refreshing…' : '') +
+      '<br><span class="snapline">' + esc(completeLabel()) + (state.deep && state.deep.at ? ' · new events checked ' + fmtStamp(state.deep.at) : '') + '</span></div>';
   }
+  function completeLabel() { var c = window.COMPLETE_FIGHTS; return c ? 'Complete list: bundled snapshot ' + fmtStamp(c.scannedAt) + ' + live' : 'Live BrettZone fight list'; }
   function bzFooter() {
     return '<div class="foot">Fight data from <a href="https://brettzone.nhrl.io" target="_blank" rel="noopener">BrettZone (brettzone.nhrl.io)</a> by NHRL</div>';
   }
@@ -127,7 +152,7 @@
       '<div>Badges</div><div>' + k.badges.map(function (b) { return '<span class="kxbadge">' + esc(b.name) + (b.count > 1 ? ' ×' + b.count : '') + '</span> <span class="note">earned ' + esc(b.earned) + '</span>'; }).join('<br>') + '</div>' +
       '<div>Best win</div><div>' + kxDelta(k.bestWin.delta) + ' vs ' + esc(k.bestWin.opp) + '</div>' +
       '<div>KO-dex’s record</div><div><b>' + rec.w + '–' + rec.l + '</b> <span class="note">(KO-dex’s number)</span></div></div>' +
-      '<div class="note" style="margin-top:8px">KO-dex’s ' + rec.w + '–' + rec.l + ' includes forfeits. ' + esc(rec.note) + ' This app’s own record above is <b>' + s.w + '–' + s.l + '</b>, computed from BrettZone fights with a fight time.</div>' +
+      '<div class="note" style="margin-top:8px">KO-dex’s ' + rec.w + '–' + rec.l + ' includes forfeits. ' + esc(rec.note) + ' This app’s own record above is <b>' + s.w + '–' + s.l + '</b> (' + s.noFF.w + '–' + s.noFF.l + ' without forfeits), from BrettZone’s complete fight lists.</div>' +
       '<a class="btn kxbtn" href="' + esc(k.url) + '" target="_blank" rel="noopener">Open ' + esc(bot.name) + ' on KO-dex ↗</a>' +
       '<div class="note kxcredit">' + kxCredit() + '. Per-fight rating changes are shown in Fights.</div></div>';
   }
@@ -141,24 +166,27 @@
       '<div class="rank" style="text-align:right">' + s.events.length + ' events<br>' + s.n + ' fights</div></div></div>';
     h += '<div class="card"><div class="record"><div><div class="k2">Record</div><div class="big"><span class="w">' + s.w + '</span><span class="d">–</span><span class="l">' + s.l + '</span></div></div>' +
       '<div class="stat" style="margin-left:auto;text-align:right"><div class="v">' + (s.rate * 100).toFixed(1) + '%</div><div class="k">Win rate</div></div></div>' +
+      '<div class="recnotes"><div><sup>1</sup> Without forfeits: <b>' + s.noFF.w + '–' + s.noFF.l + '</b>' + (s.nForfeit ? ' (' + s.nForfeit + ' forfeit' + (s.nForfeit > 1 ? 's' : '') + ' counted above)' : '') + '</div>' +
+      '<div><sup>2</sup> NHRL wiki / BrettZone rankings: <b>' + s.wikiRule.w + '–' + s.wikiRule.l + '</b>. They leave out forfeits from before 2024 and freestyle exhibitions.</div></div>' +
       (bot.recordFootnote ? '<details class="fn"><summary>' + esc(bot.footnoteTitle || 'About this record') + '</summary><div class="note">' + bot.recordFootnote + '</div></details>' : '') + '</div>';
     h += renderKodexCard(s);
     h += '<div class="grid2"><div class="card stat"><div class="v ' + (s.streak && s.streak.type === 'W' ? 'win' : 'loss') + '">' + (s.streak ? s.streak.type + s.streak.n : '—') + '</div><div class="k">Current streak</div></div>' +
       '<div class="card stat"><div class="v win">W' + s.bestStreak + '</div><div class="k">Best win streak</div></div></div>';
     h += '<div class="card"><h2>Last 5</h2><div class="form">' + s.last5.map(function (x) { return '<div class="pill ' + x + '">' + x + '</div>'; }).join('') + '<span class="arrow">← latest</span></div></div>';
     var tw = s.w || 1;
-    h += '<div class="card"><h2>How the wins came</h2><div class="grid3">' +
-      ['KO', 'TO', 'JD'].map(function (m) { return '<div class="mini stat"><div class="v" style="color:var(--' + m.toLowerCase() + ')">' + s.winBy[m] + '</div><div class="k">' + m + '</div></div>'; }).join('') + '</div>' +
-      '<div class="bar">' + ['KO', 'TO', 'JD'].map(function (m) { return '<span class="' + m.toLowerCase() + '" style="width:' + (s.winBy[m] / tw * 100) + '%"></span>'; }).join('') + '</div>' +
-      '<div class="note">KO knockout · TO tap-out · JD judges’ decision</div></div>';
+    h += '<div class="card"><h2>How the wins came</h2><div class="grid4">' +
+      ['KO', 'TO', 'JD', 'FF'].map(function (m) { return '<div class="mini stat"><div class="v" style="color:var(--' + m.toLowerCase() + ')">' + s.winBy[m] + '</div><div class="k">' + m + '</div></div>'; }).join('') + '</div>' +
+      '<div class="bar">' + ['KO', 'TO', 'JD', 'FF'].map(function (m) { return '<span class="' + m.toLowerCase() + '" style="width:' + (s.winBy[m] / tw * 100) + '%"></span>'; }).join('') + '</div>' +
+      '<div class="note">KO knockout · TO tap-out · JD judges’ decision · FF forfeit</div></div>';
     h += '<div class="card"><h2>Losses</h2><div class="grid2"><div class="stat"><div class="v loss">' + s.lossBy.KO + '</div><div class="k">KO losses</div></div>' +
-      '<div class="stat"><div class="v">' + (s.lossBy.JD + s.lossBy.TO) + '</div><div class="k">JD / TO losses</div><div class="s">' + s.lossBy.JD + ' JD · ' + s.lossBy.TO + ' TO</div></div></div></div>';
+      '<div class="stat"><div class="v">' + (s.lossBy.JD + s.lossBy.TO + s.lossBy.FF) + '</div><div class="k">JD / TO / FF losses</div><div class="s">' + s.lossBy.JD + ' JD · ' + s.lossBy.TO + ' TO · ' + s.lossBy.FF + ' FF</div></div></div></div>';
     function who(arr) { return arr.map(function (f) { return 'vs ' + esc(f.opp); }).join(', '); }
-    h += '<div class="card"><h2>Fight time</h2><div class="grid3">' +
+    if (s.timed) h += '<div class="card"><h2>Fight time</h2><div class="grid3">' +
       '<div class="stat"><div class="v">' + secs(s.avg) + '</div><div class="k">Average</div><div class="s">' + mmss(s.avg) + '</div></div>' +
       '<div class="stat"><div class="v">' + secs(s.shortest[0].length) + '</div><div class="k">Shortest</div><div class="s">' + who(s.shortest) + '</div></div>' +
       '<div class="stat"><div class="v">' + secs(s.longest[0].length) + '</div><div class="k">Longest</div><div class="s">' + who(s.longest) + '</div></div></div>' +
-      (s.fastestKO ? '<div class="note" style="margin-top:10px">Fastest KO win: ' + secs(s.fastestKO.length) + ' vs ' + esc(s.fastestKO.opp) + '.</div>' : '') + '</div>';
+      (s.fastestKO ? '<div class="note" style="margin-top:10px">Fastest KO win: ' + secs(s.fastestKO.length) + ' vs ' + esc(s.fastestKO.opp) + '.</div>' : '') +
+      (s.timed < s.n ? '<div class="note" style="margin-top:6px">From the ' + s.timed + ' fights with a recorded length. ' + (s.n - s.timed) + ' (mostly forfeits) have none.</div>' : '') + '</div>';
     var rep = s.opponents.filter(function (o) { return o.w + o.l > 1; });
     if (rep.length) h += '<div class="card"><h2>Rematches</h2>' + rep.map(function (o) { return '<div class="kv"><div>' + esc(o.name) + '</div><div><b>' + o.w + '–' + o.l + '</b></div></div>'; }).join('') + '</div>';
     h += '<a class="card linkcard" href="#archetypes" data-nav="archetypes"><span>Archetype matchups: who is ' + esc(bot.name) + ' weak against?</span><span class="chev">›</span></a>';
@@ -170,8 +198,8 @@
     var r = f.won ? 'W' : 'L', kx = kxFight(f);
     return '<a class="fight ' + r + '" href="' + fightUrl(f) + '" target="_blank" rel="noopener">' +
       '<div class="res ' + (f.won ? 'win' : 'loss') + '">' + r + '</div>' +
-      '<div class="mid"><div class="opp">' + esc(f.opp) + '</div><div class="rd">' + esc(stageLabel(f)) + ' · ' + archChip(f.oppClean) + '</div>' + (kx ? '<div class="kxrow">KO-dex ' + kxDelta(kx.d) + ' → ' + kx.after + '</div>' : '') + '</div>' +
-      '<div class="right"><span class="method ' + esc(f.method) + '">' + esc(f.method || '—') + '</span><span class="len">' + secs(f.length) + '</span></div><span class="ext">↗</span></a>';
+      '<div class="mid"><div class="opp">' + esc(f.opp) + '</div><div class="rd">' + esc(stageLabel(f)) + (f.exhibition ? ' · exhibition' : '') + ' · ' + archChip(f.oppClean) + '</div>' + (kx ? '<div class="kxrow">KO-dex ' + kxDelta(kx.d) + ' → ' + kx.after + '</div>' : '') + '</div>' +
+      '<div class="right"><span class="method ' + esc(f.method) + '">' + esc(f.method || '—') + '</span><span class="len">' + (f.length ? secs(f.length) : (f.forfeit ? 'forfeit' : 'no time')) + '</span></div><span class="ext">↗</span></a>';
   }
 
   var fightsSeg = 'list';
@@ -189,7 +217,7 @@
           (ff.length ? '<div class="note ffnote">Forfeit' + (ff.length > 1 ? 's' : '') + ' (not counted): ' + ff.map(function (x) { var k3 = kxFight(x); return (x.won ? 'W' : 'L') + ' vs ' + esc(x.opp) + (k3 ? ' (KO-dex ' + kxDelta(k3.d) + ')' : ''); }).join(', ') + '</div>' : '') +
           (kxOnly.length ? '<div class="note ffnote">Only on KO-dex (not in BrettZone’s fight list, not counted): ' + kxOnly.map(function (x) { return x.r + ' ' + esc(x.m) + ' vs ' + esc(x.opp) + ' (' + kxDelta(x.d) + ')'; }).join(', ') + '</div>' : '') + '</div>';
       });
-      h += '<div class="note pad">Newest first. Tap a fight to watch it on BrettZone.</div>';
+      h += '<div class="note pad">Newest first. Tap a fight to open it on BrettZone. Forfeits and fights with no start time are counted (BrettZone’s per-bot list leaves some out; this list comes from every tournament fight list).</div>';
     } else {
       s.events.slice().reverse().forEach(function (e) {
         var p = placement(e), ko = e.fights.filter(function (f) { return f.won && f.method === 'KO'; }).length, kod = e.fights.filter(function (f) { return !f.won && f.method === 'KO'; }).length;
@@ -212,10 +240,10 @@
     h += '<div class="card"><h2>Data</h2>' + statusLine().replace('class="status', 'class="status left') +
       '<div class="setrow"><div><div class="st">Auto-refresh</div><div class="note">Every 60 s while the app is open, plus when you return to it.</div></div><label class="switch"><input type="checkbox" id="autoToggle"' + (auto ? ' checked' : '') + '><span></span></label></div>' +
       '<div class="setrow"><div><div class="st">Refresh now</div><div class="note">Or pull down on any data screen. At most one request every 5 s.</div></div><button class="btn sm" data-refresh>Refresh</button></div>' +
-      '<div class="note">Bundled offline snapshot: ' + (snap ? esc(fmtStamp(snap.fetchedAt)) : 'none') + '. ' +
+      '<div class="note">Bundled complete fight list (every BrettZone tournament scanned): ' + (window.COMPLETE_FIGHTS ? esc(fmtStamp(window.COMPLETE_FIGHTS.scannedAt)) : 'none') + '. Bot-endpoint snapshot: ' + (snap ? esc(fmtStamp(snap.fetchedAt)) : 'none') + '. Live refresh reads <code>/bots/' + esc(bot.apiName) + '/fights</code>. Every 15 min (or when you refresh by hand) it also re-scans any BrettZone tournaments updated since the snapshot, so new forfeits and fights with no start time aren’t missed. ' +
       (bot.rank ? 'Rank #' + bot.rank.value + ' is from <a href="' + bot.rank.url + '" target="_blank" rel="noopener">BrettZone rankings</a> as of ' + esc(bot.rank.asOf) + '. It isn’t live: the API has no rankings endpoint, and its wins leaderboard counts fights differently.' : '') + '</div></div>';
     h += '<div class="sectiontitle pad">Credits</div>';
-    h += '<div class="card credit"><h3>Fight data · BrettZone</h3><p>Fight data from <b>BrettZone (brettzone.nhrl.io)</b> by <b>NHRL</b>. Every stat here is computed from BrettZone’s public fight list.</p>' +
+    h += '<div class="card credit"><h3>Fight data · BrettZone</h3><p>Fight data from <b>BrettZone (brettzone.nhrl.io)</b> by <b>NHRL</b>. Every stat here is computed from BrettZone’s public fight lists (the bot’s list plus every tournament fight list, because the per-bot list leaves out some forfeits and fights with no start time).</p>' +
       '<div class="links"><a class="btn" href="https://brettzone.nhrl.io" target="_blank" rel="noopener">brettzone.nhrl.io ↗</a><a class="btn ghost" href="' + botUrl(bot.apiName) + '" target="_blank" rel="noopener">' + esc(bot.name) + ' on BrettZone ↗</a></div></div>';
     if (bot.kodex) h += '<div class="card credit"><h3>Ratings · KO-dex</h3><p>' + kxCredit() + '.</p><p class="note">' + kxLabel() + '. Values are bundled in the app; it never calls kodex.bot.</p>' +
       '<div class="links"><a class="btn" href="' + esc(bot.kodex.url) + '" target="_blank" rel="noopener">' + esc(bot.name) + ' on KO-dex ↗</a><a class="btn ghost" href="https://kodex.bot" target="_blank" rel="noopener">kodex.bot ↗</a></div></div>';
@@ -235,14 +263,15 @@
   }
 
   function renderArchetypes() {
-    if (window.Archetypes) window.Archetypes.render($('view-archetypes'), { bot: bot, F: state.F, status: statusLine(), footer: bzFooter(), esc: esc, fmtDate: fmtDate, fightUrl: fightUrl, onChange: renderAll });
+    if (window.Archetypes) window.Archetypes.render($('view-archetypes'), { bot: bot, F: state.F.filter(function (f) { return !f.forfeit; }), status: statusLine(), footer: bzFooter(), esc: esc, fmtDate: fmtDate, fightUrl: fightUrl, onChange: renderAll });
   }
 
   function renderAll() {
-    state.F = normalise(state.data); state.ff = forfeits(state.data);
+    state.F = normalise(mergedRaw()); state.ff = [];
     state.s = state.F.length ? computeStats(state.F) : null;
     window.__stats = state.s; window.__fights = state.F;
     renderOverview(); renderFights(); renderArchetypes(); renderMore();
+    if (window.TeamView) window.TeamView.render();
   }
 
   /* ---------- fetching / live updates ---------- */
@@ -253,7 +282,7 @@
   }
 
   var lastReq = 0;
-  function refresh() {
+  function refresh(manual) {
     if (!bot || state.loading) return Promise.resolve(false);
     if (Date.now() - lastReq < MIN_GAP_MS) return Promise.resolve(false);
     lastReq = Date.now();
@@ -265,7 +294,43 @@
       state.data = d; state.fetchedAt = new Date().toISOString(); state.source = 'live'; state.error = null;
       lsSet(key('fights'), { fetchedAt: state.fetchedAt, data: d });
     }).catch(function (e) { state.error = String(e); })
-      .then(function () { state.loading = false; $('refreshBtn').classList.remove('spin'); renderAll(); return fillMissingRounds(); });
+      .then(function () { state.loading = false; $('refreshBtn').classList.remove('spin'); renderAll(); return deepCheck(manual).then(fillMissingRounds); });
+  }
+
+  // Re-scan BrettZone tournaments updated since the bundled complete snapshot (usually 0-3 lists, ~40-110 KB each),
+  // at most every 15 min (60 s for a manual refresh). Results are cached per bot in localStorage.
+  var lastDeep = 0;
+  function deepCheck(manual) {
+    var b = bot, c = window.COMPLETE_FIGHTS;
+    if (!b || !c || state.deepLoading) return Promise.resolve();
+    var d = state.deep || { at: null, extras: {}, seen: {} };
+    var since = Math.max(lastDeep, d.at ? Date.parse(d.at) : 0);
+    if (Date.now() - since < (manual ? 60000 : DEEP_MS)) return Promise.resolve();
+    lastDeep = Date.now(); state.deepLoading = true;
+    var snapT = Date.parse(c.scannedAt) - 86400000; // 1-day margin
+    return getJSON('/tournaments').then(function (r) {
+      var list = ((r && r.tournaments) || []).filter(function (t) {
+        var upd = Date.parse(String(t.updateTime || '').replace(' ', 'T') + 'Z');
+        return (+t.WeightClass === +b.weightClass || +t.WeightClass === 0) && +t.isTest !== 1 && upd >= snapT && d.seen[t.tournamentID] !== t.updateTime;
+      }).sort(function (x, y) { return String(y.updateTime).localeCompare(String(x.updateTime)); }).slice(0, DEEP_MAX);
+      var chain = Promise.resolve();
+      list.forEach(function (t, i) {
+        chain = chain.then(function () { return i ? new Promise(function (res) { setTimeout(res, DEEP_GAP_MS); }) : null; })
+          .then(function () { return getJSON('/tournaments/' + encodeURIComponent(t.tournamentID) + '/fights'); })
+          .then(function (fr) {
+            d.extras[t.tournamentID] = ((fr && fr.fights) || []).filter(function (x) { return x.player1clean === b.apiName || x.player2clean === b.apiName; }).map(function (x) {
+              return { tournamentID: x.tournamentID, gameID: x.id, name: x.name, round: x.round, cage: x.cage, player1: x.player1, player1clean: x.player1clean, player2: x.player2, player2clean: x.player2clean,
+                player1wins: x.player1wins, player2wins: x.player2wins, winAnnotation: x.winAnnotation || '', startTime: x.startTime || 0, endTime: x.endTime ? Math.floor(x.endTime / 1000) : 0,
+                matchLength: x.matchLength || 0, tournamentName: x.tournamentName || t.tournamentName, WeightClass: x.weightClass || t.WeightClass, isFreestyle: t.isFreestyle };
+            });
+            d.seen[t.tournamentID] = t.updateTime;
+          }).catch(function () {});
+      });
+      return chain;
+    }).then(function () {
+      d.at = new Date().toISOString();
+      if (b === bot) { state.deep = d; lsSet(key('deep'), d); }
+    }).catch(function () {}).then(function () { state.deepLoading = false; if (b === bot) renderAll(); });
   }
 
   // Round names (e.g. "Semifinals") come from /stats/fight. Fetch only unseen bracket fights, spaced ≥5 s apart.
@@ -299,12 +364,14 @@
     if (window.Archetypes) window.Archetypes.setBot(b.id);
     if (window.RobotProfile) window.RobotProfile.use(b.id, b.profileDefaults);
     if (window.Calcs) window.Calcs.rerender();
-    state = { data: null, fetchedAt: null, source: 'snapshot', rounds: {}, error: null, loading: false, F: [], ff: [], s: null };
+    state = { data: null, fetchedAt: null, source: 'snapshot', rounds: {}, error: null, loading: false, F: [], ff: [], s: null, deep: lsGet('sn_' + b.id + '_deep'), deepLoading: false };
+    lastDeep = 0;
     var snap = b.snapshot;
     if (snap && snap.roundNames) Object.keys(snap.roundNames).forEach(function (k) { if (snap.roundNames[k]) state.rounds[k] = snap.roundNames[k]; });
     var saved = lsGet(key('rounds')) || {}; Object.keys(saved).forEach(function (k) { state.rounds[k] = saved[k]; });
     var cached = lsGet(key('fights'));
     if (cached && cached.data && cached.data.fights) { state.data = cached.data; state.fetchedAt = cached.fetchedAt; state.source = 'cache'; }
+    else if (window.COMPLETE_FIGHTS) { state.data = null; state.fetchedAt = window.COMPLETE_FIGHTS.scannedAt; state.source = 'snapshot'; }
     else if (snap) { state.data = snap.data; state.fetchedAt = snap.fetchedAt; state.source = 'snapshot'; }
     $('botName').innerHTML = esc(b.name.slice(0, Math.ceil(b.name.length / 2))) + '<span>' + esc(b.name.slice(Math.ceil(b.name.length / 2))) + '</span>';
     $('botSub').textContent = b.subtitle || '';
@@ -329,6 +396,7 @@
     document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === r.tab); b.setAttribute('aria-selected', b.dataset.tab === r.tab); });
     document.querySelectorAll('.view').forEach(function (v) { v.classList.toggle('active', v.id === 'view-' + r.tab); });
     if (r.tab === 'calc' && window.Calcs) window.Calcs.open(r.sub || 'list');
+    if (r.tab === 'team' && window.TeamView) window.TeamView.open(r.sub || '');
     window.scrollTo(0, 0);
   }
   // Tab switches replace history (no long back stacks); sub-pages push so the phone's back gesture returns.
@@ -338,30 +406,31 @@
     route();
   }
   function back(fallback) { if (history.state && history.state.sub) history.back(); else navigate(fallback, false); }
-  window.App = { navigate: navigate, back: back };
+  window.App = { navigate: navigate, back: back, switchBot: function (id) { if (!bot || id !== bot.id) loadBot(id); navigate('#overview', false); }, esc: esc };
 
   /* ---------- wiring ---------- */
   function setupPTR() {
     var startY = null, dy = 0, ptr = $('ptr');
     window.addEventListener('touchstart', function (e) { var v = document.querySelector('.view.active'); if (window.scrollY <= 0 && v && v.id !== 'view-calc' && !$('sheet').classList.contains('open')) { startY = e.touches[0].clientY; dy = 0; } }, { passive: true });
     window.addEventListener('touchmove', function (e) { if (startY === null) return; dy = e.touches[0].clientY - startY; if (dy > 0) { ptr.style.height = Math.min(dy / 2, 44) + 'px'; ptr.textContent = dy > 90 ? 'Release to refresh' : 'Pull to refresh'; } }, { passive: true });
-    window.addEventListener('touchend', function () { if (startY === null) return; var go = dy > 90; startY = null; ptr.style.height = '0'; if (go) refresh(); });
+    window.addEventListener('touchend', function () { if (startY === null) return; var go = dy > 90; startY = null; ptr.style.height = '0'; if (go) refresh(true); });
   }
 
   function init() {
     if (window.Calcs) window.Calcs.init($('view-calc'));
+    if (window.TeamView) window.TeamView.init($('view-team'));
     document.querySelectorAll('.tabs button').forEach(function (b) {
       b.addEventListener('click', function () { var r = parse(location.hash); navigate('#' + b.dataset.tab, false); if (r.tab === b.dataset.tab) window.scrollTo({ top: 0, behavior: 'smooth' }); });
     });
     document.addEventListener('click', function (e) {
       var n = e.target.closest('[data-nav]'); if (n) { e.preventDefault(); navigate('#' + n.dataset.nav, false); return; }
       var sg = e.target.closest('[data-seg]'); if (sg) { fightsSeg = sg.dataset.seg; renderFights(); return; }
-      if (e.target.closest('[data-refresh]')) { refresh(); return; }
+      if (e.target.closest('[data-refresh]')) { refresh(true); return; }
       var bb = e.target.closest('[data-bot]'); if (bb) { closeSheet(); if (bb.dataset.bot !== bot.id) loadBot(bb.dataset.bot); return; }
       if (e.target.closest('[data-close]') || e.target.id === 'sheet') { closeSheet(); return; }
     });
     document.addEventListener('change', function (e) { if (e.target.id === 'autoToggle') { lsSet('sn_auto_refresh', e.target.checked); } });
-    $('refreshBtn').addEventListener('click', function () { refresh(); });
+    $('refreshBtn').addEventListener('click', function () { refresh(true); });
     $('botSwitch').addEventListener('click', openSheet);
     window.addEventListener('popstate', route);
     setupPTR();

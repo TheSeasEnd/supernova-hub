@@ -293,3 +293,5 @@ select:focus{outline:none;border-color:var(--hot)}
 .gloss .gitem{padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 code{font-size:11px;color:var(--hot)}
 h1{text-transform:uppercase}
+.seg3 button{font-size:11px;padding:9px 4px}
+.formula .fc{color:var(--muted);font-size:11px}

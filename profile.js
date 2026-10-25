@@ -9,7 +9,7 @@
   // example (not Supernova's real spec) until the user edits it. `isExample` drives the UI banner.
   function defaults() {
     return {
-      version: 1,
+      version: 2,
       name: 'Supernova',
       weightClassLb: 12,
       isExample: true,
@@ -17,9 +17,10 @@
         chemistry: 'LiPo',
         cellsSeries: 6,          // S
         cellsParallel: 1,        // P
-        capacityMah: 1300,       // per cell (per parallel group member)
-        resistanceMode: 'ir',    // 'ir' = measured mΩ per cell, 'c' = estimate from C-rating
-        cellResistanceMohm: 5,
+        packCapacityMah: 1300,   // TOTAL pack capacity in mAh (as printed on the pack label)
+        resistanceMode: 'ir',    // 'ir' = measured mΩ per cell, 'pack' = measured total pack mΩ, 'c' = estimate from C-rating
+        cellResistanceMohm: 5,   // per cell
+        packResistanceMohm: 30,  // whole pack (used when resistanceMode = 'pack')
         cRating: 100,
         cellFullV: 4.2,
         cellNominalV: 3.7,
@@ -46,7 +47,18 @@
   }
   function load() {
     var p = defaults();
-    try { merge(p, JSON.parse(localStorage.getItem(KEY))); } catch (e) {}
+    try {
+      var saved = JSON.parse(localStorage.getItem(KEY));
+      // v1 -> v2 migration: v1 stored capacity PER CELL ('capacityMah'); v2 stores TOTAL pack capacity.
+      // Total = per-cell capacity × cells in parallel (P), which is what the v1 math already used.
+      if (saved && saved.battery && saved.battery.capacityMah != null && saved.battery.packCapacityMah == null) {
+        var per = parseFloat(saved.battery.capacityMah), par = parseFloat(saved.battery.cellsParallel) || 1;
+        if (isFinite(per)) saved.battery.packCapacityMah = Math.round(per * par);
+      }
+      if (saved && saved.battery) delete saved.battery.capacityMah;
+      if (saved) saved.version = 2;
+      merge(p, saved);
+    } catch (e) {}
     return p;
   }
   var current = load();

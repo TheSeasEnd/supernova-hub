@@ -15,6 +15,11 @@ Hash routes: `#overview`, `#fights`, `#archetypes`, `#calc`, `#calc/<id>`, `#mor
 - `data/snapshot.js`: bundled snapshot of BrettZone `/bots/supernova/fights` + round names (offline fallback)
 - `sw.js`, `manifest.webmanifest`, `icons/`, `fonts/` (Chakra Petch, SIL OFL)
 
+## Battery Sag / Max Amps (built-in estimate)
+- Inputs: cells in series (S), **total pack capacity (mAh, the number on the label)**, full-charge and nominal cell V, allowed sag %, and internal resistance as one of: **per-cell IR** (mΩ, per cell; pack = (S ÷ P) × R_cell, so P matters only here), **whole-pack IR** (mΩ), or **C-rating only** (pack-level estimate R_pack ≈ S × 0.4 V ÷ (C × Ah_pack), labelled as an estimate).
+- Outputs: pack resistance, I_max = (sag% × S × V_full) ÷ R_pack, loaded voltage at total peak/typical component draw with OK / will-sag warning, Wh = S × V_nominal × Ah_pack.
+- Saved in the shared robot profile (`sn_robot_profile_v1`, profile version 2). Profiles saved by older versions (per-cell `capacityMah`) are migrated automatically: total = per-cell mAh × P.
+
 ## Live data
 - `GET /bots/{bot}/fights` on open, on return to the app, by pull-to-refresh or the refresh button, and every 60 s while visible (toggle in More). Never more than one request per 5 s.
 - All stats are recomputed from the fight list on every refresh. BrettZone's aggregate endpoints are wrong for Supernova.

@@ -1,24 +1,29 @@
-# Supernova · NHRL 12lb stats PWA (multi-bot ready)
+# Supernova Hub · NHRL stats PWA for Supernova (12lb) and Blink (3lb)
 
 Static HTML/CSS/JS, no build step. Serve the folder over HTTPS (or localhost), open on a phone → Add to Home Screen.
 
 ## Navigation
-Bottom bar: **Overview · Fights (All fights | Events) · Archetypes · Calcs · More**. Tap the robot name in the header to switch bots (Blink is listed as "coming soon").
+Bottom bar: **Overview · Fights (All fights | Events) · Archetypes · Calcs · More**. Tap the robot name in the header to switch bots. Switching swaps everything: Overview, Fights/Events, Archetypes (per-bot opponent mapping and corrections), Calcs (per-bot robot profile) and More (specs, wiki link).
 Hash routes: `#overview`, `#fights`, `#archetypes`, `#calc`, `#calc/<id>`, `#more`. Tab switches replace history; calculator sub-pages push history, so the phone's back gesture returns to the list.
 
 ## Files
 - `index.html`, `styles.css` (ROBO CALC-inspired "hot" theme, our own CSS), `app.js` (router, stats, live updates, screens)
-- `bots.js`: bot registry (id, BrettZone name, snapshot, dated rank, specs, notes). Add Blink here later.
-- `archetypes.js` + `data/archetypes.json`: editable opponent→archetype mapping with evidence, source URLs and confidence. Taxonomy = NHRL wiki weapon-type categories. User corrections saved in localStorage (`sn_arch_overrides_v1`).
+- `bots.js`: bot registry (id, BrettZone name, snapshot, dated rank, specs, notes). Supernova (12lb) and Blink (3lb). Each entry also has `footnoteTitle`/`recordFootnote`, `eventNotes` and `profileDefaults` (robot-profile defaults for the calculators).
+- `archetypes.js` + `data/archetypes.json`: editable opponent→archetype mapping with evidence, source URLs and confidence. Taxonomy = NHRL wiki weapon-type categories. Mapping is per bot (`opponents.supernova`, `opponents.blink`) plus `selfArchetypes`. User corrections are saved per bot in localStorage (`sn_arch_overrides_v1` for Supernova, `sn_blink_arch_overrides_v1` for Blink).
 - `calcs.js`: Calculators list (ROBO CALC, Ember, FingerTech, SDP/SI, Gates) + native Battery Sag / Max Amps
-- `profile.js`: shared robot profile (`window.RobotProfile`) for calculators / future robot designer
-- `data/snapshot.js`: bundled snapshot of BrettZone `/bots/supernova/fights` + round names (offline fallback)
+- `profile.js`: robot profile (`window.RobotProfile`), one per bot (`sn_robot_profile_v1` for Supernova, `sn_blink_robot_profile_v1` for Blink), for calculators and a future robot designer. Blink's defaults use the wiki's 4S LiHV 1100 mAh; other values are labelled generic examples.
+- `data/snapshot.js`, `data/snapshot-blink.js`: bundled snapshots of BrettZone `/bots/{bot}/fights` plus round names (offline fallback)
 - `sw.js`, `manifest.webmanifest`, `icons/`, `fonts/` (Chakra Petch, SIL OFL)
 
 ## Battery Sag / Max Amps (built-in estimate)
 - Inputs: cells in series (S), **total pack capacity (mAh, the number on the label)**, full-charge and nominal cell V, allowed sag %, and internal resistance as one of: **per-cell IR** (mΩ, per cell; pack = (S ÷ P) × R_cell, so P matters only here), **whole-pack IR** (mΩ), or **C-rating only** (pack-level estimate R_pack ≈ S × 0.4 V ÷ (C × Ah_pack), labelled as an estimate).
 - Outputs: pack resistance, I_max = (sag% × S × V_full) ÷ R_pack, loaded voltage at total peak/typical component draw with OK / will-sag warning, Wh = S × V_nominal × Ah_pack.
 - Saved in the shared robot profile (`sn_robot_profile_v1`, profile version 2). Profiles saved by older versions (per-cell `capacityMah`) are migrated automatically: total = per-cell mAh × P.
+
+## Blink (3lb)
+- Identity: BrettZone has one Blink (3lb). Its NHRL wiki page lists Builder/Driver Ezequiel Gonzalez Solano, Single Disk weapon, Category: Vertical Spinners. BrettZone 3lb rank #167 (Active season, as of Oct 25, 2026).
+- Record computed from the fight list: **11–14** over 25 timed fights at 8 events (Sep 2023 to May 2026). The wiki and BrettZone rankings say 13–15 because they also count the two March 2026 forfeits (W vs Stormsurge, L vs Project LiftOff-3) and a March 1, 2025 forfeit win vs The Trundler that isn't in BrettZone's fight list. Forfeits are shown under their event but not counted.
+- Opponent archetypes come from each opponent's NHRL wiki page. IMPAKT (eggbeater, from the "Beater bar" weapon field) and Zenith (undercutter, "Undahcuttah") are medium confidence. Butter Fly has no wiki page, so it's "unknown".
 
 ## Live data
 - `GET /bots/{bot}/fights` on open, on return to the app, by pull-to-refresh or the refresh button, and every 60 s while visible (toggle in More). Never more than one request per 5 s.

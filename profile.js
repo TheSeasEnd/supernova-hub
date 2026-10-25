@@ -3,7 +3,10 @@
    Stored in localStorage under 'sn_robot_profile_v1'. */
 (function () {
   'use strict';
-  var KEY = 'sn_robot_profile_v1';
+  // One profile per bot. Supernova keeps the original key so existing saved data survives.
+  var BOT = 'supernova', BOT_DEFAULTS = null;
+  function keyFor(id) { return id === 'supernova' ? 'sn_robot_profile_v1' : 'sn_' + id + '_robot_profile_v1'; }
+  var KEY = keyFor(BOT);
   var listeners = [];
   // Example defaults. 6S LiPo is from Supernova's NHRL wiki page; every other number is a generic
   // example (not Supernova's real spec) until the user edits it. `isExample` drives the UI banner.
@@ -34,9 +37,11 @@
       // Reserved for future calculators / robot designer:
       drivetrain: {},
       weapon: {},
+      exampleNote: 'Example values loaded (6S is from Supernova’s wiki page; everything else is a generic example). Replace them with your own specs.',
       updatedAt: null
     };
   }
+  function botDefaults() { var d = defaults(); if (BOT_DEFAULTS) { var o = JSON.parse(JSON.stringify(BOT_DEFAULTS)); if (o.components) { d.components = o.components; delete o.components; } merge(d, o); } return d; }
   function merge(base, over) {
     if (!over || typeof over !== 'object') return base;
     Object.keys(over).forEach(function (k) {
@@ -46,7 +51,7 @@
     return base;
   }
   function load() {
-    var p = defaults();
+    var p = botDefaults();
     try {
       var saved = JSON.parse(localStorage.getItem(KEY));
       // v1 -> v2 migration: v1 stored capacity PER CELL ('capacityMah'); v2 stores TOTAL pack capacity.
@@ -71,8 +76,9 @@
       listeners.forEach(function (fn) { try { fn(current); } catch (e) {} });
       return current;
     },
-    reset: function () { current = defaults(); try { localStorage.removeItem(KEY); } catch (e) {} listeners.forEach(function (fn) { fn(current); }); return current; },
+    use: function (id, botDefaultsObj) { BOT = id; BOT_DEFAULTS = botDefaultsObj || null; KEY = keyFor(id); current = load(); listeners.forEach(function (fn) { try { fn(current); } catch (e) {} }); return current; },
+    reset: function () { current = botDefaults(); try { localStorage.removeItem(KEY); } catch (e) {} listeners.forEach(function (fn) { fn(current); }); return current; },
     onChange: function (fn) { listeners.push(fn); },
-    defaults: defaults
+    defaults: botDefaults
   };
 })();

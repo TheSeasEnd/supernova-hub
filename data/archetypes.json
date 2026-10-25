@@ -1,7 +1,7 @@
 {
- "version": 1,
+ "version": 2,
  "checkedAt": "2026-10-25",
- "note": "Editable mapping of opponents to archetypes. Taxonomy follows the NHRL wiki weapon-type categories. Strengths/weaknesses are general knowledge summarised from RobotCombatWiki and Combat Robots Wiki, not about specific robots. Confidence: high = stated on the robot’s NHRL wiki page; none = could not verify (archetype “unknown”).",
+ "note": "Editable mapping of opponents to archetypes. Taxonomy follows the NHRL wiki weapon-type categories. Strengths/weaknesses are general knowledge summarised from RobotCombatWiki and Combat Robots Wiki, not about specific robots. Confidence: high = stated on the robot’s NHRL wiki page (weapon field and/or category); medium = weapon field only, interpreted; none = could not verify (archetype “unknown”).",
  "taxonomySource": "https://wiki.nhrl.io/wiki/index.php?title=Category:Robots_by_weapon_type",
  "selfArchetypes": {
   "supernova": {
@@ -9,6 +9,13 @@
    "evidence": "NHRL wiki Robot Facts: Weapon “Vertical Spinner/ Eggbeater”.",
    "sources": [
     "https://wiki.nhrl.io/wiki/index.php?title=Supernova"
+   ]
+  },
+  "blink": {
+   "archetype": "vertical-spinner",
+   "evidence": "NHRL wiki Robot Facts: Weapon “Single Disk”; Category:Vertical Spinners.",
+   "sources": [
+    "https://wiki.nhrl.io/wiki/index.php?title=Blink"
    ]
   }
  },
@@ -345,129 +352,383 @@
    "sources": []
   }
  ],
- "bots": {
-  "blackjack": {
-   "name": "Black Jack",
-   "archetype": "vertical-spinner",
-   "subtype": null,
-   "confidence": "high",
-   "evidence": "NHRL wiki Robot Facts: Weapon “Vertical Spinner”; Category:Vertical Spinners.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=Black_Jack"
-   ]
+ "opponents": {
+  "supernova": {
+   "blackjack": {
+    "name": "Black Jack",
+    "archetype": "vertical-spinner",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki Robot Facts: Weapon “Vertical Spinner”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Black_Jack"
+    ]
+   },
+   "sonofkram": {
+    "name": "Son of Kram",
+    "archetype": "drum",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki Category:Drums (Weapon: “Stack” laser cut AR500 and 6061).",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Son_of_Kram"
+    ]
+   },
+   "thatsalotoftpu": {
+    "name": "That's a lot of TPU",
+    "archetype": "unknown",
+    "subtype": null,
+    "confidence": "none",
+    "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category; BrettZone has no weapon info.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=That%27s_a_lot_of_TPU",
+     "https://brettzone.nhrl.io/brettZone/v2/b/that-s-a-lot-of-tpu"
+    ]
+   },
+   "ftp": {
+    "name": "FTP",
+    "archetype": "unknown",
+    "subtype": null,
+    "confidence": "none",
+    "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=FTP"
+    ]
+   },
+   "ragebait": {
+    "name": "Ragebait",
+    "archetype": "unknown",
+    "subtype": null,
+    "confidence": "none",
+    "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Ragebait",
+     "https://brettzone.nhrl.io/brettZone/v2/b/ragebait"
+    ]
+   },
+   "torrent": {
+    "name": "Torrent",
+    "archetype": "vertical-spinner",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki Robot Facts: Weapon “Vertical Spinner”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Torrent"
+    ]
+   },
+   "maximizer": {
+    "name": "Maximizer",
+    "archetype": "undercutter",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki Category:Undercutters; page describes a “thagomizer concept” robot with a 15 mm Hardox weapon and AR500 wedge.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Maximizer"
+    ]
+   },
+   "stag12": {
+    "name": "Stag 12",
+    "archetype": "unknown",
+    "subtype": null,
+    "confidence": "none",
+    "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Stag_12"
+    ]
+   },
+   "honeyfied": {
+    "name": "Honey-fied",
+    "archetype": "horizontal-spinner",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki Robot Facts: Weapon “Horizontal Spinner”; Category:Horizontal Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Honey-fied"
+    ]
+   },
+   "larg": {
+    "name": "Larg",
+    "archetype": "horizontal-spinner",
+    "subtype": "midcutter",
+    "confidence": "high",
+    "evidence": "NHRL wiki Robot Facts: Weapon “Horizontal Midcutter Spinner”; Category:Horizontal Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Larg"
+    ]
+   },
+   "minunandplusle": {
+    "name": "Minun and Plusle",
+    "archetype": "multibot",
+    "subtype": "vertical spinners",
+    "confidence": "high",
+    "evidence": "NHRL wiki Robot Facts: Weapon “Multibot”; Categories: Multibots and Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Minun_and_Plusle"
+    ]
+   },
+   "modus": {
+    "name": "Modus",
+    "archetype": "unknown",
+    "subtype": null,
+    "confidence": "none",
+    "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category; BrettZone has no weapon info.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Modus",
+     "https://brettzone.nhrl.io/brettZone/v2/b/modus"
+    ]
+   }
   },
-  "sonofkram": {
-   "name": "Son of Kram",
-   "archetype": "drum",
-   "subtype": null,
-   "confidence": "high",
-   "evidence": "NHRL wiki Category:Drums (Weapon: “Stack” laser cut AR500 and 6061).",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=Son_of_Kram"
-   ]
-  },
-  "thatsalotoftpu": {
-   "name": "That's a lot of TPU",
-   "archetype": "unknown",
-   "subtype": null,
-   "confidence": "none",
-   "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category; BrettZone has no weapon info.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=That%27s_a_lot_of_TPU",
-    "https://brettzone.nhrl.io/brettZone/v2/b/that-s-a-lot-of-tpu"
-   ]
-  },
-  "ftp": {
-   "name": "FTP",
-   "archetype": "unknown",
-   "subtype": null,
-   "confidence": "none",
-   "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=FTP"
-   ]
-  },
-  "ragebait": {
-   "name": "Ragebait",
-   "archetype": "unknown",
-   "subtype": null,
-   "confidence": "none",
-   "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=Ragebait",
-    "https://brettzone.nhrl.io/brettZone/v2/b/ragebait"
-   ]
-  },
-  "torrent": {
-   "name": "Torrent",
-   "archetype": "vertical-spinner",
-   "subtype": null,
-   "confidence": "high",
-   "evidence": "NHRL wiki Robot Facts: Weapon “Vertical Spinner”; Category:Vertical Spinners.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=Torrent"
-   ]
-  },
-  "maximizer": {
-   "name": "Maximizer",
-   "archetype": "undercutter",
-   "subtype": null,
-   "confidence": "high",
-   "evidence": "NHRL wiki Category:Undercutters; page describes a “thagomizer concept” robot with a 15 mm Hardox weapon and AR500 wedge.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=Maximizer"
-   ]
-  },
-  "stag12": {
-   "name": "Stag 12",
-   "archetype": "unknown",
-   "subtype": null,
-   "confidence": "none",
-   "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=Stag_12"
-   ]
-  },
-  "honeyfied": {
-   "name": "Honey-fied",
-   "archetype": "horizontal-spinner",
-   "subtype": null,
-   "confidence": "high",
-   "evidence": "NHRL wiki Robot Facts: Weapon “Horizontal Spinner”; Category:Horizontal Spinners.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=Honey-fied"
-   ]
-  },
-  "larg": {
-   "name": "Larg",
-   "archetype": "horizontal-spinner",
-   "subtype": "midcutter",
-   "confidence": "high",
-   "evidence": "NHRL wiki Robot Facts: Weapon “Horizontal Midcutter Spinner”; Category:Horizontal Spinners.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=Larg"
-   ]
-  },
-  "minunandplusle": {
-   "name": "Minun and Plusle",
-   "archetype": "multibot",
-   "subtype": "vertical spinners",
-   "confidence": "high",
-   "evidence": "NHRL wiki Robot Facts: Weapon “Multibot”; Categories: Multibots and Vertical Spinners.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=Minun_and_Plusle"
-   ]
-  },
-  "modus": {
-   "name": "Modus",
-   "archetype": "unknown",
-   "subtype": null,
-   "confidence": "none",
-   "evidence": "NHRL wiki Robot Facts all “(TBA)”, no weapon category; BrettZone has no weapon info.",
-   "sources": [
-    "https://wiki.nhrl.io/wiki/index.php?title=Modus",
-    "https://brettzone.nhrl.io/brettZone/v2/b/modus"
-   ]
+  "blink": {
+   "bnyahaj": {
+    "name": "Bnyahaj",
+    "archetype": "vertical-spinner",
+    "subtype": "disk",
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Vertical Disk Spinner”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Bnyahaj"
+    ]
+   },
+   "butterfly": {
+    "name": "Butter Fly",
+    "archetype": "unknown",
+    "subtype": null,
+    "confidence": "none",
+    "evidence": "No NHRL wiki page (link on Blink’s page is red); BrettZone has no weapon info.",
+    "sources": [
+     "https://brettzone.nhrl.io/brettZone/v2/b/butterfly"
+    ]
+   },
+   "chainsawmassacre": {
+    "name": "Chainsaw Massacre",
+    "archetype": "unique",
+    "subtype": "chainsaw",
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Chainsaw”; Category:Unique Weapons.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Chainsaw_Massacre"
+    ]
+   },
+   "comet": {
+    "name": "Comet",
+    "archetype": "vertical-spinner",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Vertical Spinner”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Comet"
+    ]
+   },
+   "equinox": {
+    "name": "Equinox",
+    "archetype": "vertical-spinner",
+    "subtype": "disk",
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Vertical Disk Spinner”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Equinox"
+    ]
+   },
+   "godspeed": {
+    "name": "Godspeed",
+    "archetype": "vertical-spinner",
+    "subtype": "drisk/disk",
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Drisk/Disk”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Godspeed"
+    ]
+   },
+   "hurtcaboose": {
+    "name": "Hurt Caboose",
+    "archetype": "drum",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Aluminum Drum with two AR500 impactors”; Category:Drums.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Hurt_Caboose"
+    ]
+   },
+   "impakt": {
+    "name": "IMPAKT",
+    "archetype": "eggbeater",
+    "subtype": "beater bar",
+    "confidence": "medium",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Beater bar”, but no weapon category on the page. Classed as eggbeater because the same wiki files other “beater bar” robots (e.g. Kamino) under Eggbeaters.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=IMPAKT"
+    ]
+   },
+   "iforgot": {
+    "name": "I Forgot",
+    "archetype": "undercutter",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Undercutter Horizontal Spinner”; Category:Undercutters.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=I_Forgot"
+    ]
+   },
+   "juxtaposition": {
+    "name": "Juxtaposition",
+    "archetype": "hammersaw",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Hammersaw”; Category:Hammersaws.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Juxtaposition"
+    ]
+   },
+   "kamino": {
+    "name": "Kamino",
+    "archetype": "eggbeater",
+    "subtype": "beater bar",
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Beater Bar”; Category:Eggbeaters.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Kamino"
+    ]
+   },
+   "lordhumongous": {
+    "name": "Lord Humongous",
+    "archetype": "vertical-spinner",
+    "subtype": "disk",
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Vertical Disk Spinner”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Lord_Humongous"
+    ]
+   },
+   "mothership": {
+    "name": "Mothership",
+    "archetype": "eggbeater",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Vertical Eggbeater Spinner”; Category:Eggbeaters.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Mothership"
+    ]
+   },
+   "obsoletespareparts": {
+    "name": "Obsolete Spare Parts",
+    "archetype": "horizontal-spinner",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Horizontal Spinner”; Category:Horizontal Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Obsolete_Spare_Parts"
+    ]
+   },
+   "prince": {
+    "name": "Prince",
+    "archetype": "vertical-spinner",
+    "subtype": "disk",
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Vertical Disk Spinner”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Prince"
+    ]
+   },
+   "purplepain": {
+    "name": "Purple Pain",
+    "archetype": "vertical-spinner",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Vertical Spinner”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Purple_Pain"
+    ]
+   },
+   "salvaje": {
+    "name": "SALVAJE",
+    "archetype": "eggbeater",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Vertical Eggbeater Spinner”; Category:Eggbeaters.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=SALVAJE"
+    ]
+   },
+   "sadoctopus": {
+    "name": "Sad Octopus",
+    "archetype": "vertical-spinner",
+    "subtype": "drisk",
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Vertical Drisk”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Sad_Octopus"
+    ]
+   },
+   "shockwave": {
+    "name": "Shockwave",
+    "archetype": "horizontal-spinner",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Horizontal Spinner”; Category:Horizontal Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Shockwave"
+    ]
+   },
+   "sirslicey": {
+    "name": "Sir Slicey",
+    "archetype": "vertical-spinner",
+    "subtype": "angled drisk",
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Angled Drisk”; Category:Vertical Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Sir_Slicey"
+    ]
+   },
+   "tbone": {
+    "name": "T-Bone",
+    "archetype": "undercutter",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Undercutter Horizontal Spinner”; Category:Undercutters.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=T-Bone"
+    ]
+   },
+   "tt": {
+    "name": "T_T",
+    "archetype": "meltybrain",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Meltybrain Spinner”; Category:Meltybrain Spinners.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=T_T"
+    ]
+   },
+   "thekraken": {
+    "name": "The Kraken",
+    "archetype": "undercutter",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Undercutter”; Category:Undercutters.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=The_Kraken"
+    ]
+   },
+   "usawgi": {
+    "name": "usawgi",
+    "archetype": "hammersaw",
+    "subtype": null,
+    "confidence": "high",
+    "evidence": "NHRL wiki (3lb) Category:Hammersaws (weapon field not filled in).",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Usawgi"
+    ]
+   },
+   "zenith": {
+    "name": "Zenith",
+    "archetype": "undercutter",
+    "subtype": null,
+    "confidence": "medium",
+    "evidence": "NHRL wiki (3lb) Robot Facts: Weapon “Undahcuttah” (undercutter, joke spelling), no weapon category on the page.",
+    "sources": [
+     "https://wiki.nhrl.io/wiki/index.php?title=Zenith"
+    ]
+   }
   }
  }
 }

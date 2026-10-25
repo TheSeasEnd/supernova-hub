@@ -111,7 +111,7 @@
     var p = window.RobotProfile.get(), b = p.battery, mode = b.resistanceMode || 'ir';
     var h = '<div class="calcbar"><button class="back" data-back>‹ Calculators</button><button class="btn ghost sm" data-reset>Reset</button></div>' +
       '<div class="calctitle">Battery Sag / Max Amps</div><div class="calccredit">Built into this app · our own estimate math · saved on this phone in the robot profile “' + esc(p.name) + '”</div>';
-    h += '<div id="exBanner" class="exbanner"' + (p.isExample ? '' : ' hidden') + '>Example values loaded (6S is from Supernova’s wiki page; everything else is a generic example). Replace them with your own specs.</div>';
+    h += '<div id="exBanner" class="exbanner"' + (p.isExample ? '' : ' hidden') + '>' + esc(p.exampleNote || 'Example values loaded. Replace them with your own specs.') + '</div>';
     h += '<div class="card"><h2>Battery pack</h2><div class="fgrid">' +
       field('Cells in series (S)', 'battery.cellsSeries', b.cellsSeries) +
       field('Total pack capacity', 'battery.packCapacityMah', b.packCapacityMah, { unit: 'mAh' }) +
@@ -203,6 +203,7 @@
   window.Calcs = {
     init: function (el) { root = el; root.addEventListener('input', onInput); root.addEventListener('click', onClick); renderList(); },
     open: open,
+    rerender: function () { open(current); },
     compute: compute,
     list: CALCS
   };

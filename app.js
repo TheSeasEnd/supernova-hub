@@ -10,7 +10,7 @@
 
   var BOTS = window.BOTS || [];
   var bot = null; // current bot config
-  var state = { data: null, fetchedAt: null, source: 'snapshot', rounds: {}, error: null, loading: false, F: [], s: null };
+  var state = { data: null, fetchedAt: null, source: 'snapshot', rounds: {}, error: null, loading: false, F: [], ff: [], s: null };
 
   /* ---------- utils ---------- */
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -38,7 +38,15 @@
         won: +f['player' + me + 'wins'] > +f['player' + op + 'wins'], method: f.winAnnotation || '',
         start: +f.startTime, length: +f.matchLength
       };
-    }).filter(function (f) { return f.start > 0; }).sort(function (a, b) { return a.start - b.start; });
+    }).filter(function (f) { return f.start > 0 && f.method !== 'FF'; }).sort(function (a, b) { return a.start - b.start; });
+  }
+  // Forfeits: BrettZone lists some with no start time / matchLength; never counted in stats.
+  function forfeits(raw) {
+    var me0 = bot.apiName;
+    return ((raw && raw.fights) || []).filter(function (f) { return !(+f.startTime > 0) || f.winAnnotation === 'FF'; }).map(function (f) {
+      var me = String(f.player1clean).toLowerCase() === me0 ? 1 : 2, op = 3 - me;
+      return { tournamentID: f.tournamentID, opp: f['player' + op], won: +f['player' + me + 'wins'] > +f['player' + op + 'wins'] };
+    });
   }
 
   function stageLabel(f) {
@@ -48,7 +56,7 @@
     if (m) return 'Qualifier R' + m[1] + (m[2] === 'W' ? ' (winners)' : m[2] === 'L' ? ' (losers)' : '');
     if (/^W:/.test(f.name)) return 'Bracket R' + (f.round + 1);
     if (/^L:/.test(f.name)) return 'Losers bracket R' + (f.round + 1);
-    return f.name || '';
+    return f.name ? 'Game ' + f.name : '';
   }
 
   function computeStats(F) {
@@ -112,7 +120,7 @@
       '<div class="rank" style="text-align:right">' + s.events.length + ' events<br>' + s.n + ' fights</div></div></div>';
     h += '<div class="card"><div class="record"><div><div class="k2">Record</div><div class="big"><span class="w">' + s.w + '</span><span class="d">–</span><span class="l">' + s.l + '</span></div></div>' +
       '<div class="stat" style="margin-left:auto;text-align:right"><div class="v">' + (s.rate * 100).toFixed(1) + '%</div><div class="k">Win rate</div></div></div>' +
-      (bot.recordFootnote ? '<details class="fn"><summary>Why the wiki says 10–4</summary><div class="note">' + bot.recordFootnote + '</div></details>' : '') + '</div>';
+      (bot.recordFootnote ? '<details class="fn"><summary>' + esc(bot.footnoteTitle || 'About this record') + '</summary><div class="note">' + bot.recordFootnote + '</div></details>' : '') + '</div>';
     h += '<div class="grid2"><div class="card stat"><div class="v ' + (s.streak && s.streak.type === 'W' ? 'win' : 'loss') + '">' + (s.streak ? s.streak.type + s.streak.n : '—') + '</div><div class="k">Current streak</div></div>' +
       '<div class="card stat"><div class="v win">W' + s.bestStreak + '</div><div class="k">Best win streak</div></div></div>';
     h += '<div class="card"><h2>Last 5</h2><div class="form">' + s.last5.map(function (x) { return '<div class="pill ' + x + '">' + x + '</div>'; }).join('') + '<span class="arrow">← latest</span></div></div>';
@@ -131,7 +139,7 @@
       (s.fastestKO ? '<div class="note" style="margin-top:10px">Fastest KO win: ' + secs(s.fastestKO.length) + ' vs ' + esc(s.fastestKO.opp) + '.</div>' : '') + '</div>';
     var rep = s.opponents.filter(function (o) { return o.w + o.l > 1; });
     if (rep.length) h += '<div class="card"><h2>Rematches</h2>' + rep.map(function (o) { return '<div class="kv"><div>' + esc(o.name) + '</div><div><b>' + o.w + '–' + o.l + '</b></div></div>'; }).join('') + '</div>';
-    h += '<a class="card linkcard" href="#archetypes" data-nav="archetypes"><span>Archetype matchups: who is Supernova weak against?</span><span class="chev">›</span></a>';
+    h += '<a class="card linkcard" href="#archetypes" data-nav="archetypes"><span>Archetype matchups: who is ' + esc(bot.name) + ' weak against?</span><span class="chev">›</span></a>';
     h += bzFooter();
     el.innerHTML = h;
   }
@@ -151,7 +159,9 @@
     var h = statusLine() + '<div class="seg big" role="tablist"><button data-seg="list" class="' + (fightsSeg === 'list' ? 'on' : '') + '">All fights</button><button data-seg="events" class="' + (fightsSeg === 'events' ? 'on' : '') + '">Events</button></div>';
     if (fightsSeg === 'list') {
       s.events.slice().reverse().forEach(function (e) {
-        h += '<div class="event"><div class="eventhead"><h3>' + esc(e.name.replace(/^NHRL /, '')) + '</h3><span class="meta">' + fmtDate(e.date) + ' · ' + e.w + '–' + e.l + '</span></div>' + e.fights.slice().reverse().map(fightRow).join('') + '</div>';
+        var ff = state.ff.filter(function (x) { return x.tournamentID === e.id; });
+        h += '<div class="event"><div class="eventhead"><h3>' + esc(e.name.replace(/^NHRL /, '')) + '</h3><span class="meta">' + fmtDate(e.date) + ' · ' + e.w + '–' + e.l + '</span></div>' + e.fights.slice().reverse().map(fightRow).join('') +
+          (ff.length ? '<div class="note ffnote">Forfeit' + (ff.length > 1 ? 's' : '') + ' (not counted): ' + ff.map(function (x) { return (x.won ? 'W' : 'L') + ' vs ' + esc(x.opp); }).join(', ') + '</div>' : '') + '</div>';
       });
       h += '<div class="note pad">Newest first. Tap a fight to watch it on BrettZone.</div>';
     } else {
@@ -200,7 +210,7 @@
   }
 
   function renderAll() {
-    state.F = normalise(state.data);
+    state.F = normalise(state.data); state.ff = forfeits(state.data);
     state.s = state.F.length ? computeStats(state.F) : null;
     window.__stats = state.s; window.__fights = state.F;
     renderOverview(); renderFights(); renderArchetypes(); renderMore();
@@ -257,7 +267,10 @@
   function loadBot(id) {
     var b = BOTS.filter(function (x) { return x.id === id && x.enabled; })[0] || BOTS.filter(function (x) { return x.enabled; })[0];
     bot = b; localStorage.setItem('sn_current_bot', b.id);
-    state = { data: null, fetchedAt: null, source: 'snapshot', rounds: {}, error: null, loading: false, F: [], s: null };
+    if (window.Archetypes) window.Archetypes.setBot(b.id);
+    if (window.RobotProfile) window.RobotProfile.use(b.id, b.profileDefaults);
+    if (window.Calcs) window.Calcs.rerender();
+    state = { data: null, fetchedAt: null, source: 'snapshot', rounds: {}, error: null, loading: false, F: [], ff: [], s: null };
     var snap = b.snapshot;
     if (snap && snap.roundNames) Object.keys(snap.roundNames).forEach(function (k) { if (snap.roundNames[k]) state.rounds[k] = snap.roundNames[k]; });
     var saved = lsGet(key('rounds')) || {}; Object.keys(saved).forEach(function (k) { state.rounds[k] = saved[k]; });

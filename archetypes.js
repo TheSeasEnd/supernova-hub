@@ -2,7 +2,9 @@
    the user's corrections are stored in localStorage and take priority. */
 (function () {
   'use strict';
-  var DATA = null, LS = 'sn_arch_overrides_v1';
+  var DATA = null, BOT = 'supernova', LS = 'sn_arch_overrides_v1';
+  function lsKey(id) { return id === 'supernova' ? 'sn_arch_overrides_v1' : 'sn_' + id + '_arch_overrides_v1'; }
+  function botMap() { return (DATA && DATA.opponents && DATA.opponents[BOT]) || {}; }
   var SHORT = { 'vertical-spinner': 'Vert', 'drum': 'Drum', 'eggbeater': 'Eggbeater', 'horizontal-spinner': 'Horizontal', 'undercutter': 'Undercutter',
     'full-body-spinner': 'Full-body', 'meltybrain': 'Melty', 'flipper': 'Flipper', 'lifter': 'Lifter', 'grappler': 'Grappler', 'axe': 'Hammer/axe',
     'hammersaw': 'Hammersaw', 'rammer': 'Control', 'crusher': 'Crusher', 'multibot': 'Multibot', 'unique': 'Unique', 'unknown': 'Unknown' };
@@ -13,7 +15,7 @@
   function arch(id) { return (DATA.archetypes.filter(function (a) { return a.id === id; })[0]) || DATA.archetypes.filter(function (a) { return a.id === 'unknown'; })[0]; }
 
   function forOpponent(clean) {
-    var o = overrides(), m = DATA.bots[clean];
+    var o = overrides(), m = botMap()[clean];
     var id = o[clean] || (m && m.archetype) || 'unknown', a = arch(id);
     return { id: a.id, name: a.name, short: SHORT[a.id] || a.name, family: a.family, edited: !!o[clean], map: m || null };
   }
@@ -39,9 +41,9 @@
     var self = DATA.selfArchetypes && DATA.selfArchetypes[ctx.bot.id];
     var h = ctx.status;
     h += '<div class="card"><h2>' + esc(ctx.bot.name) + ' vs robot types</h2><div class="note">' +
-      (self ? esc(ctx.bot.name) + ' itself is an <b>' + esc(arch(self.archetype).name.toLowerCase()) + '</b> (vertical-axis spinner) per the <a href="' + self.sources[0] + '" target="_blank" rel="noopener">NHRL wiki</a>. ' : '') +
+      (self ? (function () { var nm = arch(self.archetype).name.toLowerCase(); return esc(ctx.bot.name) + ' itself is ' + (/^[aeiou]/.test(nm) ? 'an' : 'a') + ' <b>' + esc(nm) + '</b>' + (self.archetype === 'eggbeater' ? ' (a vertical-axis spinner)' : '') + ' per the <a href="' + self.sources[0] + '" target="_blank" rel="noopener">NHRL wiki</a>. '; })() : '') +
       'Opponents are grouped by the NHRL wiki’s weapon-type categories.</div>' +
-      '<div class="caveat">⚠ Small sample: ' + F.length + ' fights in total, so 1–2 fights per type. Treat these as hints, not trends. Driving, build quality and luck matter more than robot type.</div></div>';
+      '<div class="caveat">⚠ Small sample: ' + F.length + ' fights in total, at most ' + Math.max.apply(null, list.filter(function (g) { return g.a.id !== 'unknown'; }).map(function (g) { return g.fights.length; }).concat([0])) + ' per type. Treat these as hints, not trends. Driving, build quality and luck matter more than robot type.</div></div>';
 
     // watch-outs
     var flags = list.filter(function (g) { return g.a.id !== 'unknown' && g.l > 0 && g.l / g.fights.length >= 0.5; });
@@ -50,7 +52,7 @@
       return '<div class="flag"><div class="ft">Lost to <b>' + esc(g.a.name.toLowerCase()) + 's</b> ' + g.l + ' of ' + g.fights.length + '</div><div class="note">' + methods(g.lossBy) + ' · vs ' + g.fights.filter(function (f) { return !f.won; }).map(function (f) { return esc(f.opp); }).join(', ') + '</div></div>';
     }).join('') : '<div class="note">No known type with a losing record yet.</div>') +
       (strong.length ? '<div class="good">Unbeaten so far vs: ' + strong.map(function (g) { return esc(g.a.name) + ' (' + g.w + '–0)'; }).join(', ') + '</div>' : '') +
-      (groups.unknown ? '<div class="note" style="margin-top:8px">' + groups.unknown.fights.length + ' fights (' + groups.unknown.w + '–' + groups.unknown.l + ') are vs robots with no verified type. Set them below to sharpen this.</div>' : '') + '</div>';
+      (groups.unknown ? '<div class="note" style="margin-top:8px">' + groups.unknown.fights.length + (groups.unknown.fights.length === 1 ? ' fight (' : ' fights (') + groups.unknown.w + '–' + groups.unknown.l + (groups.unknown.fights.length === 1 ? ') is vs a robot' : ') are vs robots') + ' with no verified type. Set them below to sharpen this.</div>' : '') + '</div>';
 
     // families
     h += '<div class="card"><h2>By family</h2>' + Object.keys(fams).filter(function (k) { return k !== 'unknown'; }).map(function (k) {
@@ -72,7 +74,7 @@
     h += '<div class="sectiontitle pad">Opponents · tap to correct</div><div class="card">';
     Object.keys(opps).map(function (k) { return opps[k]; }).sort(function (x, y) { return x.name.localeCompare(y.name); }).forEach(function (o) {
       var a = forOpponent(o.clean), m = a.map;
-      var conf = a.edited ? '<span class="cbadge you">Set by you</span>' : (m && m.confidence === 'high') ? '<span class="cbadge ok">NHRL wiki</span>' : '<span class="cbadge unk">Unverified</span>';
+      var conf = a.edited ? '<span class="cbadge you">Set by you</span>' : (m && m.confidence === 'high') ? '<span class="cbadge ok">NHRL wiki</span>' : (m && m.confidence === 'medium') ? '<span class="cbadge med">Wiki, interpreted</span>' : '<span class="cbadge unk">Unverified</span>';
       h += '<div class="opprow"><div class="oname"><div><b>' + esc(o.name) + '</b> <span class="note">' + o.w + '–' + o.l + '</span></div>' + conf + '</div>' +
         '<select data-opp="' + esc(o.clean) + '" aria-label="Archetype for ' + esc(o.name) + '">' + DATA.archetypes.map(function (x) { return '<option value="' + x.id + '"' + (x.id === a.id ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join('') + '</select>' +
         '<div class="note src">' + (m ? esc(m.evidence) + (m.subtype ? ' Subtype: ' + esc(m.subtype) + '.' : '') + ' ' + (m.sources || []).map(function (u, i) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">source' + ((m.sources.length > 1) ? ' ' + (i + 1) : '') + '</a>'; }).join(' · ') : 'Not in the mapping yet (new opponent).') +
@@ -104,5 +106,5 @@
       '<div class="note">General knowledge about the type, not about these specific robots. Sources: ' + a.sources.map(function (u) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u.replace(/^https?:\/\//, '').split('/')[0]) + '</a>'; }).join(' · ') + '</div></details>';
   }
 
-  window.Archetypes = { load: load, render: render, forOpponent: forOpponent, ready: function () { return !!DATA; } };
+  window.Archetypes = { setBot: function (id) { BOT = id; LS = lsKey(id); }, load: load, render: render, forOpponent: forOpponent, ready: function () { return !!DATA; } };
 })();

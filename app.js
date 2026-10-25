@@ -45,7 +45,7 @@
     var me0 = bot.apiName;
     return ((raw && raw.fights) || []).filter(function (f) { return !(+f.startTime > 0) || f.winAnnotation === 'FF'; }).map(function (f) {
       var me = String(f.player1clean).toLowerCase() === me0 ? 1 : 2, op = 3 - me;
-      return { tournamentID: f.tournamentID, opp: f['player' + op], won: +f['player' + me + 'wins'] > +f['player' + op + 'wins'] };
+      return { tournamentID: f.tournamentID, gameID: f.gameID, opp: f['player' + op], won: +f['player' + me + 'wins'] > +f['player' + op + 'wins'] };
     });
   }
 
@@ -110,6 +110,27 @@
   }
 
   /* ---------- screens ---------- */
+
+  // ---- KO-dex (bundled snapshot from data/kodex.js; the app never calls kodex.bot) ----
+  function kxFight(f) { var k = bot.kodex; return k && k.fights ? k.fights[f.tournamentID + '|' + f.gameID] : null; }
+  function kxDelta(d) { return '<span class="kxd ' + (d >= 0 ? 'up' : 'dn') + '">' + (d >= 0 ? '▲ +' : '▼ ') + d + '</span>'; }
+  function kxLabel() { return esc((window.KODEX && window.KODEX.label) || 'KO-dex snapshot — not live'); }
+  function kxCredit() { return esc((window.KODEX && window.KODEX.credit) || ''); }
+  function renderKodexCard(s) {
+    var k = bot.kodex; if (!k) return '';
+    var rec = k.record;
+    return '<div class="card kodex"><div class="kxhead"><h2>KO-dex rating</h2><span class="kxtag">' + kxLabel() + '</span></div>' +
+      '<div class="grid2"><div class="stat"><div class="v">' + k.current.rating + '<small> ±' + k.current.rd + '</small></div><div class="k">Current rating</div><div class="s">#' + k.current.rank + ' of ' + k.current.of + ' in ' + esc(k.weightLabel) + ' · ' + esc(k.current.status) + '</div></div>' +
+      '<div class="stat"><div class="v">' + k.alltime.rating + '<small> ±' + k.alltime.rd + '</small></div><div class="k">All-time rating</div><div class="s">#' + k.alltime.rank + ' of ' + k.alltime.of + ' in ' + esc(k.weightLabel) + ' · ' + esc(k.alltime.status) + '</div></div></div>' +
+      '<div class="kv kxkv"><div>Peak (all-time)</div><div><b>' + k.peak.rating + '</b> · ' + esc(k.peak.date) + '</div>' +
+      '<div>KO-dex type</div><div><b>' + esc(k.type.name) + '</b><br><span class="note">' + esc(k.type.desc) + '</span></div>' +
+      '<div>Badges</div><div>' + k.badges.map(function (b) { return '<span class="kxbadge">' + esc(b.name) + (b.count > 1 ? ' ×' + b.count : '') + '</span> <span class="note">earned ' + esc(b.earned) + '</span>'; }).join('<br>') + '</div>' +
+      '<div>Best win</div><div>' + kxDelta(k.bestWin.delta) + ' vs ' + esc(k.bestWin.opp) + '</div>' +
+      '<div>KO-dex’s record</div><div><b>' + rec.w + '–' + rec.l + '</b> <span class="note">(KO-dex’s number)</span></div></div>' +
+      '<div class="note" style="margin-top:8px">KO-dex’s ' + rec.w + '–' + rec.l + ' includes forfeits. ' + esc(rec.note) + ' This app’s own record above is <b>' + s.w + '–' + s.l + '</b>, computed from BrettZone fights with a fight time.</div>' +
+      '<a class="btn kxbtn" href="' + esc(k.url) + '" target="_blank" rel="noopener">Open ' + esc(bot.name) + ' on KO-dex ↗</a>' +
+      '<div class="note kxcredit">' + kxCredit() + '. Per-fight rating changes are shown in Fights.</div></div>';
+  }
   function renderOverview() {
     var s = state.s, F = state.F, el = $('view-overview');
     if (!F.length) { el.innerHTML = statusLine() + '<div class="card">No fight data yet.</div>'; return; }
@@ -121,6 +142,7 @@
     h += '<div class="card"><div class="record"><div><div class="k2">Record</div><div class="big"><span class="w">' + s.w + '</span><span class="d">–</span><span class="l">' + s.l + '</span></div></div>' +
       '<div class="stat" style="margin-left:auto;text-align:right"><div class="v">' + (s.rate * 100).toFixed(1) + '%</div><div class="k">Win rate</div></div></div>' +
       (bot.recordFootnote ? '<details class="fn"><summary>' + esc(bot.footnoteTitle || 'About this record') + '</summary><div class="note">' + bot.recordFootnote + '</div></details>' : '') + '</div>';
+    h += renderKodexCard(s);
     h += '<div class="grid2"><div class="card stat"><div class="v ' + (s.streak && s.streak.type === 'W' ? 'win' : 'loss') + '">' + (s.streak ? s.streak.type + s.streak.n : '—') + '</div><div class="k">Current streak</div></div>' +
       '<div class="card stat"><div class="v win">W' + s.bestStreak + '</div><div class="k">Best win streak</div></div></div>';
     h += '<div class="card"><h2>Last 5</h2><div class="form">' + s.last5.map(function (x) { return '<div class="pill ' + x + '">' + x + '</div>'; }).join('') + '<span class="arrow">← latest</span></div></div>';
@@ -145,10 +167,10 @@
   }
 
   function fightRow(f) {
-    var r = f.won ? 'W' : 'L';
+    var r = f.won ? 'W' : 'L', kx = kxFight(f);
     return '<a class="fight ' + r + '" href="' + fightUrl(f) + '" target="_blank" rel="noopener">' +
       '<div class="res ' + (f.won ? 'win' : 'loss') + '">' + r + '</div>' +
-      '<div class="mid"><div class="opp">' + esc(f.opp) + '</div><div class="rd">' + esc(stageLabel(f)) + ' · ' + archChip(f.oppClean) + '</div></div>' +
+      '<div class="mid"><div class="opp">' + esc(f.opp) + '</div><div class="rd">' + esc(stageLabel(f)) + ' · ' + archChip(f.oppClean) + '</div>' + (kx ? '<div class="kxrow">KO-dex ' + kxDelta(kx.d) + ' → ' + kx.after + '</div>' : '') + '</div>' +
       '<div class="right"><span class="method ' + esc(f.method) + '">' + esc(f.method || '—') + '</span><span class="len">' + secs(f.length) + '</span></div><span class="ext">↗</span></a>';
   }
 
@@ -158,10 +180,14 @@
     if (!state.F.length) { el.innerHTML = statusLine(); return; }
     var h = statusLine() + '<div class="seg big" role="tablist"><button data-seg="list" class="' + (fightsSeg === 'list' ? 'on' : '') + '">All fights</button><button data-seg="events" class="' + (fightsSeg === 'events' ? 'on' : '') + '">Events</button></div>';
     if (fightsSeg === 'list') {
+      if (bot.kodex) h += '<div class="note kxlistnote">KO-dex ▲/▼ = change in KO-dex’s all-time rating after each fight → new rating. ' + kxLabel() + '. <a href="' + esc(bot.kodex.url) + '" target="_blank" rel="noopener">KO-dex ↗</a></div>';
       s.events.slice().reverse().forEach(function (e) {
         var ff = state.ff.filter(function (x) { return x.tournamentID === e.id; });
+        var known = {}; e.fights.concat(ff).forEach(function (x) { if (x.gameID) known[e.id + '|' + x.gameID] = 1; });
+        var kxOnly = bot.kodex ? Object.keys(bot.kodex.fights).filter(function (k2) { return k2.indexOf(e.id + '|') === 0 && !known[k2]; }).map(function (k2) { return bot.kodex.fights[k2]; }) : [];
         h += '<div class="event"><div class="eventhead"><h3>' + esc(e.name.replace(/^NHRL /, '')) + '</h3><span class="meta">' + fmtDate(e.date) + ' · ' + e.w + '–' + e.l + '</span></div>' + e.fights.slice().reverse().map(fightRow).join('') +
-          (ff.length ? '<div class="note ffnote">Forfeit' + (ff.length > 1 ? 's' : '') + ' (not counted): ' + ff.map(function (x) { return (x.won ? 'W' : 'L') + ' vs ' + esc(x.opp); }).join(', ') + '</div>' : '') + '</div>';
+          (ff.length ? '<div class="note ffnote">Forfeit' + (ff.length > 1 ? 's' : '') + ' (not counted): ' + ff.map(function (x) { var k3 = kxFight(x); return (x.won ? 'W' : 'L') + ' vs ' + esc(x.opp) + (k3 ? ' (KO-dex ' + kxDelta(k3.d) + ')' : ''); }).join(', ') + '</div>' : '') +
+          (kxOnly.length ? '<div class="note ffnote">Only on KO-dex (not in BrettZone’s fight list, not counted): ' + kxOnly.map(function (x) { return x.r + ' ' + esc(x.m) + ' vs ' + esc(x.opp) + ' (' + kxDelta(x.d) + ')'; }).join(', ') + '</div>' : '') + '</div>';
       });
       h += '<div class="note pad">Newest first. Tap a fight to watch it on BrettZone.</div>';
     } else {
@@ -191,6 +217,8 @@
     h += '<div class="sectiontitle pad">Credits</div>';
     h += '<div class="card credit"><h3>Fight data · BrettZone</h3><p>Fight data from <b>BrettZone (brettzone.nhrl.io)</b> by <b>NHRL</b>. Every stat here is computed from BrettZone’s public fight list.</p>' +
       '<div class="links"><a class="btn" href="https://brettzone.nhrl.io" target="_blank" rel="noopener">brettzone.nhrl.io ↗</a><a class="btn ghost" href="' + botUrl(bot.apiName) + '" target="_blank" rel="noopener">' + esc(bot.name) + ' on BrettZone ↗</a></div></div>';
+    if (bot.kodex) h += '<div class="card credit"><h3>Ratings · KO-dex</h3><p>' + kxCredit() + '.</p><p class="note">' + kxLabel() + '. Values are bundled in the app; it never calls kodex.bot.</p>' +
+      '<div class="links"><a class="btn" href="' + esc(bot.kodex.url) + '" target="_blank" rel="noopener">' + esc(bot.name) + ' on KO-dex ↗</a><a class="btn ghost" href="https://kodex.bot" target="_blank" rel="noopener">kodex.bot ↗</a></div></div>';
     h += '<div class="card credit"><h3>ROBO CALC</h3><p><b>ROBO CALC — Combat Robotics Calculator Tool</b> by <b>Brian Boxell, Too Hot Robotics</b>. Embedded live from his site; no code copied. This app’s look is inspired by ROBO CALC (our own CSS).</p>' +
       '<div class="links"><a class="btn" href="https://github.com/bdboxell/robocalc" target="_blank" rel="noopener">github.com/bdboxell/robocalc ↗</a></div></div>';
     h += '<div class="card"><h2>More credits</h2><div class="note credits">' +
@@ -198,6 +226,7 @@
       '<b>Ember</b> calculators by <a href="https://level5robotics.com" target="_blank" rel="noopener">Level 5 Robotics</a> with the SCAR community.<br>' +
       '<b>Pulley &amp; Belt Calculator</b> by <a href="https://www.fingertechrobotics.com/how-to_pulley_belt.php" target="_blank" rel="noopener">FingerTech Robotics</a> · <b>Center Distance Designer</b> by <a href="https://sdp-si.com/tools/center-distance-designer.php" target="_blank" rel="noopener">SDP/SI</a> · <b>Belt Tension</b> by <a href="https://calculators.gates.com/BeltTension" target="_blank" rel="noopener">Gates</a>.<br>' +
       '<b>Battery Sag / Max Amps</b>: built into this app with our own simple Ohm’s-law estimate.<br>' +
+      '<b>Ratings &amp; fight types</b>: ' + kxCredit() + ' (<a href="https://kodex.bot" target="_blank" rel="noopener">kodex.bot</a>). ' + kxLabel() + '.<br>' +
       '<b>Font</b>: Chakra Petch (SIL Open Font License), self-hosted.</div></div>';
     if (bot.specs) h += '<div class="card"><h2>' + esc(bot.name) + '</h2><div class="kv">' + bot.specs.map(function (kv) { return '<div>' + esc(kv[0]) + '</div><div>' + esc(kv[1]) + '</div>'; }).join('') + '</div>' +
       '<div class="note" style="margin-top:8px">Specs from the <a href="' + bot.wikiUrl + '" target="_blank" rel="noopener">NHRL wiki</a>. Hero photo: BrettZone still.</div></div>';

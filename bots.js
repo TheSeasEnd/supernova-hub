@@ -8,6 +8,8 @@ window.BOTS = [
     weightClass: 12,
     subtitle: '12lb · NHRL · Too Hot Robotics',
     enabled: true,
+    // KO-dex: bundled snapshot only (data/kodex.js); never fetched from kodex.bot.
+    kodex: (window.KODEX && window.KODEX.bots.supernova) || null,
     snapshot: window.SUPERNOVA_SNAPSHOT || null,
     // Rank isn't in the fights endpoint and BrettZone's /stats/leaderboard is a wins table with
     // different counting (it lists Supernova at 5W-2L), so the official rank is a dated snapshot.
@@ -28,6 +30,8 @@ window.BOTS = [
     weightClass: 3,
     subtitle: '3lb · NHRL',
     enabled: true,
+    // This Blink is the 3lb bot, so KO-dex's blink-3 page applies.
+    kodex: (window.KODEX && window.KODEX.bots.blink) || null,
     snapshot: window.BLINK_SNAPSHOT || null,
     rank: { value: 167, label: 'BrettZone 3lb rank', asOf: 'Oct 25, 2026', url: 'https://brettzone.nhrl.io/brettZone/v2/rankings?w=3&season=Active' },
     wikiUrl: 'https://wiki.nhrl.io/wiki/index.php?title=Blink',
@@ -38,9 +42,7 @@ window.BOTS = [
     ],
     footnoteTitle: 'Why the wiki says 13–15',
     recordFootnote: 'The NHRL wiki and BrettZone rankings show <b>13–15</b> (28 fights). They also count two March 2026 forfeits that BrettZone lists without a fight time (W vs Stormsurge, L vs Project LiftOff-3) and a March 1, 2025 forfeit win vs The Trundler that isn’t in BrettZone’s fight list. Forfeits aren’t counted here.',
-    eventNotes: {
-      nhrl_mar25_3lb: 'The wiki also lists a forfeit win vs The Trundler at this event (not in BrettZone’s fight list).'
-    },
+    eventNotes: {},
     profileDefaults: {
       name: 'Blink', weightClassLb: 3,
       battery: { chemistry: 'LiHV', cellsSeries: 4, cellsParallel: 1, packCapacityMah: 1100, resistanceMode: 'ir', cellResistanceMohm: 10, packResistanceMohm: 40, cRating: 75, cellFullV: 4.35, cellNominalV: 3.8, allowedSagPct: 10 },

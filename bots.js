@@ -6,7 +6,7 @@ window.BOTS = [
     name: 'Supernova',
     apiName: 'supernova',          // BrettZone clean name for /bots/{apiName}/fights
     weightClass: 12,
-    subtitle: '12lb · NHRL · Too Hot to Handle',
+    subtitle: '12lb · NHRL',
     enabled: true,
     // KO-dex: bundled snapshot only (data/kodex.js); never fetched from kodex.bot.
     kodex: (window.KODEX && window.KODEX.bots.supernova) || null,
@@ -28,7 +28,7 @@ window.BOTS = [
     name: 'Blink',
     apiName: 'blink',
     weightClass: 3,
-    subtitle: '3lb · NHRL · Too Hot to Handle',
+    subtitle: '3lb · NHRL',
     enabled: true,
     // This Blink is the 3lb bot, so KO-dex's blink-3 page applies.
     kodex: (window.KODEX && window.KODEX.bots.blink) || null,
@@ -68,7 +68,7 @@ window.BOTS = [
     if (own) { own.team = c; return; }
     window.BOTS.push({
       id: c.id, name: c.name, apiName: c.bz || cleanName(c.name), weightClass: c.cls, group: 'team', team: c,
-      subtitle: c.cls + 'lb · NHRL · Too Hot to Handle', enabled: true,
+      subtitle: c.cls + 'lb · NHRL', enabled: true,
       live: !!(c.bz && c.lastDate && c.lastDate >= '2026-01-01'),
       kodex: null, snapshot: null, rank: null,
       wikiUrl: c.wiki ? WIKI + encodeURIComponent(c.wiki.replace(/ /g, '_')) : null,
@@ -80,6 +80,6 @@ window.BOTS = [
   });
   T.planned.forEach(function (p) {
     window.BOTS.push({ id: 'plan-' + p.id, name: p.name, group: 'build', planned: true, enabled: true, live: false, channel: p.channel,
-      subtitle: 'In build · Too Hot to Handle', kodex: null, snapshot: null, rank: null, specs: [['Status', 'In build, no fights yet']].concat(p.channel ? [['Team channel', '#' + p.channel]] : []) });
+      subtitle: 'In build', kodex: null, snapshot: null, rank: null, specs: [['Status', 'In build, no fights yet']].concat(p.channel ? [['Team channel', '#' + p.channel]] : []) });
   });
 })();

@@ -1,4 +1,6 @@
-# Supernova Hub · NHRL stats PWA for Supernova (12lb), Blink (3lb) and team Too Hot to Handle
+# Too Hot to Handle Hub · NHRL stats PWA for team Too Hot to Handle
+
+(Formerly “Supernova Hub”. The URL and repo name are unchanged: https://theseasend.github.io/supernova-hub/.)
 
 Static HTML/CSS/JS, no build step. Serve the folder over HTTPS (or localhost), open on a phone → Add to Home Screen.
 
@@ -105,3 +107,10 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
   - The builder's site (nikbuchholz.weebly.com): Phantom IV.
 - Barbie and Ken has no photo; none was found. Planned robots show a "No robot yet" placeholder.
 - The Supernova and Blink hubs keep their existing BrettZone hero images.
+
+## v14: Too Hot to Handle Hub
+
+- The app is now **Too Hot to Handle Hub** everywhere visible: the header name line, the page title, the manifest (`name` “Too Hot to Handle Hub”, `short_name` “Too Hot Hub”), the iOS home-screen title and the About card. It has a new flame icon.
+- The robot switcher is grouped only by weight class (3lb / 12lb / 30lb) plus In build. Supernova and Blink sit in their class groups with their live tags. Search still works.
+- On first load the app opens Supernova. After that it opens the last robot you picked (`sn_current_bot`).
+- Service worker cache: `supernova-v14`.

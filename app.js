@@ -1,4 +1,4 @@
-/* Combat robot stats PWA (Supernova first; multi-bot ready via bots.js).
+/* Too Hot to Handle Hub: combat robot stats PWA for every robot on team Too Hot to Handle (bots.js).
    All stats are computed client-side from the BrettZone fights list.
    Data: BrettZone public API (brettzone.nhrl.io) by NHRL. */
 (function () {
@@ -337,7 +337,7 @@
     if (bot.specs && bot.wikiUrl) h += '<div class="card"><h2>' + esc(bot.name) + '</h2><div class="kv">' + bot.specs.map(function (kv) { return '<div>' + esc(kv[0]) + '</div><div>' + esc(kv[1]) + '</div>'; }).join('') + '</div>' +
       '<div class="note" style="margin-top:8px">' + (bot.team && bot.team.facts ? '' : 'Specs from the <a href="' + bot.wikiUrl + '" target="_blank" rel="noopener">NHRL wiki</a>.') + (bot.snapshot && bot.snapshot.heroImage ? ' Hero photo: BrettZone still.' : '') + '</div>' + factsHtml(bot.team) + '</div>';
     else if (bot.specs) h += '<div class="card"><h2>' + esc(bot.name) + '</h2><div class="kv">' + bot.specs.map(function (kv) { return '<div>' + esc(kv[0]) + '</div><div>' + esc(kv[1]) + '</div>'; }).join('') + '</div><div class="note" style="margin-top:8px">' + (bot.planned ? 'From the team’s Discord channel list.' : 'No NHRL wiki page yet.') + '</div>' + factsHtml(bot.team) + '</div>';
-    h += '<div class="card"><h2>About</h2><div class="note">A personal, unofficial stats app, not affiliated with NHRL. Add it to your home screen: Safari → Share → “Add to Home Screen”, or Chrome → ⋮ → “Install app”.</div></div>';
+    h += '<div class="card"><h2>About</h2><div class="note"><b>Too Hot to Handle Hub</b>: an unofficial stats app for team Too Hot to Handle (Too Hot Robotics), not affiliated with NHRL. Add it to your home screen: Safari → Share → “Add to Home Screen”, or Chrome → ⋮ → “Install app”.</div></div>';
     el.innerHTML = h;
   }
 
@@ -456,7 +456,7 @@
     $('botName').innerHTML = esc(b.name.slice(0, Math.ceil(b.name.length / 2))) + '<span>' + esc(b.name.slice(Math.ceil(b.name.length / 2))) + '</span>';
     $('botSub').textContent = b.subtitle || '';
     $('refreshBtn').classList.toggle('off', !b.live); $('refreshBtn').title = b.live ? 'Refresh data' : 'Snapshot, not live';
-    document.title = b.name + (b.weightClass ? ' · NHRL ' + b.weightClass + 'lb' : ' · Too Hot to Handle');
+    document.title = b.name + ' · Too Hot to Handle Hub';
     renderAll();
     lastReq = 0; refresh();
   }
@@ -469,15 +469,15 @@
   function recOf(b) { var c = b.team; return c ? c.rec[0] + '–' + c.rec[1] : ''; }
   function renderSheetList(q) {
     var cur = bot.id; q = cleanName(q);
-    var groups = [['Mine', function (b) { return b.group === 'mine'; }], ['Team · 3lb', function (b) { return b.group === 'team' && b.weightClass === 3; }],
-      ['Team · 12lb', function (b) { return b.group === 'team' && b.weightClass === 12; }], ['Team · 30lb', function (b) { return b.group === 'team' && b.weightClass === 30; }],
+    // Grouped by weight class only; your own robots sit in their class (marked live like other 2026-active bots).
+    var groups = [['3lb', function (b) { return !b.planned && b.weightClass === 3; }], ['12lb', function (b) { return !b.planned && b.weightClass === 12; }], ['30lb', function (b) { return !b.planned && b.weightClass === 30; }],
       ['In build', function (b) { return b.group === 'build'; }]];
     var h = '';
     groups.forEach(function (g) {
       var list = BOTS.filter(g[1]).filter(function (b) { return !q || cleanName(b.name).indexOf(q) >= 0; });
       if (!list.length) return;
       h += '<div class="sheetgroup">' + g[0] + '</div>' + list.map(function (b) {
-        var meta = b.id === cur ? 'Current' : b.planned ? 'In build' : (recOf(b) ? recOf(b) + ' · ' : '') + (b.weightClass ? b.weightClass + 'lb' : '') + (b.live ? ' · live' : '');
+        var meta = b.id === cur ? 'Current' + (b.live ? ' · live' : '') : b.planned ? 'In build' : (recOf(b) ? recOf(b) + ' · ' : '') + (b.weightClass ? b.weightClass + 'lb' : '') + (b.live ? ' · live' : '');
         return '<button class="sheetitem' + (b.id === cur ? ' on' : '') + (b.planned ? ' planned' : '') + '" data-bot="' + b.id + '"><span>' + esc(b.name) + '</span><span class="note">' + esc(meta) + '</span></button>';
       }).join('');
     });

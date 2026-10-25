@@ -393,3 +393,4 @@ h1{text-transform:uppercase}
 .linkcard.withthumb{display:flex;align-items:center;gap:10px}
 .linkcard .lthumb{width:64px;height:44px;object-fit:cover;border-radius:4px;flex:none;background:#1a1a1a}
 .linkcard.withthumb span:not(.chev){flex:1}
+.brand .appname{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--hot);font-weight:700;line-height:1;margin-bottom:2px;white-space:nowrap}

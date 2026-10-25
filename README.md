@@ -89,3 +89,9 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Barbie and Ken's weapon is still unknown.
 - Each filled field has a per-field source credit (`facts` in data/team.js) shown on the robot's hub and its Team-tab detail.
 - Service worker cache: `supernova-v11`.
+
+## v12: team-confirmed weapons (per Ezequiel / team)
+
+- Luna: vertical spinner. Barbie: beater bar (vertical eggbeater). Barbie and Ken: multibot, Barbie's weapon a beater bar and Ken's a drum. Juxtaposition's builder, Kekoto Maane, is confirmed by the team.
+- These override the wiki-category archetype map (`TEAM_TYPES` in tools/build_data.py). Archetypes show them with a "Per team" badge.
+- Service worker cache: `supernova-v12`.

@@ -1,6 +1,6 @@
 /* Supernova PWA service worker: app shell cache-first; BrettZone API is network-only
    (the app caches API data in localStorage and has a bundled snapshot fallback). */
-var CACHE = 'supernova-v11';
+var CACHE = 'supernova-v12';
 var SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'bots.js', 'archetypes.js', 'data/archetypes.json', 'profile.js', 'calcs.js', 'data/complete-fights.js', 'data/team.js', 'data/opptypes.js', 'teamview.js', 'data/snapshot.js', 'data/snapshot-blink.js', 'data/kodex.js', 'manifest.webmanifest', 'fonts/fonts.css', 'fonts/chakra-petch-400.woff2', 'fonts/chakra-petch-600.woff2', 'fonts/chakra-petch-700.woff2', 'fonts/chakra-petch-700-italic.woff2',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', function (e) { e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); })); });

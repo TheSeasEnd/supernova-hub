@@ -14,8 +14,13 @@
   function setOverride(clean, id) { var o = overrides(); if (id === null) delete o[clean]; else o[clean] = id; localStorage.setItem(LS, JSON.stringify(o)); }
   function arch(id) { return (DATA.archetypes.filter(function (a) { return a.id === id; })[0]) || DATA.archetypes.filter(function (a) { return a.id === 'unknown'; })[0]; }
 
+  // Fallback for any robot: auto-built map from NHRL wiki weapon-type categories (data/opptypes.js).
+  function wikiMap(clean) {
+    var t = window.OPP_TYPES && window.OPP_TYPES[clean]; if (!t || t[0] === 'unknown') return null;
+    return { name: t[2], archetype: t[0], confidence: t[1], evidence: 'NHRL wiki ' + (t[3].length > 1 ? 'categories: ' : 'category: ') + t[3].join(', ') + (t[3].length > 1 ? ' (most specific used).' : '.'), sources: ['https://wiki.nhrl.io/wiki/index.php?title=' + encodeURIComponent(t[2].replace(/ /g, '_'))], auto: true };
+  }
   function forOpponent(clean) {
-    var o = overrides(), m = botMap()[clean];
+    var o = overrides(), m = botMap()[clean] || wikiMap(clean);
     var id = o[clean] || (m && m.archetype) || 'unknown', a = arch(id);
     return { id: a.id, name: a.name, short: SHORT[a.id] || a.name, family: a.family, edited: !!o[clean], map: m || null };
   }
@@ -39,10 +44,11 @@
     });
     var list = Object.keys(groups).map(function (k) { return groups[k]; }).sort(function (x, y) { return (x.a.id === 'unknown') - (y.a.id === 'unknown') || y.fights.length - x.fights.length || y.l - x.l; });
     var self = DATA.selfArchetypes && DATA.selfArchetypes[ctx.bot.id];
+    if (!self) { var sw = wikiMap(String(ctx.bot.name).normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g, '')); if (sw) self = { archetype: sw.archetype, sources: sw.sources }; }
     var h = ctx.status;
     h += '<div class="card"><h2>' + esc(ctx.bot.name) + ' vs robot types</h2><div class="note">' +
       (self ? (function () { var nm = arch(self.archetype).name.toLowerCase(); return esc(ctx.bot.name) + ' itself is ' + (/^[aeiou]/.test(nm) ? 'an' : 'a') + ' <b>' + esc(nm) + '</b>' + (self.archetype === 'eggbeater' ? ' (a vertical-axis spinner)' : '') + ' per the <a href="' + self.sources[0] + '" target="_blank" rel="noopener">NHRL wiki</a>. '; })() : '') +
-      'Opponents are grouped by the NHRL wiki’s weapon-type categories.</div>' +
+      'Opponents are grouped by the NHRL wiki’s weapon-type categories.' + (ctx.F.some(function (f) { return f.src === 'w'; }) ? ' Includes NHRL wiki-only fights (before 2024). Forfeits are left out.' : ' Forfeits are left out.') + '</div>' +
       '<div class="caveat">⚠ Small sample: ' + F.length + ' fights in total, at most ' + Math.max.apply(null, list.filter(function (g) { return g.a.id !== 'unknown'; }).map(function (g) { return g.fights.length; }).concat([0])) + ' per type. Treat these as hints, not trends. Driving, build quality and luck matter more than robot type.</div></div>';
 
     // watch-outs
@@ -74,7 +80,7 @@
     h += '<div class="sectiontitle pad">Opponents · tap to correct</div><div class="card">';
     Object.keys(opps).map(function (k) { return opps[k]; }).sort(function (x, y) { return x.name.localeCompare(y.name); }).forEach(function (o) {
       var a = forOpponent(o.clean), m = a.map;
-      var conf = a.edited ? '<span class="cbadge you">Set by you</span>' : (m && m.confidence === 'high') ? '<span class="cbadge ok">NHRL wiki</span>' : (m && m.confidence === 'medium') ? '<span class="cbadge med">Wiki, interpreted</span>' : '<span class="cbadge unk">Unverified</span>';
+      var conf = a.edited ? '<span class="cbadge you">Set by you</span>' : (m && m.confidence === 'high') ? '<span class="cbadge ok">NHRL wiki' + (m.auto ? ' (auto)' : '') + '</span>' : (m && m.confidence === 'medium') ? '<span class="cbadge med">Wiki, interpreted</span>' : '<span class="cbadge unk">Unverified</span>';
       h += '<div class="opprow"><div class="oname"><div><b>' + esc(o.name) + '</b> <span class="note">' + o.w + '–' + o.l + '</span></div>' + conf + '</div>' +
         '<select data-opp="' + esc(o.clean) + '" aria-label="Archetype for ' + esc(o.name) + '">' + DATA.archetypes.map(function (x) { return '<option value="' + x.id + '"' + (x.id === a.id ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join('') + '</select>' +
         '<div class="note src">' + (m ? esc(m.evidence) + (m.subtype ? ' Subtype: ' + esc(m.subtype) + '.' : '') + ' ' + (m.sources || []).map(function (u, i) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">source' + ((m.sources.length > 1) ? ' ' + (i + 1) : '') + '</a>'; }).join(' · ') : 'Not in the mapping yet (new opponent).') +

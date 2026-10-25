@@ -44,6 +44,17 @@ def ev(n):
     if not n: return -1
     if n not in evi: evi[n] = len(events); events.append(n)
     return evi[n]
+RAW = {}
+for f in glob.glob(f'{TD}/raw/brettzone/tournaments/*.json'):
+    for x in json.load(open(f)).get('fights', []):
+        # BrettZone sometimes lists the same match twice (two gameIDs, one without times); prefer the timed, decided copy,
+        # which is the one /bots/{name}/fights returns, so live merges dedupe on the same key.
+        for pl in (x['player1'], x['player2']):
+            k = (x['tournamentID'], x['name'], pl); o = RAW.get(k)
+            score = lambda y: (int(y.get('startTime') or 0) > 0, (y.get('player1wins') or 0) + (y.get('player2wins') or 0) > 0)
+            if o is None or score(x) > score(o): RAW[k] = x
+def raw_for(r):
+    return RAW.get((r.get('bz_tournamentID'), r.get('bz_match'), r['opponent']))
 def trim(title):
     v = C[title]; fs = []
     for r in v['fights']:
@@ -56,7 +67,17 @@ def trim(title):
             elif fl.startswith('method differs'): flags.append('wiki: ' + (r.get('wiki') or {}).get('method', ''))
         rd = (r.get('wiki') or {}).get('round') or ''
         st = r.get('stage') or ''
-        fs.append([r['date'], r['opponent'], r['result'], r['method'] or '', src, ev(r.get('event')), rd if src == 'w' else (st[:1] if st else ''), ' · '.join(flags)])
+        x = raw_for(r) if src != 'w' else None
+        if src != 'w' and not x: print('WARN no raw for', title, r['date'], r['opponent'], r.get('bz_match'))
+        t = (x['startTime'] or (x['endTime'] // 1000 if x.get('endTime') else 0)) if x else 0
+        ln = (x.get('matchLength') or 0) if (x and x.get('startTime')) else 0
+        if not ln:
+            try: ln = int((r.get('wiki') or {}).get('fightLengthS') or 0)
+            except ValueError: ln = 0
+        if ln > 1200 or r['method'] in ('FF', 'DQ'): ln = 0
+        vid = (r.get('wiki') or {}).get('video') or ''
+        fs.append([r['date'], r['opponent'], r['result'], r['method'] or '', src, ev(r.get('event')), rd if src == 'w' else (st[:1] if st else ''), ' · '.join(flags),
+                   x['tournamentID'] if x else '', x['id'] if x else '', x['name'] if x else '', x['round'] if x else -9, t, ln, vid])
     return v, fs
 def card(id, title, extra):
     v, fs = trim(title); ro = roster.get(extra.get('roster', title), {})
@@ -68,7 +89,7 @@ def card(id, title, extra):
         recBZ=[v['recordBrettzoneScan']['W'], v['recordBrettzoneScan']['L']], streak=v['currentStreakCombined'],
         lastDate=last[0] if last else None, lastEvent=lastEvent if (last and last[5] >= 0) else (lastEvent and ('last BrettZone event: ' + lastEvent)),
         firstDate=fs[0][0] if fs else None, counts=dict(v['counts']), wikiDupesDropped=v.get('wikiOnlyExcluded', 0),
-        sources=extra.get('sources', []), appBot=extra.get('appBot'), fights=fs)
+        sources=extra.get('sources', []), appBot=extra.get('appBot'), bz=v.get('brettzoneCleanName'), wiki=extra.get('wikiTitle', title), fights=fs)
     return c
 BOTS = [
  ('supernova','Supernova',dict(cls=12,appBot='supernova',channel='blink-supernova',sources=[['BrettZone',bz('supernova')],['NHRL wiki',WIKI+'Supernova']])),
@@ -81,7 +102,7 @@ BOTS = [
  ('juxtaposition','Juxtaposition',dict(cls=3,builder='Not documented',channel='juxtaposition-pof-cereal',sources=[['BrettZone',bz('juxtaposition')],['NHRL wiki',WIKI+'Juxtaposition']])),
  ('cerealkiller','Cereal Killer',dict(cls=3,channel='juxtaposition-pof-cereal',sources=[['BrettZone',bz('cerealkiller')],['NHRL wiki',WIKI+'Cereal_Killer']])),
  ('plottwist','Plot Twist',dict(cls=3,channel='plot-twist-luna',sources=[['BrettZone',bz('plottwist')],['NHRL wiki',WIKI+'Plot_Twist']])),
- ('phantomiv','Phantom IV',dict(cls=3,roster='Phantom IV',builder='Unknown',weapon='Unknown',channel='phantom-thumb-war',note='The newest Phantom. No wiki page yet, so builder and weapon are unknown.',sources=[['BrettZone',bz('phantomiv')]])),
+ ('phantomiv','Phantom IV',dict(cls=3,roster='Phantom IV',wikiTitle=None,builder='Unknown',weapon='Unknown',channel='phantom-thumb-war',note='The newest Phantom. No wiki page yet, so builder and weapon are unknown.',sources=[['BrettZone',bz('phantomiv')]])),
  ('stoneforge','Stoneforge',dict(cls=3,builder='James Nguyen',weapon='Modular (drum / eggbeater)',sources=[['BrettZone',bz('stoneforge')],['NHRL wiki',WIKI+'Stoneforge']])),
  ('fullydefined','Fully Defined',dict(cls=3,builder='Ian MacInerney',weapon='Vertical spinner (hub motor)',sources=[['BrettZone',bz('fullydefined')],['NHRL wiki',WIKI+'Fully_Defined']])),
  ('fireball','Fireball',dict(cls=3,note='No fights since Dec 2023 (likely retired).',sources=[['BrettZone',bz('fireball')],['NHRL wiki',WIKI+'Fireball']])),
@@ -98,6 +119,8 @@ for c in cards:
     if c['id'] == 'phantomiv': c['history'] = p3
 planned = [dict(id=n.lower().replace(' ', ''), name=n, channel=ch, planned=True) for n, ch in
            [('Rupture', 'eruption-rupture'), ('Rapier', 'alan-rapier'), ('Scope Creep', 'scope-creep'), ('Sux2Suck', 'sux2suck')]]
+OT = json.load(open(f'{TD}/opponent_types.json'))
+open(f'{APP}/data/opptypes.js', 'w').write('/* Opponent robot types from NHRL wiki weapon-type categories (wiki.nhrl.io), auto-built ' + OT['builtAt'] + ' by tools/build_data.py.\n   clean name -> [archetype id, confidence (high = one weapon category, medium = several), wiki page, categories]. */\nwindow.OPP_TYPES = ' + json.dumps(OT['map'], separators=(',', ':'), ensure_ascii=False) + ';\n')
 team = dict(name='Too Hot to Handle', alt='Too Hot Robotics', asOf=SCAN_LABEL, events=events, bots=cards, planned=planned,
     conflicts=[['Fireball', '2023-06-24', 'Apex', 'BrettZone has a JD win; the wiki says a loss. Using BrettZone’s win (it fits the bracket: Fireball went on to round 3).'],
                ['Fully Defined', '2023-05', 'Synthesis', 'BrettZone has a TO win; the wiki says a forfeit loss (third-place match). Using BrettZone’s win. Unresolved.']],

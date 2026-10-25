@@ -37,10 +37,10 @@
     var list = d.bots.filter(function (b) { return filter === 'all' || String(b.cls) === filter; });
     if (filter !== 'build') h += list.map(cardHtml).join('');
     if (filter === 'all' || filter === 'build') h += '<div class="sectiontitle pad">In build</div>' + d.planned.map(function (p) {
-      return '<div class="card tcard planned"><div class="tc-top"><div class="tc-name">' + esc(p.name) + '</div><span class="tbuild">IN BUILD</span></div>' +
+      return '<div class="card tcard planned" data-plan="' + esc(p.id) + '" role="button"><div class="tc-top"><div class="tc-name">' + esc(p.name) + '</div><span class="tbuild">IN BUILD</span></div>' +
         '<div class="note">Planned, no fights yet.' + (p.channel ? ' Team channel <span class="tchan">#' + esc(p.channel) + '</span>' : '') + '</div></div>';
     }).join('');
-    h += '<div class="note pad">Tap a robot for its fight list. Each fight is tagged by source: <b>BZ</b> BrettZone, <b>WIKI</b> NHRL wiki, <b>BOTH</b> found in both and counted once.</div>';
+    h += '<div class="note pad">Tap a robot to open its hub (Overview, Fights, Archetypes). The hub’s Overview links to source detail. Each fight is tagged by source: <b>BZ</b> BrettZone, <b>WIKI</b> NHRL wiki, <b>BOTH</b> found in both and counted once.</div>';
     h += creditsHtml();
     el.innerHTML = h;
   }
@@ -54,7 +54,7 @@
       '<span>Builder</span><span>' + esc(b.builder || 'Unknown') + '</span><span>Weapon</span><span>' + esc(b.weapon || 'Unknown') + '</span></div>' +
       '<div class="tc-foot">' + (b.channel ? '<span class="tchan">#' + esc(b.channel) + '</span>' : '') +
       ['x', 'b', 'w'].filter(function (k) { return c[{ x: 'both', b: 'brettzone', w: 'wiki' }[k]]; }).map(function (k) { return '<span class="tsrc ' + k + '">' + SRC[k][0] + ' ' + c[{ x: 'both', b: 'brettzone', w: 'wiki' }[k]] + '</span>'; }).join('') +
-      (b.appBot ? '<span class="tmine">★ in this app</span>' : '') + '</div></a>';
+      (b.appBot ? '<span class="tmine">★ yours · live</span>' : '') + '</div></a>';
   }
 
   function fightsHtml(b) {
@@ -88,7 +88,7 @@
       (b.note ? '<div class="note" style="margin-top:8px">' + esc(b.note) + '</div>' : '') +
       (conf.length ? conf.map(function (x) { return '<div class="tflag bad" style="margin-top:8px">⚠ ' + esc(x[0]) + ' vs ' + esc(x[2]) + ' (' + esc(x[1]) + '): ' + esc(x[3]) + '</div>'; }).join('') : '') +
       '<div class="links tlinks">' + (b.sources || []).map(function (s) { return '<a class="btn ghost sm" href="' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[0]) + ' ↗</a>'; }).join('') + '</div>' +
-      (b.appBot ? '<button class="btn" data-openbot="' + esc(b.appBot) + '" style="margin-top:10px">Open ' + esc(b.name) + ' live stats</button>' : '') + '</div>';
+      (isHistory ? '' : '<button class="btn" data-openbot="' + esc(b.appBot || b.id) + '" style="margin-top:10px">Open ' + esc(b.name) + ' hub</button>') + '</div>';
     return h;
   }
 
@@ -123,7 +123,9 @@
       el = node;
       el.addEventListener('click', function (e) {
         var f = e.target.closest('[data-tfilter]'); if (f) { filter = f.dataset.tfilter; renderList(); return; }
-        var c = e.target.closest('[data-team]'); if (c) { e.preventDefault(); window.App.navigate('#team/' + c.dataset.team, true); return; }
+        var c = e.target.closest('[data-team]'); if (c) { e.preventDefault(); var b = byId(c.dataset.team); window.App.switchBot(b && b.appBot ? b.appBot : c.dataset.team); return; }
+        var pl = e.target.closest('[data-plan]'); if (pl) { window.App.switchBot('plan-' + pl.dataset.plan); return; }
+        var sd = e.target.closest('[data-tdetail]'); if (sd) { e.preventDefault(); window.App.navigate('#team/' + sd.dataset.tdetail, true); return; }
         if (e.target.closest('[data-tback]')) { window.App.back('#team'); return; }
         var o = e.target.closest('[data-openbot]'); if (o) { window.App.switchBot(o.dataset.openbot); return; }
       });

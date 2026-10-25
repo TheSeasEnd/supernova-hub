@@ -55,3 +55,31 @@ window.BOTS = [
     }
   }
 ];
+
+/* Rest of the Too Hot to Handle roster, generated from the bundled team snapshot (data/team.js).
+   Bots that fought in 2026 also try a live BrettZone refresh (merged, so counts never drop); the rest are snapshot-only. */
+(function () {
+  var T = window.TEAM_DATA; if (!T) return;
+  var WIKI = 'https://wiki.nhrl.io/wiki/index.php?title=';
+  function cleanName(n) { return String(n || '').normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  window.BOTS.forEach(function (b) { b.group = 'mine'; b.live = true; });
+  T.bots.forEach(function (c) {
+    var own = window.BOTS.filter(function (b) { return b.id === (c.appBot || c.id); })[0];
+    if (own) { own.team = c; return; }
+    window.BOTS.push({
+      id: c.id, name: c.name, apiName: c.bz || cleanName(c.name), weightClass: c.cls, group: 'team', team: c,
+      subtitle: c.cls + 'lb · NHRL · Too Hot to Handle', enabled: true,
+      live: !!(c.bz && c.lastDate && c.lastDate >= '2026-01-01'),
+      kodex: null, snapshot: null, rank: null,
+      wikiUrl: c.wiki ? WIKI + encodeURIComponent(c.wiki.replace(/ /g, '_')) : null,
+      specs: [['Builder / driver', c.builder || 'Unknown'], ['Weight class', c.cls + 'lb (NHRL)'], ['Weapon', c.weapon || 'Unknown']].concat(c.channel ? [['Team channel', '#' + c.channel]] : []),
+      footnoteTitle: 'Where these fights come from',
+      recordFootnote: 'Combined from BrettZone’s tournament fight lists and the NHRL wiki’s fight history. A fight found in both is counted once, with BrettZone’s result. Wiki-only fights are only used from before 2024. Team snapshot: ' + T.asOf + '.',
+      eventNotes: {}
+    });
+  });
+  T.planned.forEach(function (p) {
+    window.BOTS.push({ id: 'plan-' + p.id, name: p.name, group: 'build', planned: true, enabled: true, live: false, channel: p.channel,
+      subtitle: 'In build · Too Hot to Handle', kodex: null, snapshot: null, rank: null, specs: [['Status', 'In build, no fights yet']].concat(p.channel ? [['Team channel', '#' + p.channel]] : []) });
+  });
+})();

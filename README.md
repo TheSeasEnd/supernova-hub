@@ -61,3 +61,20 @@ Calculators belong to their owners (Brian Boxell / Too Hot Robotics; Level 5 Rob
 
 ## Deploy
 Push this folder to a GitHub repo and enable Pages (root), or drag it into Netlify Drop.
+
+## v10: a hub for every robot on the roster
+
+- The robot switcher (tap the name in the header) now lists the whole Too Hot to Handle roster. It's grouped into **Mine** (Supernova, Blink), **Team · 3lb / 12lb / 30lb** and **In build**, and you can search it. The list scrolls inside the sheet, so it works on a phone.
+- Every team robot gets the full hub: Overview, Fights and Archetypes. Fights come from the combined team snapshot (`data/team.js`), which is BrettZone tournament fight lists plus NHRL wiki history, reconciled. Each fight is tagged BOTH, BZ or WIKI.
+  - Overview adds an identity card for robots with no hero photo or ranking, a by-year table, a sources card linking to the Team-tab detail, and Phantom III history on Phantom IV.
+  - Rematches are capped at the top 10.
+- **Live vs snapshot:**
+  - Supernova and Blink keep full live refresh.
+  - Team robots that fought in 2026 (`live: true` in bots.js) also refresh from BrettZone. The live data merges onto the snapshot by `tournamentID|gameID`, aliased by tournament + match + both robots because BrettZone sometimes lists a match twice, so counts never drop.
+  - All other robots are labelled "Snapshot, not live" and don't fetch.
+- Planned robots (Rupture, Rapier, Scope Creep, Sux2Suck) get an "In build" hub with no fights.
+- Archetypes fall back to `data/opptypes.js`, which is built automatically from NHRL wiki weapon-type categories for every opponent. Hand-curated entries and your own overrides still take priority. A robot's own type comes from the same map.
+- Team tab cards open the robot's hub. Source detail is still at `#team/<id>`, linked from the hub's Overview.
+- Calcs stays global: switching to a team robot doesn't change your Calcs profile.
+- Credits: KO-dex shows only for robots with KO-dex data. Team robots get an NHRL wiki credit.
+- Service worker cache: `supernova-v10`.

@@ -350,7 +350,7 @@
     state.F = normalise(mergedRaw()); state.ff = [];
     state.s = state.F.length ? computeStats(state.F) : null;
     window.__stats = state.s; window.__fights = state.F;
-    renderOverview(); renderFights(); renderArchetypes(); renderMore();
+    renderOverview(); renderFights(); renderArchetypes(); renderMore(); updateSide();
     if (window.TeamView) window.TeamView.render();
   }
 
@@ -461,10 +461,34 @@
     lastReq = 0; refresh();
   }
 
+  /* ---------- desktop sidebar: current robot card (hidden on phones by CSS) ---------- */
+  var DESK = window.matchMedia ? window.matchMedia('(min-width: 900px)') : { matches: false };
+  function updateSide() {
+    var el = $('sideBot'); if (!el || !bot) return;
+    var tid = bot.team ? bot.team.id : bot.id, p = window.BOT_PHOTOS && window.BOT_PHOTOS[tid], s = state.s;
+    var rec = s && state.F && state.F.length ? '<span class="w">' + s.w + '</span>–<span class="l">' + s.l + '</span>' : (bot.planned ? 'In build' : '');
+    el.innerHTML = (p ? '<div class="sb-photo' + (p.cut ? ' cut' : '') + '"><img src="' + esc(p.src) + '" alt="' + esc(bot.name) + '"></div>' : (bot.planned ? '<div class="sb-photo none"><span>No robot yet</span></div>' : '')) +
+      '<div class="sb-meta"><div class="sb-rec">' + rec + '</div><div class="sb-tag">' + (bot.planned ? 'Planned' : bot.live ? '<span class="dot-live"></span>Live' : 'Snapshot') + '</div></div>' +
+      '<button class="sb-switch" data-sw>Switch robot <kbd>/</kbd></button>';
+  }
+  // Background scroll lock while the switcher is open (wheel + touch). position:fixed keeps iOS Safari from scrolling the page.
+  var lockY = 0;
+  function lockScroll() {
+    if (document.body.classList.contains('scroll-locked')) return;
+    lockY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.top = -lockY + 'px'; document.body.classList.add('scroll-locked'); document.documentElement.classList.add('scroll-locked');
+  }
+  function unlockScroll() {
+    if (!document.body.classList.contains('scroll-locked')) return;
+    document.body.classList.remove('scroll-locked'); document.documentElement.classList.remove('scroll-locked'); document.body.style.top = '';
+    window.scrollTo(0, lockY);
+  }
   function openSheet() {
     $('sheetBody').innerHTML = '<div class="sheettitle">Switch robot</div><input id="botSearch" class="botsearch" type="search" placeholder="Search ' + BOTS.length + ' robots" autocomplete="off" aria-label="Search robots"><div id="sheetList" class="sheetlist"></div><button class="sheetitem cancel" data-close>Close</button>';
     renderSheetList('');
+    lockScroll();
     $('sheet').hidden = false; requestAnimationFrame(function () { $('sheet').classList.add('open'); });
+    if (DESK.matches) setTimeout(function () { var i = $('botSearch'); if (i) i.focus(); }, 30);
   }
   function recOf(b) { var c = b.team; return c ? c.rec[0] + '–' + c.rec[1] : ''; }
   function renderSheetList(q) {
@@ -476,14 +500,14 @@
     groups.forEach(function (g) {
       var list = BOTS.filter(g[1]).filter(function (b) { return !q || cleanName(b.name).indexOf(q) >= 0; });
       if (!list.length) return;
-      h += '<div class="sheetgroup">' + g[0] + '</div>' + list.map(function (b) {
+      h += '<div class="sgroup"><div class="sheetgroup">' + g[0] + '</div><div class="sgitems">' + list.map(function (b) {
         var meta = b.id === cur ? 'Current' + (b.live ? ' · live' : '') : b.planned ? 'In build' : (recOf(b) ? recOf(b) + ' · ' : '') + (b.weightClass ? b.weightClass + 'lb' : '') + (b.live ? ' · live' : '');
         return '<button class="sheetitem' + (b.id === cur ? ' on' : '') + (b.planned ? ' planned' : '') + '" data-bot="' + b.id + '"><span>' + esc(b.name) + '</span><span class="note">' + esc(meta) + '</span></button>';
-      }).join('');
+      }).join('') + '</div></div>';
     });
     $('sheetList').innerHTML = h || '<div class="note pad">No robot matches.</div>';
   }
-  function closeSheet() { $('sheet').classList.remove('open'); setTimeout(function () { $('sheet').hidden = true; }, 180); }
+  function closeSheet() { $('sheet').classList.remove('open'); unlockScroll(); setTimeout(function () { $('sheet').hidden = true; }, 180); }
 
   /* ---------- router (hash: #tab or #tab/sub) ---------- */
   function parse(hash) { var p = (hash || '').replace(/^#/, '').split('/'); var tab = TABS.indexOf(p[0]) >= 0 ? p[0] : 'overview'; return { tab: tab, sub: p[1] || '' }; }
@@ -523,7 +547,26 @@
       var sg = e.target.closest('[data-seg]'); if (sg) { fightsSeg = sg.dataset.seg; renderFights(); return; }
       if (e.target.closest('[data-refresh]')) { refresh(true); return; }
       var bb = e.target.closest('[data-bot]'); if (bb) { closeSheet(); if (bb.dataset.bot !== bot.id) loadBot(bb.dataset.bot); return; }
+      if (e.target.closest('[data-sw]')) { openSheet(); return; }
       if (e.target.closest('[data-close]') || e.target.id === 'sheet') { closeSheet(); return; }
+    });
+    // Keyboard: "/" opens the switcher (search focused), Esc closes it, ↑/↓ move through robots or the sidebar tabs.
+    document.addEventListener('keydown', function (e) {
+      var sheetOpen = !$('sheet').hidden, t = e.target, typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+      if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); if (!sheetOpen) openSheet(); else { var i = $('botSearch'); if (i) i.focus(); } return; }
+      if (e.key === 'Escape' && sheetOpen) { e.preventDefault(); closeSheet(); var b = $('botSwitch'); if (b) b.focus(); return; }
+      if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && sheetOpen) {
+        var items = [].slice.call(document.querySelectorAll('#sheetList .sheetitem')); if (!items.length) return;
+        var k = items.indexOf(document.activeElement); e.preventDefault();
+        k = e.key === 'ArrowDown' ? (k < 0 ? 0 : Math.min(items.length - 1, k + 1)) : (k <= 0 ? -1 : k - 1);
+        if (k < 0) $('botSearch').focus(); else items[k].focus(); return;
+      }
+      if (e.key === 'Enter' && sheetOpen && t && t.id === 'botSearch') { var first = document.querySelector('#sheetList .sheetitem'); if (first) { e.preventDefault(); first.click(); } return; }
+      if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && t && t.closest && t.closest('.tabs')) {
+        var tabs = [].slice.call(document.querySelectorAll('.tabs button')).sort(function (a, b) { return (+getComputedStyle(a).order) - (+getComputedStyle(b).order); });
+        var j = tabs.indexOf(t); if (j < 0) return; e.preventDefault();
+        var n = tabs[(j + (e.key === 'ArrowDown' ? 1 : tabs.length - 1)) % tabs.length]; n.focus(); n.click();
+      }
     });
     document.addEventListener('input', function (e) { if (e.target.id === 'botSearch') renderSheetList(e.target.value); });
     document.addEventListener('change', function (e) { if (e.target.id === 'autoToggle') { lsSet('sn_auto_refresh', e.target.checked); } });

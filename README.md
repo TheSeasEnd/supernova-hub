@@ -114,3 +114,26 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - The robot switcher is grouped only by weight class (3lb / 12lb / 30lb) plus In build. Supernova and Blink sit in their class groups with their live tags. Search still works.
 - On first load the app opens Supernova. After that it opens the last robot you picked (`sn_current_bot`).
 - Service worker cache: `supernova-v14`.
+
+## v15: desktop / tablet layout + switcher scrolling
+
+- **Phones (up to 899px) are unchanged.** Screenshots at 390×844 match v14 apart from the "updated" time.
+- **At 900px and wider:**
+  - **Sidebar:** the bottom tab bar becomes a left sidebar. It holds the app name and flame icon, the current robot's photo, record and live/snapshot tag, a Switch robot button (`/`), a Refresh button, and the tabs in the order Overview, Fights, Archetypes, Calcs, Team, More.
+  - **Content:** uses up to 1400px of width.
+    - Overview, Archetypes and More lay out as masonry columns, so cards keep their natural height.
+    - Fights show 2–3 fight cards per row inside each event.
+    - Team is a 4-across card grid with the filters on top.
+    - Calcs is a card grid. Embedded calculators such as ROBO CALC fill the window height.
+  - **Switcher:** a wide popover with search and weight-class groups laid out in columns.
+  - **Hover and focus:** hover states on fights, cards and tabs, plus visible keyboard focus.
+- **Keyboard:**
+  - `/` opens the switcher with search focused.
+  - Typing filters the list, and Enter picks the first match.
+  - ↑/↓ move through the robots, and Esc closes.
+  - In the sidebar, ↑/↓ move between tabs.
+- **Tablets (900–1100px):** a narrower sidebar (216px) and narrower columns.
+- **Switcher scrolling (all sizes):**
+  - The robot list is its own scroll container (max-height, `overflow-y:auto`, `overscroll-behavior:contain`).
+  - The page behind is locked while the switcher is open (body `position:fixed` keeps your scroll position, which is restored on close; this works for wheel and touch).
+- Service worker cache: `supernova-v15`.

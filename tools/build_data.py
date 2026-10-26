@@ -120,7 +120,7 @@ p3 = card('phantomiii', 'Phantom III', dict(cls=3, builder='Nik Buchholz (Team B
 for c in cards:
     if c['id'] == 'phantomiv': c['history'] = p3
 planned = [dict(id=n.lower().replace(' ', ''), name=n, channel=ch, planned=True) for n, ch in
-           [('Rupture', 'eruption-rupture'), ('Rapier', 'alan-rapier'), ('Scope Creep', 'scope-creep'), ('Sux2Suck', 'sux2suck')]]
+           [('Rupture', 'eruption-rupture'), ('Rapier', 'alan-rapier'), ('Scope Creep', 'scope-creep'), ('Sux2Suck', 'sux2suck'), ('Slipstream', None)]]
 OT = json.load(open(f'{TD}/opponent_types.json'))
 # Team-confirmed types (per Ezequiel / team, Oct 25, 2026) override the wiki-category map. A 5th element is the evidence text.
 TEAM_TYPES = {

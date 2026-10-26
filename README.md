@@ -150,3 +150,9 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - 29–13 combined (26–10 without forfeits). All 42 fights appear in both the BrettZone tournament scan and the wiki table. Comet shows in the switcher (3lb group), the Team tab card and team totals, and has its own hub. Its photo is a BrettZone Hero’s Gallery hero shot (October 2025, still #117), credited.
 - Archetype: vertical spinner (wiki category Vertical Spinners). Discord channel isn't known. “Sun, moon, and comet” (Feb 2026) is a different bot and isn't included.
 - Service worker cache: `supernova-v17`.
+
+## v18: Slipstream (in build)
+
+- Slipstream added as a planned robot (per Ezequiel), like Rupture, Rapier, Scope Creep and Sux2Suck: an "In build" hub, the switcher's In build group, and a Team tab In build card. Class, builder, weapon and Discord channel are Unknown. BrettZone search and the NHRL wiki have no "slipstream" entries (checked Oct 25, 2026, 8:15 PM ET).
+- Planned robots with no known channel show Class/Builder/Weapon as Unknown on More.
+- Service worker cache: `supernova-v18`.

@@ -38,7 +38,7 @@
     if (filter !== 'build') h += list.map(cardHtml).join('');
     if (filter === 'all' || filter === 'build') h += '<div class="sectiontitle pad">In progress</div>' + d.planned.map(function (p) {
       return '<div class="card tcard planned" data-plan="' + esc(p.id) + '" role="button"><div class="tc-top"><div class="tc-name">' + esc(p.name) + '</div><span class="tbuild">IN PROGRESS</span></div>' + placeholderHtml() +
-        '<div class="note">Planned, no fights yet.' + (p.channel ? ' Team channel <span class="tchan">#' + esc(p.channel) + '</span>' : '') + '</div></div>';
+        '<div class="note">Planned, no fights yet.</div></div>';
     }).join('');
     h += '<div class="note pad">Tap a robot to open its hub (Overview, Fights, Archetypes). The hub’s Overview links to source detail. Each fight is tagged by source: <b>BZ</b> BrettZone, <b>WIKI</b> NHRL wiki, <b>BOTH</b> found in both and counted once.</div>';
     h += creditsHtml();
@@ -62,9 +62,9 @@
       '<div class="tc-rec">' + recHtml(b.rec) + '<span class="tc-noff">no FF ' + b.recNoFF[0] + '–' + b.recNoFF[1] + '</span><span class="chev">›</span></div>' +
       '<div class="tc-kv"><span>Last</span><span>' + esc((b.lastEvent || '').replace(/^NHRL /, '') || '—') + (b.lastDate ? ' · ' + fmtD(b.lastDate) : '') + '</span>' +
       '<span>Builder</span><span>' + esc(b.builder || 'Unknown') + '</span><span>Weapon</span><span>' + esc(b.weapon || 'Unknown') + '</span></div>' +
-      '<div class="tc-foot">' + (b.channel ? '<span class="tchan">#' + esc(b.channel) + '</span>' : '') +
+      '<div class="tc-foot">' +
       ['x', 'b', 'w'].filter(function (k) { return c[{ x: 'both', b: 'brettzone', w: 'wiki' }[k]]; }).map(function (k) { return '<span class="tsrc ' + k + '">' + SRC[k][0] + ' ' + c[{ x: 'both', b: 'brettzone', w: 'wiki' }[k]] + '</span>'; }).join('') +
-      (b.appBot ? '<span class="tmine">★ yours · live</span>' : '') + '</div></a>';
+      '</div></a>';
   }
 
   function fightsHtml(b) {
@@ -94,7 +94,7 @@
     h += '<div class="card"><div class="kv">' +
       '<div>Class</div><div>' + b.cls + 'lb (NHRL)</div><div>Builder / driver</div><div>' + esc(b.builder || 'Unknown') + '</div><div>Weapon</div><div>' + esc(b.weapon || 'Unknown') + '</div>' +
       '<div>Last event</div><div>' + esc(b.lastEvent || '—') + (b.lastDate ? '<br><span class="note">' + fmtD(b.lastDate) + '</span>' : '') + '</div>' +
-      (b.channel ? '<div>Team channel</div><div><span class="tchan">#' + esc(b.channel) + '</span></div>' : '') + '</div>' +
+      '</div>' +
       (b.note ? '<div class="note" style="margin-top:8px">' + esc(b.note) + '</div>' : '') +
       (conf.length ? conf.map(function (x) { return '<div class="tflag bad" style="margin-top:8px">⚠ ' + esc(x[0]) + ' vs ' + esc(x[2]) + ' (' + esc(x[1]) + '): ' + esc(x[3]) + '</div>'; }).join('') : '') +
       (b.facts ? '<div class="tfacts">' + (b.facts.builder ? '<div><b>Builder:</b> ' + esc(b.facts.builder) + '</div>' : '') + (b.facts.weapon ? '<div><b>Weapon:</b> ' + esc(b.facts.weapon) + '</div>' : '') + '</div>' : '') +

@@ -162,3 +162,10 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Every user-visible "In build" label now says "In progress": the switcher group, the Team tab filter, section title and card badges, the planned-robot hub and status lines, and the More tab specs. (Earlier README sections are updated to the new wording.)
 - Internal ids are unchanged (`group: 'build'`, filter key `build`, `plan-<id>` bot ids, `data-plan`, CSS `.tbuild`), so saved selections and `#team` routes keep working.
 - Service worker cache: `supernova-v19`.
+
+## v20: fewer tags
+
+- Removed the purple `#channel` chips (Discord team-channel tags) from the Team tab cards, the Team robot detail, the hub Overview ID card and the In progress cards and hub.
+- Removed the "live" tags: "★ yours · live" on Team cards, "· live" in switcher rows (including "Current · live"), and the "● Live" tag in the desktop sidebar.
+- Live refresh still works, and the hub's status line ("Live · updated …") is unchanged. Class chips, BZ/WIKI/BOTH source chips, streak pills and IN PROGRESS badges are unchanged. The More tab still lists the team channel as plain text.
+- Service worker cache: `supernova-v20`.

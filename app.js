@@ -212,7 +212,7 @@
     var hero = bot.snapshot && bot.snapshot.heroImage, r = bot.rank;
     var h = statusLine();
     var tid = bot.team ? bot.team.id : bot.id;
-    if (!hero && !r) h += '<div class="card idcard">' + (window.TeamPhoto ? window.TeamPhoto(tid, bot.name, false) : '') + '<div class="idrow"><span class="tcls-chip">' + bot.weightClass + 'lb</span>' + (bot.team && bot.team.channel ? '<span class="tchan">#' + esc(bot.team.channel) + '</span>' : '') + '<span class="idn">' + s.events.length + ' events · ' + s.n + ' fights</span></div>' +
+    if (!hero && !r) h += '<div class="card idcard">' + (window.TeamPhoto ? window.TeamPhoto(tid, bot.name, false) : '') + '<div class="idrow"><span class="tcls-chip">' + bot.weightClass + 'lb</span>' + '<span class="idn">' + s.events.length + ' events · ' + s.n + ' fights</span></div>' +
       '<div class="tc-kv" style="margin-top:8px"><span>Builder</span><span>' + esc((bot.team && bot.team.builder) || 'Unknown') + '</span><span>Weapon</span><span>' + esc((bot.team && bot.team.weapon) || 'Unknown') + '</span><span>Span</span><span>' + fmtDate(F[0].start) + ' – ' + fmtDate(F[F.length - 1].start) + '</span></div>' +
       (bot.team && bot.team.note ? '<div class="note" style="margin-top:8px">' + esc(bot.team.note) + '</div>' : '') + factsHtml(bot.team) + '</div>';
     else h += '<div class="card hero">' + (hero ? '<img src="' + esc(hero) + '" alt="' + esc(bot.name) + ' (BrettZone still)" onerror="this.remove()">' : '') +
@@ -264,7 +264,7 @@
   }
   function plannedCard() {
     return statusLine() + '<div class="card tbuildcard"><div class="tphoto none"><span>No robot yet</span></div><span class="tbuild">IN PROGRESS</span><div class="tc-name big2" style="margin-top:10px">' + esc(bot.name) + '</div>' +
-      '<div class="note" style="margin-top:6px">A planned Too Hot to Handle robot. No fights yet, so there are no stats.' + (bot.channel ? ' Team channel <span class="tchan">#' + esc(bot.channel) + '</span>.' : '') + '</div>' +
+      '<div class="note" style="margin-top:6px">A planned Too Hot to Handle robot. No fights yet, so there are no stats.</div>' +
       '<a class="btn ghost sm" style="margin-top:12px" href="#team" data-nav="team">Back to the team</a></div>';
   }
   function fightRow(f) {
@@ -468,7 +468,7 @@
     var tid = bot.team ? bot.team.id : bot.id, p = window.BOT_PHOTOS && window.BOT_PHOTOS[tid], s = state.s;
     var rec = s && state.F && state.F.length ? '<span class="w">' + s.w + '</span>–<span class="l">' + s.l + '</span>' : (bot.planned ? 'In progress' : '');
     el.innerHTML = (p ? '<div class="sb-photo' + (p.cut ? ' cut' : '') + '"><img src="' + esc(p.src) + '" alt="' + esc(bot.name) + '"></div>' : (bot.planned ? '<div class="sb-photo none"><span>No robot yet</span></div>' : '')) +
-      '<div class="sb-meta"><div class="sb-rec">' + rec + '</div><div class="sb-tag">' + (bot.planned ? 'Planned' : bot.live ? '<span class="dot-live"></span>Live' : 'Snapshot') + '</div></div>' +
+      '<div class="sb-meta"><div class="sb-rec">' + rec + '</div><div class="sb-tag">' + (bot.planned ? 'Planned' : bot.live ? '' : 'Snapshot') + '</div></div>' +
       '<button class="sb-switch" data-sw>Switch robot <kbd>/</kbd></button>';
   }
   // Background scroll lock while the switcher is open (wheel + touch). position:fixed keeps iOS Safari from scrolling the page.
@@ -501,7 +501,7 @@
       var list = BOTS.filter(g[1]).filter(function (b) { return !q || cleanName(b.name).indexOf(q) >= 0; });
       if (!list.length) return;
       h += '<div class="sgroup"><div class="sheetgroup">' + g[0] + '</div><div class="sgitems">' + list.map(function (b) {
-        var meta = b.id === cur ? 'Current' + (b.live ? ' · live' : '') : b.planned ? 'In progress' : (recOf(b) ? recOf(b) + ' · ' : '') + (b.weightClass ? b.weightClass + 'lb' : '') + (b.live ? ' · live' : '');
+        var meta = b.id === cur ? 'Current' : b.planned ? 'In progress' : (recOf(b) ? recOf(b) + ' · ' : '') + (b.weightClass ? b.weightClass + 'lb' : '');
         return '<button class="sheetitem' + (b.id === cur ? ' on' : '') + (b.planned ? ' planned' : '') + '" data-bot="' + b.id + '"><span>' + esc(b.name) + '</span><span class="note">' + esc(meta) + '</span></button>';
       }).join('') + '</div></div>';
     });

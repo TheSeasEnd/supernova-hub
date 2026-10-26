@@ -80,6 +80,6 @@ window.BOTS = [
   });
   T.planned.forEach(function (p) {
     window.BOTS.push({ id: 'plan-' + p.id, name: p.name, group: 'build', planned: true, enabled: true, live: false, channel: p.channel,
-      subtitle: 'In build', kodex: null, snapshot: null, rank: null, specs: [['Status', 'In build, no fights yet']].concat(p.channel ? [['Team channel', '#' + p.channel]] : [['Class', 'Unknown'], ['Builder', 'Unknown'], ['Weapon', 'Unknown']]) });
+      subtitle: 'In progress', kodex: null, snapshot: null, rank: null, specs: [['Status', 'In progress, no fights yet']].concat(p.channel ? [['Team channel', '#' + p.channel]] : [['Class', 'Unknown'], ['Builder', 'Unknown'], ['Weapon', 'Unknown']]) });
   });
 })();

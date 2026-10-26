@@ -160,7 +160,7 @@
 
   /* ---------- shared bits ---------- */
   function statusLine() {
-    if (bot.planned) return '<div class="status"><span class="dot-live"></span>In build · no fights yet</div>';
+    if (bot.planned) return '<div class="status"><span class="dot-live"></span>In progress · no fights yet</div>';
     if (!bot.live) return '<div class="status"><span class="dot-live"></span>Snapshot, not live · team snapshot ' + esc(teamAsOf()) + '<br><span class="snapline">BrettZone + NHRL wiki, combined. This robot hasn’t fought in 2026, so it isn’t refreshed live.</span></div>';
     var live = state.source === 'live' && !state.error;
     var label = state.source === 'live' ? 'Live' : state.source === 'cache' ? 'Saved' : 'Offline snapshot';
@@ -263,7 +263,7 @@
     return h;
   }
   function plannedCard() {
-    return statusLine() + '<div class="card tbuildcard"><div class="tphoto none"><span>No robot yet</span></div><span class="tbuild">IN BUILD</span><div class="tc-name big2" style="margin-top:10px">' + esc(bot.name) + '</div>' +
+    return statusLine() + '<div class="card tbuildcard"><div class="tphoto none"><span>No robot yet</span></div><span class="tbuild">IN PROGRESS</span><div class="tc-name big2" style="margin-top:10px">' + esc(bot.name) + '</div>' +
       '<div class="note" style="margin-top:6px">A planned Too Hot to Handle robot. No fights yet, so there are no stats.' + (bot.channel ? ' Team channel <span class="tchan">#' + esc(bot.channel) + '</span>.' : '') + '</div>' +
       '<a class="btn ghost sm" style="margin-top:12px" href="#team" data-nav="team">Back to the team</a></div>';
   }
@@ -466,7 +466,7 @@
   function updateSide() {
     var el = $('sideBot'); if (!el || !bot) return;
     var tid = bot.team ? bot.team.id : bot.id, p = window.BOT_PHOTOS && window.BOT_PHOTOS[tid], s = state.s;
-    var rec = s && state.F && state.F.length ? '<span class="w">' + s.w + '</span>–<span class="l">' + s.l + '</span>' : (bot.planned ? 'In build' : '');
+    var rec = s && state.F && state.F.length ? '<span class="w">' + s.w + '</span>–<span class="l">' + s.l + '</span>' : (bot.planned ? 'In progress' : '');
     el.innerHTML = (p ? '<div class="sb-photo' + (p.cut ? ' cut' : '') + '"><img src="' + esc(p.src) + '" alt="' + esc(bot.name) + '"></div>' : (bot.planned ? '<div class="sb-photo none"><span>No robot yet</span></div>' : '')) +
       '<div class="sb-meta"><div class="sb-rec">' + rec + '</div><div class="sb-tag">' + (bot.planned ? 'Planned' : bot.live ? '<span class="dot-live"></span>Live' : 'Snapshot') + '</div></div>' +
       '<button class="sb-switch" data-sw>Switch robot <kbd>/</kbd></button>';
@@ -495,13 +495,13 @@
     var cur = bot.id; q = cleanName(q);
     // Grouped by weight class only; your own robots sit in their class (marked live like other 2026-active bots).
     var groups = [['3lb', function (b) { return !b.planned && b.weightClass === 3; }], ['12lb', function (b) { return !b.planned && b.weightClass === 12; }], ['30lb', function (b) { return !b.planned && b.weightClass === 30; }],
-      ['In build', function (b) { return b.group === 'build'; }]];
+      ['In progress', function (b) { return b.group === 'build'; }]];
     var h = '';
     groups.forEach(function (g) {
       var list = BOTS.filter(g[1]).filter(function (b) { return !q || cleanName(b.name).indexOf(q) >= 0; });
       if (!list.length) return;
       h += '<div class="sgroup"><div class="sheetgroup">' + g[0] + '</div><div class="sgitems">' + list.map(function (b) {
-        var meta = b.id === cur ? 'Current' + (b.live ? ' · live' : '') : b.planned ? 'In build' : (recOf(b) ? recOf(b) + ' · ' : '') + (b.weightClass ? b.weightClass + 'lb' : '') + (b.live ? ' · live' : '');
+        var meta = b.id === cur ? 'Current' + (b.live ? ' · live' : '') : b.planned ? 'In progress' : (recOf(b) ? recOf(b) + ' · ' : '') + (b.weightClass ? b.weightClass + 'lb' : '') + (b.live ? ' · live' : '');
         return '<button class="sheetitem' + (b.id === cur ? ' on' : '') + (b.planned ? ' planned' : '') + '" data-bot="' + b.id + '"><span>' + esc(b.name) + '</span><span class="note">' + esc(meta) + '</span></button>';
       }).join('') + '</div></div>';
     });

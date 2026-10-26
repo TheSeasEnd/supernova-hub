@@ -26,18 +26,18 @@
   function renderList() {
     var d = D(), t = totals();
     var h = '<div class="tbanner"><div class="flames"></div><div class="tb-in"><div class="tb-k">NHRL team</div><div class="tb-name">TOO HOT<span> TO HANDLE</span></div>' +
-      '<div class="tb-sub">aka ' + esc(d.alt) + ' · ' + t.bots + ' robots with fights · ' + d.planned.length + ' in build</div></div></div>';
+      '<div class="tb-sub">aka ' + esc(d.alt) + ' · ' + t.bots + ' robots with fights · ' + d.planned.length + ' in progress</div></div></div>';
     h += '<div class="status">Team snapshot · ' + esc(d.asOf) + ' · not live</div>';
     h += '<div class="card ttot"><div class="record"><div><div class="k2">Team record</div><div class="big">' + recHtml(t.rec, 'tr') + '</div></div>' +
       '<div class="stat" style="margin-left:auto;text-align:right"><div class="v">' + pct(t.rec) + '</div><div class="k">Win rate</div></div></div>' +
       '<div class="recnotes"><div>Without forfeits: <b>' + t.noFF[0] + '–' + t.noFF[1] + '</b> · ' + t.n + ' fights · ' + t.act + ' robots fought in 2026</div></div>' +
       '<div class="grid3 tcls">' + [3, 12, 30].map(function (c) { var x = t.cls[c] || [0, 0, 0]; return '<div class="mini stat"><div class="v">' + x[0] + '–' + x[1] + '</div><div class="k">' + c + 'lb · ' + x[2] + ' bots</div></div>'; }).join('') + '</div>' +
       '<div class="note" style="margin-top:8px">Totals add up each robot’s combined record (BrettZone + NHRL wiki). Phantom III is history only and isn’t in the totals.</div></div>';
-    h += '<div class="seg" role="tablist">' + [['all', 'All'], ['3', '3lb'], ['12', '12lb'], ['30', '30lb'], ['build', 'In build']].map(function (f) { return '<button data-tfilter="' + f[0] + '" class="' + (filter === f[0] ? 'on' : '') + '">' + f[1] + '</button>'; }).join('') + '</div>';
+    h += '<div class="seg" role="tablist">' + [['all', 'All'], ['3', '3lb'], ['12', '12lb'], ['30', '30lb'], ['build', 'In progress']].map(function (f) { return '<button data-tfilter="' + f[0] + '" class="' + (filter === f[0] ? 'on' : '') + '">' + f[1] + '</button>'; }).join('') + '</div>';
     var list = d.bots.filter(function (b) { return filter === 'all' || String(b.cls) === filter; });
     if (filter !== 'build') h += list.map(cardHtml).join('');
-    if (filter === 'all' || filter === 'build') h += '<div class="sectiontitle pad">In build</div>' + d.planned.map(function (p) {
-      return '<div class="card tcard planned" data-plan="' + esc(p.id) + '" role="button"><div class="tc-top"><div class="tc-name">' + esc(p.name) + '</div><span class="tbuild">IN BUILD</span></div>' + placeholderHtml() +
+    if (filter === 'all' || filter === 'build') h += '<div class="sectiontitle pad">In progress</div>' + d.planned.map(function (p) {
+      return '<div class="card tcard planned" data-plan="' + esc(p.id) + '" role="button"><div class="tc-top"><div class="tc-name">' + esc(p.name) + '</div><span class="tbuild">IN PROGRESS</span></div>' + placeholderHtml() +
         '<div class="note">Planned, no fights yet.' + (p.channel ? ' Team channel <span class="tchan">#' + esc(p.channel) + '</span>' : '') + '</div></div>';
     }).join('');
     h += '<div class="note pad">Tap a robot to open its hub (Overview, Fights, Archetypes). The hub’s Overview links to source detail. Each fight is tagged by source: <b>BZ</b> BrettZone, <b>WIKI</b> NHRL wiki, <b>BOTH</b> found in both and counted once.</div>';

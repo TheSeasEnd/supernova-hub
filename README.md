@@ -53,8 +53,8 @@ Hash routes: `#overview`, `#fights`, `#team`, `#team/<botId>`, `#archetypes`, `#
 
 ## Team tab · Too Hot to Handle
 - Bundled snapshot only (scanned Oct 25, 2026 3:58 PM ET, labelled "not live"). It combines the BrettZone tournament fight lists with each bot's NHRL wiki Full Fight History. A fight found in both is counted once with BrettZone's result. Wiki-only fights count only before 2024, and 2024+ wiki-only rows (duplicates with conflicting results) are dropped.
-- Team totals, filters (All / 3lb / 12lb / 30lb / In build), and one card per robot: combined record, record without forfeits, streak, class, builder, weapon, last event, team channel, and source counts (BZ / WIKI / BOTH).
-- Planned bots Rupture, Rapier, Scope Creep and Sux2Suck are shown as "in build". Clyde is tagged to the Alex and Gabe channel. Phantom IV has unknown builder and weapon, with Phantom III as history (not in the totals).
+- Team totals, filters (All / 3lb / 12lb / 30lb / In progress), and one card per robot: combined record, record without forfeits, streak, class, builder, weapon, last event, team channel, and source counts (BZ / WIKI / BOTH).
+- Planned bots Rupture, Rapier, Scope Creep and Sux2Suck are shown as "in progress". Clyde is tagged to the Alex and Gabe channel. Phantom IV has unknown builder and weapon, with Phantom III as history (not in the totals).
 - Tap a card (`#team/<id>`) for its fight list by year, each fight tagged by source, with conflict notes. Fireball vs Apex (2023-06-24) and Fully Defined vs Synthesis (May 2023, still unresolved) both use BrettZone's win, as Ezequiel approved. Supernova and Blink cards have a button to open their live stats.
 
 ## Credits
@@ -66,7 +66,7 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 
 ## v10: a hub for every robot on the roster
 
-- The robot switcher (tap the name in the header) now lists the whole Too Hot to Handle roster. It's grouped into **Mine** (Supernova, Blink), **Team · 3lb / 12lb / 30lb** and **In build**, and you can search it. The list scrolls inside the sheet, so it works on a phone.
+- The robot switcher (tap the name in the header) now lists the whole Too Hot to Handle roster. It's grouped into **Mine** (Supernova, Blink), **Team · 3lb / 12lb / 30lb** and **In progress**, and you can search it. The list scrolls inside the sheet, so it works on a phone.
 - Every team robot gets the full hub: Overview, Fights and Archetypes. Fights come from the combined team snapshot (`data/team.js`), which is BrettZone tournament fight lists plus NHRL wiki history, reconciled. Each fight is tagged BOTH, BZ or WIKI.
   - Overview adds an identity card for robots with no hero photo or ranking, a by-year table, a sources card linking to the Team-tab detail, and Phantom III history on Phantom IV.
   - Rematches are capped at the top 10.
@@ -74,7 +74,7 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
   - Supernova and Blink keep full live refresh.
   - Team robots that fought in 2026 (`live: true` in bots.js) also refresh from BrettZone. The live data merges onto the snapshot by `tournamentID|gameID`, aliased by tournament + match + both robots because BrettZone sometimes lists a match twice, so counts never drop.
   - All other robots are labelled "Snapshot, not live" and don't fetch.
-- Planned robots (Rupture, Rapier, Scope Creep, Sux2Suck) get an "In build" hub with no fights.
+- Planned robots (Rupture, Rapier, Scope Creep, Sux2Suck) get an "In progress" hub with no fights.
 - Archetypes fall back to `data/opptypes.js`, which is built automatically from NHRL wiki weapon-type categories for every opponent. Hand-curated entries and your own overrides still take priority. A robot's own type comes from the same map.
 - Team tab cards open the robot's hub. Source detail is still at `#team/<id>`, linked from the hub's Overview.
 - Calcs stays global: switching to a team robot doesn't change your Calcs profile.
@@ -111,7 +111,7 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 ## v14: Too Hot to Handle Hub
 
 - The app is now **Too Hot to Handle Hub** everywhere visible: the header name line, the page title, the manifest (`name` “Too Hot to Handle Hub”, `short_name` “Too Hot Hub”), the iOS home-screen title and the About card. It has a new flame icon.
-- The robot switcher is grouped only by weight class (3lb / 12lb / 30lb) plus In build. Supernova and Blink sit in their class groups with their live tags. Search still works.
+- The robot switcher is grouped only by weight class (3lb / 12lb / 30lb) plus In progress. Supernova and Blink sit in their class groups with their live tags. Search still works.
 - On first load the app opens Supernova. After that it opens the last robot you picked (`sn_current_bot`).
 - Service worker cache: `supernova-v14`.
 
@@ -151,8 +151,14 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Archetype: vertical spinner (wiki category Vertical Spinners). Discord channel isn't known. “Sun, moon, and comet” (Feb 2026) is a different bot and isn't included.
 - Service worker cache: `supernova-v17`.
 
-## v18: Slipstream (in build)
+## v18: Slipstream (in progress)
 
-- Slipstream added as a planned robot (per Ezequiel), like Rupture, Rapier, Scope Creep and Sux2Suck: an "In build" hub, the switcher's In build group, and a Team tab In build card. Class, builder, weapon and Discord channel are Unknown. BrettZone search and the NHRL wiki have no "slipstream" entries (checked Oct 25, 2026, 8:15 PM ET).
+- Slipstream added as a planned robot (per Ezequiel), like Rupture, Rapier, Scope Creep and Sux2Suck: an "In progress" hub, the switcher's In progress group, and a Team tab In progress card. Class, builder, weapon and Discord channel are Unknown. BrettZone search and the NHRL wiki have no "slipstream" entries (checked Oct 25, 2026, 8:15 PM ET).
 - Planned robots with no known channel show Class/Builder/Weapon as Unknown on More.
 - Service worker cache: `supernova-v18`.
+
+## v19: "In build" renamed to "In progress"
+
+- Every user-visible "In build" label now says "In progress": the switcher group, the Team tab filter, section title and card badges, the planned-robot hub and status lines, and the More tab specs. (Earlier README sections are updated to the new wording.)
+- Internal ids are unchanged (`group: 'build'`, filter key `build`, `plan-<id>` bot ids, `data-plan`, CSS `.tbuild`), so saved selections and `#team` routes keep working.
+- Service worker cache: `supernova-v19`.

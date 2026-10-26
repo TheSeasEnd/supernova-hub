@@ -169,3 +169,9 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Removed the "live" tags: "★ yours · live" on Team cards, "· live" in switcher rows (including "Current · live"), and the "● Live" tag in the desktop sidebar.
 - Live refresh still works, and the hub's status line ("Live · updated …") is unchanged. Class chips, BZ/WIKI/BOTH source chips, streak pills and IN PROGRESS badges are unchanged. The More tab still lists the team channel as plain text.
 - Service worker cache: `supernova-v20`.
+
+## v21: Battery Sag calculator greyed out
+
+- The built-in Battery Sag / Max Amps card in Calcs is greyed out (low opacity, greyscale, not clickable) with a "Coming soon" label, on phone and desktop. The code is still there: delete `disabled: true` on the `battery` entry in `calcs.js` to turn it back on.
+- Deep links and saved routes to `#calc/battery` show the Calcs list instead (the URL is rewritten to `#calc`). The other calculators are unchanged.
+- Service worker cache: `supernova-v21`.

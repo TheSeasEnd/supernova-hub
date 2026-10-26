@@ -503,3 +503,7 @@ body.scroll-locked{position:fixed;left:0;right:0;overflow:hidden;width:100%}
   #view-calc.embedmode > *{width:100%;max-width:1000px}
   #view-calc.embedmode .framewrap{flex:1 1 auto;min-height:520px;height:auto;background:#121212}
 }
+/* v21: disabled calculator card (Calcs list) */
+.calcitem.disabled{opacity:.45;filter:grayscale(1);border-color:var(--line)!important;pointer-events:none;user-select:none;cursor:not-allowed}
+.calcitem.disabled .ci-title,.calcitem.disabled .ci-desc,.calcitem.disabled .ci-credit{color:var(--muted)}
+.ci-soon{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:3px;border:1px dashed var(--muted);color:var(--muted);white-space:nowrap}

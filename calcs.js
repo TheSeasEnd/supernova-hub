@@ -8,7 +8,8 @@
   var EMBER_CREDIT = 'Ember by <a href="https://level5robotics.com" target="_blank" rel="noopener">Level 5 Robotics</a> (with the SCAR community)';
 
   var CALCS = [
-    { id: 'battery', kind: 'native', group: 'Built in', title: 'Battery Sag / Max Amps',
+    // disabled: true greys the card out and blocks opening it (deep links fall back to the list). Delete the flag to re-enable.
+    { id: 'battery', kind: 'native', disabled: true, disabledLabel: 'Coming soon', group: 'Built in', title: 'Battery Sag / Max Amps',
       desc: 'Pack resistance, max amps before your sag limit, loaded voltage vs. component draw, watt-hours.',
       credit: 'Built into this app · our own estimate math' },
     { id: 'robocalc', kind: 'embed', group: 'Embedded calculator', title: 'ROBO CALC',
@@ -44,10 +45,11 @@
     var h = '<div class="sectiontitle" style="margin:2px 2px 10px">Calculators</div>', group = null;
     CALCS.forEach(function (c) {
       if (c.group !== group) { group = c.group; h += '<div class="calcgroup">' + esc(group) + '</div>'; }
-      var action = c.kind === 'link'
+      var action = c.disabled ? '<span class="ci-soon">' + esc(c.disabledLabel || 'Disabled') + '</span>'
+        : c.kind === 'link'
         ? '<a class="btn ghost sm" href="' + esc(c.url) + '" target="_blank" rel="noopener">Open ↗</a>'
         : '<button class="btn sm" data-open="' + c.id + '">' + (c.kind === 'native' ? 'Open' : 'Open here') + '</button>';
-      h += '<div class="card calcitem' + (c.kind === 'native' ? ' native' : '') + '"><div class="ci-main"><div class="ci-title">' + esc(c.title) + '</div>' +
+      h += '<div class="card calcitem' + (c.kind === 'native' ? ' native' : '') + (c.disabled ? ' disabled" aria-disabled="true' : '') + '"><div class="ci-main"><div class="ci-title">' + esc(c.title) + '</div>' +
         '<div class="ci-desc">' + esc(c.desc) + '</div><div class="ci-credit">' + c.credit + '</div></div><div class="ci-act">' + action +
         (c.kind === 'embed' ? '<a class="ci-ext" href="' + esc(c.url) + '" target="_blank" rel="noopener">Open in browser ↗</a>' : '') + '</div></div>';
     });
@@ -185,6 +187,7 @@
   function onClick(e) {
     var t = e.target.closest('button'); if (!t || !root.contains(t)) return;
     var P = window.RobotProfile;
+    if (t.dataset.open && (byId(t.dataset.open) || {}).disabled) return;
     if (t.dataset.open) window.App.navigate('#calc/' + t.dataset.open, true);
     else if (t.hasAttribute('data-back')) window.App.back('#calc');
     else if (t.dataset.rmode) { P.save(function (p) { p.battery.resistanceMode = t.dataset.rmode; }); renderBattery(); }
@@ -194,7 +197,8 @@
   }
 
   function open(id, fromHash) {
-    var c = byId(id); current = c && c.kind !== 'link' ? id : 'list';
+    var c = byId(id); current = c && c.kind !== 'link' && !c.disabled ? id : 'list';
+    if (c && c.disabled && /^#calc\//.test(location.hash)) try { history.replaceState(null, '', '#calc'); } catch (e) {}
     if (current === 'list') renderList(); else if (c.kind === 'native') renderBattery(); else renderEmbed(c);
     root.classList.toggle('embedmode', !!(c && c.kind === 'embed'));
 

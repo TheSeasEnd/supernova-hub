@@ -12,7 +12,7 @@ Hash routes: `#overview`, `#fights`, `#team`, `#team/<botId>`, `#archetypes`, `#
 - `index.html`, `styles.css` (ROBO CALC-inspired "hot" theme, our own CSS), `app.js` (router, stats, live updates, screens)
 - `bots.js`: bot registry (id, BrettZone name, snapshot, dated rank, specs, notes). Supernova (12lb) and Blink (3lb). Each entry also has `footnoteTitle`/`recordFootnote`, `eventNotes` and `profileDefaults` (robot-profile defaults for the calculators).
 - `archetypes.js` + `data/archetypes.json`: editable opponent→archetype mapping with evidence, source URLs and confidence. Taxonomy = NHRL wiki weapon-type categories. Mapping is per bot (`opponents.supernova`, `opponents.blink`) plus `selfArchetypes`. User corrections are saved per bot in localStorage (`sn_arch_overrides_v1` for Supernova, `sn_blink_arch_overrides_v1` for Blink).
-- `calcs.js`: Calculators list (ROBO CALC, Ember, FingerTech, SDP/SI, Gates) + native Battery Sag / Max Amps
+- `calcs.js`: Calculators list (ROBO CALC, Ember, FingerTech, SDP/SI, Gates) + native Battery Sag & Wh (`sagcalc.js` UI, `sagmath.js` math)
 - `profile.js`: robot profile (`window.RobotProfile`), one per bot (`sn_robot_profile_v1` for Supernova, `sn_blink_robot_profile_v1` for Blink), for calculators and a future robot designer. Blink's defaults use the wiki's 4S LiHV 1100 mAh; other values are labelled generic examples.
 - `data/kodex.js`: bundled KO-dex snapshot (see below)
 - `data/complete-fights.js` (`window.COMPLETE_FIGHTS`): complete Supernova and Blink fight lists, built from every BrettZone tournament fight list (scanned Oct 25, 2026 3:58 PM ET)
@@ -21,10 +21,8 @@ Hash routes: `#overview`, `#fights`, `#team`, `#team/<botId>`, `#archetypes`, `#
 - `data/snapshot.js`, `data/snapshot-blink.js`: bundled snapshots of BrettZone `/bots/{bot}/fights` plus round names (offline fallback)
 - `sw.js`, `manifest.webmanifest`, `icons/`, `fonts/` (Chakra Petch, SIL OFL)
 
-## Battery Sag / Max Amps (built-in estimate)
-- Inputs: cells in series (S), **total pack capacity (mAh, the number on the label)**, full-charge and nominal cell V, allowed sag %, and internal resistance as one of: **per-cell IR** (mΩ, per cell; pack = (S ÷ P) × R_cell, so P matters only here), **whole-pack IR** (mΩ), or **C-rating only** (pack-level estimate R_pack ≈ S × 0.4 V ÷ (C × Ah_pack), labelled as an estimate).
-- Outputs: pack resistance, I_max = (sag% × S × V_full) ÷ R_pack, loaded voltage at total peak/typical component draw with OK / will-sag warning, Wh = S × V_nominal × Ah_pack.
-- Saved in the shared robot profile (`sn_robot_profile_v1`, profile version 2). Profiles saved by older versions (per-cell `capacityMah`) are migrated automatically: total = per-cell mAh × P.
+## Battery Sag & Wh (built-in, general purpose; v22)
+See the v22 section at the end of this file. The math is in `sagmath.js` (tests: `node tools/test_sagmath.js`), the UI in `sagcalc.js`. It no longer reads or writes the robot profile.
 
 ## Records: complete fight lists (v9)
 - BrettZone's `/bots/{bot}/fights` leaves out some decided fights: forfeits, fights with no start time, and fights at unlisted events. The app used to count only fights with a start time, which made Supernova 9–4 and Blink 11–14.
@@ -175,3 +173,19 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - The built-in Battery Sag / Max Amps card in Calcs is greyed out (low opacity, greyscale, not clickable) with a "Coming soon" label, on phone and desktop. The code is still there: delete `disabled: true` on the `battery` entry in `calcs.js` to turn it back on.
 - Deep links and saved routes to `#calc/battery` show the Calcs list instead (the URL is rewritten to `#calc`). The other calculators are unchanged.
 - Service worker cache: `supernova-v21`.
+
+## v22: Battery Sag & Wh rebuilt (general purpose) and re-enabled
+- The `disabled` flag is removed from the `battery` entry in `calcs.js`; the card now reads "Battery Sag & Wh". `#calc/battery` opens it.
+- **General purpose**: nothing is tied to Supernova or Blink. Every input is typed in; presets fill editable fields. The working setup and named "saved setups" are kept in localStorage `sag_calc_v1` (this device only).
+- **Wh converter** at the top: volts × mAh, or fill volts from S × the chemistry's nominal voltage.
+- **Battery**: chemistry preset (LiPo 4.2/3.7, LiHV 4.35/3.8, Li-ion 4.2/3.6, LiFePO4 3.6/3.2; full/nominal editable), S, P, capacity as total pack mAh or per cell × P. Resistance comes from (a) a measured value per cell or for the whole pack, (b) a quality-class estimate R_cell = k ÷ Ah_cell with k = 7 good / 10 average / 15 poor (editable), or (c) the label C-rating: R_cell = sag at real peak (0.5 V) ÷ (realism 0.5 × C × Ah_cell). With C mode, C × Ah is shown only as a "label max", never used.
+- **Conditions & wiring**: resting V/cell late in the match (3.75 default), a "fresh pack" toggle, a temperature/age factor (1.0), and harness resistance typed in directly (8 mΩ assumed) or built from wire gauge + length, connectors and switch.
+- **Loads** (add or remove rows): weapon (spin-up A and s, re-spins per match, steady A), drive (cruise A, push A and s, pushes per match), other (average and peak A). Each row has quantity, duty % and an optional ESC current limit. Use battery-side amps.
+- **Scenarios**: worst case (every burst at once, late in the match, with harness, 1.3× resistance for bursts over 5 s); opening spin-up (weapon spin + drive cruise, fresh pack); match average (duty-weighted amps, mAh per match and % of pack, runtime, average C vs a continuous estimate of 0.55 × the current for 0.5 V/cell sag).
+- **Outputs**: pack R, sag split pack/harness, loaded V per cell and per pack, margins to the ESC cutoff, floor and BEC minimum, I²R heat, max amps for a chosen floor (late/fresh, short/long burst), Wh.
+- **Verdicts**: PASS ≥ 3.5 V/cell, WARN 3.3–3.5, FAIL < 3.3 or below the ESC cutoff or BEC minimum. All thresholds are editable and marked "suggested"; Li-ion and LiFePO4 presets set their own lower thresholds.
+- A collapsible "How this works" section lists the formulas, sources and caveats.
+- "Fill generic example" loads a clearly labelled example (4S 1300 mAh good-quality pack, 40 A weapon spin-up, two drive motors) that gives WARN / PASS / PASS.
+- Tests: `node tools/test_sagmath.js` (44 checks against the worked examples in the sag math review plus S/P, harness, temperature and verdict sanity checks).
+- The old robot-profile battery code was removed from `calcs.js`. `profile.js` is still loaded for other uses. Ember links are unchanged.
+- SW cache `supernova-v22` (adds `sagmath.js`, `sagcalc.js`).

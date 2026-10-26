@@ -507,3 +507,63 @@ body.scroll-locked{position:fixed;left:0;right:0;overflow:hidden;width:100%}
 .calcitem.disabled{opacity:.45;filter:grayscale(1);border-color:var(--line)!important;pointer-events:none;user-select:none;cursor:not-allowed}
 .calcitem.disabled .ci-title,.calcitem.disabled .ci-desc,.calcitem.disabled .ci-credit{color:var(--muted)}
 .ci-soon{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:3px;border:1px dashed var(--muted);color:var(--muted);white-space:nowrap}
+/* v22: Battery Sag & Wh calculator (sagcalc.js) */
+.sgtag{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px dashed var(--line);border-radius:3px;padding:0 4px;margin-left:2px;white-space:nowrap}
+.fgrid.sg3{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sgst{margin:16px 0 0!important}
+.sgseg{margin:8px 0 10px}
+.sgseg button{font-size:11px;padding:9px 4px}
+.sgchk{display:flex;align-items:center;gap:8px;font-size:13px;margin:10px 0 4px;color:var(--text)}
+.sgchk input{width:20px;height:20px;accent-color:var(--hot)}
+.sgquick{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.sgquick input[type=number]{width:70px}
+.sgquick select{width:auto;flex:1;min-width:150px}
+.sgquick input[type=text]{flex:1;min-width:140px}
+.sgwhout{grid-column:1/-1;background:var(--panel2);border:1px solid var(--hot);border-radius:4px;padding:10px 12px}
+.sgwhv{font-size:30px;font-weight:800;color:var(--hot)}
+.sgwhv small{font-size:14px;color:var(--muted)}
+.sgwhk{font-size:12px;color:var(--muted)}
+.sgload{border:1px solid var(--line);border-radius:4px;padding:10px;margin:10px 0;background:rgba(255,255,255,.015)}
+.sgload[data-type=weapon]{border-left:3px solid var(--hot)}
+.sgload[data-type=drive]{border-left:3px solid var(--mag)}
+.sgload-h{display:grid;grid-template-columns:110px 1fr 40px;gap:8px;margin-bottom:10px;align-items:center}
+.sgload-h select{min-height:42px}
+.sgbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sgcalc{display:flex;flex-direction:column;justify-content:flex-end;font-size:12px;color:var(--muted)}
+.sgcalc b{font-size:18px;color:var(--text)}
+.sgpack{margin-bottom:10px}
+.sgsc{border:1px solid var(--line);border-radius:4px;padding:10px 12px;margin:10px 0;background:var(--panel2)}
+.sgsc.ok{border-color:rgba(140,255,26,.55)}
+.sgsc.warn{border-color:rgba(255,190,40,.7)}
+.sgsc.bad{border-color:rgba(255,64,64,.7)}
+.sgsc-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:8px}
+.sgsc-t{font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:14px}
+.sgsc-s{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
+.sgv{font-weight:900;font-size:13px;letter-spacing:.08em;padding:4px 10px;border-radius:3px;white-space:nowrap}
+.sgv.ok{background:rgba(140,255,26,.16);color:#c9ff8c}
+.sgv.warn{background:rgba(255,190,40,.18);color:#ffd77a}
+.sgv.bad{background:rgba(255,64,64,.18);color:#ff9e9e}
+.sgkv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.sgkv span{color:var(--muted)}
+.sgkv b{font-weight:700;font-variant-numeric:tabular-nums}
+.sgkv small{font-weight:400;color:var(--muted)}
+.sgwhy{font-size:12px;color:var(--muted);margin-top:8px}
+.sgmax{margin-top:12px}
+.sgmax-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:700;margin-bottom:8px}
+.sgmax-h select{width:auto;flex:1;min-width:170px}
+.sgcf{width:80px}
+.sgtbl{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.sgtbl th,.sgtbl td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right}
+.sgtbl th:first-child,.sgtbl td:first-child{text-align:left;color:var(--muted)}
+.sghow summary{font-size:14px}
+.sglist{line-height:1.5;margin-top:8px}
+.sgprow{display:grid;grid-template-columns:1fr auto 40px;gap:8px;align-items:center;margin-top:8px}
+.sgjump{text-decoration:none}
+@media (min-width:900px){
+  .sag{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}
+  .sag-out{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;overscroll-behavior:contain}
+  .fgrid.sg3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .sgjump{display:none}
+  #view-calc > .sgwh .fgrid.sg3{grid-template-columns:1fr 1fr 1.2fr}
+  #view-calc > .sgwh .sgwhout{grid-column:auto}
+}

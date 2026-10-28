@@ -6,7 +6,7 @@
   var API = 'https://brettzone.nhrl.io/brettZone/api.php';
   var MIN_GAP_MS = 5000, AUTO_MS = 60000;
   var TZ = 'America/New_York';
-  var TABS = ['overview', 'fights', 'team', 'archetypes', 'calc', 'more'];
+  var TABS = ['overview', 'fights', 'team', 'archetypes', 'calc', 'weight', 'more'];
   var DEEP_MS = 15 * 60000, DEEP_GAP_MS = 1500, DEEP_MAX = 6;
 
   var BOTS = window.BOTS || [];
@@ -331,6 +331,7 @@
       '<b>Archetypes &amp; robot info</b>: <a href="https://wiki.nhrl.io/" target="_blank" rel="noopener">NHRL wiki</a> (weapon-type categories, robot pages), <a href="https://robotcombatwiki.com/wiki/Weapons" target="_blank" rel="noopener">RobotCombatWiki</a>, and <a href="https://wiki.combatrobots.org/" target="_blank" rel="noopener">Combat Robots Wiki</a> (definitions and general strengths and weaknesses).<br>' +
       '<b>Ember</b> calculators by <a href="https://level5robotics.com" target="_blank" rel="noopener">Level 5 Robotics</a> with the SCAR community.<br>' +
       '<b>Pulley &amp; Belt Calculator</b> by <a href="https://www.fingertechrobotics.com/how-to_pulley_belt.php" target="_blank" rel="noopener">FingerTech Robotics</a> · <b>Center Distance Designer</b> by <a href="https://sdp-si.com/tools/center-distance-designer.php" target="_blank" rel="noopener">SDP/SI</a> · <b>Belt Tension</b> by <a href="https://calculators.gates.com/BeltTension" target="_blank" rel="noopener">Gates</a>.<br>' +
+      '<b>Weight budget</b> (work in progress): class limits, locomotion and multibot bonuses, exemptions and weigh-in penalties from the <a href="https://wiki.nhrl.io/wiki/index.php?title=NHRL_Open_Rules_-_2026" target="_blank" rel="noopener">NHRL Open Rules 2026</a>; filament densities from Bambu Lab and Polymaker technical data sheets (linked in the tab).<br>' +
       '<b>Battery Sag &amp; Wh</b>: built into this app (resistive model; resistance bands and burst/continuous data from the <a href="https://batt.rotorama.cz/en/p/methodology" target="_blank" rel="noopener">Rotorama Battery Benchmark</a>; sources listed in the calculator).<br>' +
       '<b>Ratings &amp; fight types</b>: ' + kxCredit() + ' (<a href="https://kodex.bot" target="_blank" rel="noopener">kodex.bot</a>). ' + kxLabel() + '.<br>' +
       '<b>Font</b>: Chakra Petch (SIL Open Font License), self-hosted.</div></div>';
@@ -444,6 +445,7 @@
     if (window.Archetypes) window.Archetypes.setBot(b.id);
     if (window.RobotProfile && b.group === 'mine') window.RobotProfile.use(b.id, b.profileDefaults); // Calcs stay on your own robot's profile
     if (window.Calcs) window.Calcs.rerender();
+    if (window.WeightView) window.WeightView.rerender();
     state = { data: null, fetchedAt: null, source: 'snapshot', rounds: {}, error: null, loading: false, F: [], ff: [], s: null, deep: lsGet('sn_' + b.id + '_deep'), deepLoading: false };
     lastDeep = 0;
     var snap = b.snapshot;
@@ -517,6 +519,7 @@
     document.querySelectorAll('.view').forEach(function (v) { v.classList.toggle('active', v.id === 'view-' + r.tab); });
     if (r.tab === 'calc' && window.Calcs) window.Calcs.open(r.sub || 'list');
     if (r.tab === 'team' && window.TeamView) window.TeamView.open(r.sub || '');
+    if (r.tab === 'weight' && window.WeightView) window.WeightView.open();
     window.scrollTo(0, 0);
   }
   // Tab switches replace history (no long back stacks); sub-pages push so the phone's back gesture returns.
@@ -539,6 +542,7 @@
   function init() {
     if (window.Calcs) window.Calcs.init($('view-calc'));
     if (window.TeamView) window.TeamView.init($('view-team'));
+    if (window.WeightView) window.WeightView.init($('view-weight'));
     document.querySelectorAll('.tabs button').forEach(function (b) {
       b.addEventListener('click', function () { var r = parse(location.hash); navigate('#' + b.dataset.tab, false); if (r.tab === b.dataset.tab) window.scrollTo({ top: 0, behavior: 'smooth' }); });
     });

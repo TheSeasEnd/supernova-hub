@@ -5,14 +5,15 @@
 Static HTML/CSS/JS, no build step. Serve the folder over HTTPS (or localhost), open on a phone → Add to Home Screen.
 
 ## Navigation
-Bottom bar: **Overview · Fights (All fights | Events) · Team · Archetypes · Calcs · More**. Tap the robot name in the header to switch bots. Switching swaps everything: Overview, Fights/Events, Archetypes (per-bot opponent mapping and corrections), Calcs (per-bot robot profile) and More (specs, wiki link).
-Hash routes: `#overview`, `#fights`, `#team`, `#team/<botId>`, `#archetypes`, `#calc`, `#calc/<id>`, `#more`. Tab switches replace history; calculator sub-pages push history, so the phone's back gesture returns to the list.
+Bottom bar: **Overview · Fights (All fights | Events) · Team · Archetypes · Calcs · Weight (work in progress) · More**. Tap the robot name in the header to switch bots. Switching swaps everything: Overview, Fights/Events, Archetypes (per-bot opponent mapping and corrections), Calcs (per-bot robot profile) and More (specs, wiki link).
+Hash routes: `#overview`, `#fights`, `#team`, `#team/<botId>`, `#archetypes`, `#calc`, `#calc/<id>`, `#weight`, `#more`. Tab switches replace history; calculator sub-pages push history, so the phone's back gesture returns to the list.
 
 ## Files
 - `index.html`, `styles.css` (ROBO CALC-inspired "hot" theme, our own CSS), `app.js` (router, stats, live updates, screens)
 - `bots.js`: bot registry (id, BrettZone name, snapshot, dated rank, specs, notes). Supernova (12lb) and Blink (3lb). Each entry also has `footnoteTitle`/`recordFootnote`, `eventNotes` and `profileDefaults` (robot-profile defaults for the calculators).
 - `archetypes.js` + `data/archetypes.json`: editable opponent→archetype mapping with evidence, source URLs and confidence. Taxonomy = NHRL wiki weapon-type categories. Mapping is per bot (`opponents.supernova`, `opponents.blink`) plus `selfArchetypes`. User corrections are saved per bot in localStorage (`sn_arch_overrides_v1` for Supernova, `sn_blink_arch_overrides_v1` for Blink).
 - `calcs.js`: Calculators list (ROBO CALC, Ember, FingerTech, SDP/SI, Gates) + native Battery Sag & Wh (`sagcalc.js` UI, `sagmath.js` math)
+- `weightmath.js` (limits, totals, CSV/XLSX/zip; tests: `node tools/test_weightmath.js`) + `weightview.js`: Weight tab
 - `profile.js`: robot profile (`window.RobotProfile`), one per bot (`sn_robot_profile_v1` for Supernova, `sn_blink_robot_profile_v1` for Blink), for calculators and a future robot designer. Blink's defaults use the wiki's 4S LiHV 1100 mAh; other values are labelled generic examples.
 - `data/kodex.js`: bundled KO-dex snapshot (see below)
 - `data/complete-fights.js` (`window.COMPLETE_FIGHTS`): complete Supernova and Blink fight lists, built from every BrettZone tournament fight list (scanned Oct 25, 2026 3:58 PM ET)
@@ -189,3 +190,19 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Tests: `node tools/test_sagmath.js` (44 checks against the worked examples in the sag math review plus S/P, harness, temperature and verdict sanity checks).
 - The old robot-profile battery code was removed from `calcs.js`. `profile.js` is still loaded for other uses. Ember links are unchanged.
 - SW cache `supernova-v22` (adds `sagmath.js`, `sagcalc.js`).
+
+## v23: Weight tab (work in progress)
+- New 7th tab **Weight** (`#weight`), marked with the dashed "Work in progress" badge (same `.tbuild` style as "In progress" robots; a small "WIP" tag in the desktop sidebar). A weight budget spreadsheet per robot, tied to the robot switcher and saved per robot in localStorage (`wb_v1_<botId>`).
+- **Parts**: name, category, quantity, unit weight, total, weight source (measured / estimated / CAD / datasheet), notes. Grouped by category (Weapon, Drive, Electronics, Battery, Armor/Chassis, Fasteners/Hardware, Other, plus your own categories) with subtotals. Weights are stored in grams; you can enter and view them in g, oz or lb.
+- **3D print** checkbox per part: material (with density), infill %, walls, layer height, slicer estimate (g), measured after print (g), optional model volume (cm³, gives a 100%-solid upper bound). Shows measured vs slicer delta. The weight used is the measured value, then the slicer estimate, then the typed unit weight. Entering a measured weight sets the source to "measured".
+- **Exempt** checkbox per part (with reason) for weigh-in exemptions; exempt parts are listed but not counted.
+- **Limit**: weight class (from the robot when known, else Unknown until you pick), **locomotion type**, multibot segments, optional custom override (lb), and an editable warn margin (default 3%). The bar shows OK / CLOSE (within the margin) / OVER, with the remaining margin, the NHRL weigh-in penalty when over, and per-segment bars for multibots.
+- **Rules used** (NHRL Open Rules 2026, https://wiki.nhrl.io/wiki/index.php?title=NHRL_Open_Rules_-_2026, last edited Sep 28, 2026, checked Oct 28, 2026):
+  - Classes 3 / 12 / 30 lb; at or below the class maximum at the start of each fight. No stated tolerance. Pre-fight weight check: up to 2.5 oz over = 1 TKO point; more than 2.5 oz over = 3 TKO points and an immediate TKO.
+  - Locomotion: Traditional (wheels of any form, treads, tracks, belts, spinning shafts) = no bonus. Non-traditional (examples given: shuffling, bristle bots, flying systems, gyroscopic precession, torque reaction, Jansen linkages, hovercrafts) = +1.5 / +6 / +15 lb. True walker = +3 / +12 / +30 lb, needs NHRL approval before registration.
+  - Multibot bonus, max per segment: 3lb 2 / 1.33 / 1 lb, 12lb 8 / 5.33 / 4 lb, 30lb 20 / 13.33 / 10 lb (2 / 3 / 4 segments).
+  - Locomotion and multibot bonuses cannot be combined (the app flags it and applies no bonus). Exemptions (dry weight for fuel/fluids/gas tanks, autonomous-only electronics, active cameras) can be combined with bonuses.
+- **Files**: Export Excel (.xlsx, two sheets: Parts with `=Qty*Unit` formulas, Summary with SUMIFS totals; written with a tiny built-in zip writer, no libraries), Export CSV (UTF-8 BOM, CRLF, Excel quoting, grams), template CSV, import CSV/TSV/semicolon CSV/.xlsx (first sheet; deflated xlsx needs `DecompressionStream`) with tolerant column matching and a preview (add or replace), JSON backup/restore of all robots' sheets.
+- Filament densities (g/cm³, ISO 1183) from manufacturer data sheets: Bambu Lab PLA Basic 1.24, PETG Basic 1.25, ABS 1.05, ASA 1.05, PA6-CF 1.09, PAHT-CF 1.06, PA6-GF 1.14, TPU 95A HF 1.22; Polymaker PolyMide CoPA (nylon) 1.12. "Other" takes your own density and is flagged typical/unsourced.
+- Phone: cards (tap to edit). Desktop (≥900px): spreadsheet table with inline cells, summary and limit cards side by side.
+- SW cache `supernova-v23` (adds `weightmath.js`, `weightview.js`).

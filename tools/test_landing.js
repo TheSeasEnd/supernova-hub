@@ -9,6 +9,7 @@ ok(/if \(reload && location\.hash\) try \{ history\.replaceState\(null, '', loca
 ok(/if \(reload \|\| !location\.hash\.replace\(\/\^#\/, ''\)\) document\.documentElement\.classList\.add\('landing-on'\)/.test(html), 'landing on reload or bare URL');
 ok(!/th2h_landing_left/.test(html + app), 'no once-per-session flag any more');
 ok(/Too Hot to Handle<\/span> <span class="ld-l2">Statistics Hub/.test(html) && /id="landingGo"/.test(html) && /icons\/icon\.svg/.test(html), 'title, flame, button');
+ok(/id="landingGo" type="button">Enter <span aria-hidden="true">→<\/span><\/button>/.test(html) && !/Meet the team/i.test(html), 'button reads Enter →');
 ok(/landingGo'\)\.addEventListener\('click', function \(\) \{ navigate\('#team', false\)/.test(app), 'button goes to #team (replace)');
 ok(/if \(landingOn\(\)\) push = false;/.test(app), 'never pushes over the landing');
 ok(/history\.replaceState\(null, '', ssGet\(LAST_KEY\) \|\| '#overview'\)/.test(app), 'bare URL after leaving (same page) goes to last tab');

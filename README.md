@@ -246,7 +246,7 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Tests: `node tools/test_branding.js`. SW cache `supernova-v28`.
 
 ## v29: landing page (title screen)
-- Opening the bare site URL (no `#…`) shows a title screen: flame mark, "Too Hot to Handle / Statistics Hub", a one-line tagline, a **Meet the team →** button (goes to `#team`) and the BrettZone / NHRL wiki credit line. It is not a tab: it has no nav entry, the header is hidden and the bottom tab bar / desktop sidebar stay visible (dimmed, no tab highlighted) so any tab can be used to leave.
+- Opening the bare site URL (no `#…`) shows a title screen: flame mark, "Too Hot to Handle / Statistics Hub", a one-line tagline, an **Enter →** button (goes to `#team`; labelled "Meet the team →" before v34) and the BrettZone / NHRL wiki credit line. It is not a tab: it has no nav entry, the header is hidden and the bottom tab bar / desktop sidebar stay visible (dimmed, no tab highlighted) so any tab can be used to leave.
 - **Once per tab session.** The landing shows only when the URL has no hash and `sessionStorage['th2h_landing_left']` is unset (an inline script in `index.html` sets `html.landing-on` before first paint, so there's no flash of the Overview). Leaving it by the button, a tab, a link, the robot switcher or a typed hash sets the flag, and the bare-URL history entry is *replaced* (`history.replaceState`) by the new tab, so Back can't return to it.
 - Reloading while still on the landing shows it again. After leaving, the URL always carries the tab, so reloads stay on that tab; if the bare URL is opened again in the same tab session it goes to the last tab (`sessionStorage['th2h_last_hash']`, default `#overview`).
 - Deep links (`#team`, `#fights`, `#calc/weight`, old `#weight`, …) skip the landing entirely.
@@ -288,4 +288,8 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Landing page: the orange ring and rounded tile are gone. A soft round orange-to-magenta glow sits behind the flame and fades to transparent, blending into the landing vignette with no edges. The glow's slow pulse only runs with `prefers-reduced-motion: no-preference`.
 - Unchanged on purpose: `icons/icon.svg` (favicon) and the PNG home-screen icons (`icon-192/512`, maskable, apple-touch). They are full-bleed dark squares with no border or ring; home screens and browser tabs need a solid icon, and the OS adds its own rounding.
 - Tests: `node tools/test_logo.js`. SW cache `supernova-v33` (adds `icons/flame.svg`).
+
+## v34: landing button says "Enter"
+- The landing page button now reads **Enter →** instead of "Meet the team →". The arrow is kept but hidden from screen readers, so they announce "Enter". It still goes to the Team tab (history replace, same as before). There is no separate aria-label.
+- Tests: `tools/test_landing.js` checks the label. SW cache `supernova-v34`.
 

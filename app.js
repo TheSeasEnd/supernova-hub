@@ -512,19 +512,20 @@
 
   /* ---------- router (hash: #tab or #tab/sub) ---------- */
   function parse(hash) { var p = (hash || '').replace(/^#/, '').split('/'); var tab = TABS.indexOf(p[0]) >= 0 ? p[0] : 'overview'; return { tab: tab, sub: p[1] || '' }; }
-  /* ---------- landing (v29): title screen for the bare URL, not a tab ----------
-     Shown only when the page opens with no hash and this tab session hasn't left it yet
-     (sessionStorage 'th2h_landing_left'; the early class is set by the inline script in index.html).
-     Leaving it (its button, any tab, link, deep link, hash change) sets the flag and replaces the
-     bare-URL history entry with the new tab, so Back can't return to it and reloads stay on the tab.
-     A bare URL opened again in the same session goes to the last tab (sessionStorage 'th2h_last_hash'). */
-  var LANDING_KEY = 'th2h_landing_left', LAST_KEY = 'th2h_last_hash';
+  /* ---------- landing (v29, v31): title screen, not a tab ----------
+     Shown when a page load starts on the bare URL, or on any browser reload (v31: the inline script in
+     index.html detects performance navigation type 'reload', strips the hash and sets html.landing-on).
+     Fresh deep links (#team, #calc/weight, ...) skip it. Leaving it (its button, any tab, link, robot switch,
+     hash change) replaces the bare-URL history entry with the new tab, so within the page's lifetime Back
+     and the nav can't return to it. The in-app Refresh button / pull-to-refresh only re-fetch data (no page
+     reload), so they keep you on the current tab. If the bare URL comes back within the same page (an old
+     pushed entry), it goes to the last tab (sessionStorage 'th2h_last_hash'). The data (localStorage) is untouched. */
+  var LAST_KEY = 'th2h_last_hash';
   function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
   function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
   function landingOn() { return document.documentElement.classList.contains('landing-on'); }
   function leaveLanding() {
     if (!landingOn()) return;
-    ssSet(LANDING_KEY, '1');
     document.documentElement.classList.remove('landing-on');
     $('landing').setAttribute('aria-hidden', 'true');
     if (bot) document.title = bot.name + ' · Too Hot to Handle Statistics Hub';

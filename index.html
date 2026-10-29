@@ -17,8 +17,14 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="styles.css">
-<script>/* v29 landing: shown only for the bare URL, once per tab session (see app.js "landing"). Set early so the first paint is the title screen. */
-try { if (!location.hash.replace(/^#/, '') && !sessionStorage.getItem('th2h_landing_left')) document.documentElement.classList.add('landing-on'); } catch (e) {}</script>
+<script>/* Landing (see app.js "landing"): shown when the page is opened on the bare URL, and on every reload (v31), whatever tab the URL was on.
+   On reload the hash is dropped (history.replaceState) so the address bar is the bare URL and a second reload lands here too. Runs before first paint. */
+(function () {
+  var reload = false;
+  try { var n = performance.getEntriesByType && performance.getEntriesByType('navigation')[0]; reload = n ? n.type === 'reload' : (performance.navigation && performance.navigation.type === 1); } catch (e) {}
+  if (reload && location.hash) try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  if (reload || !location.hash.replace(/^#/, '')) document.documentElement.classList.add('landing-on');
+})();</script>
 </head>
 <body>
 <aside class="side" id="side">

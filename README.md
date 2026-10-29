@@ -263,3 +263,12 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Its 4 opponents got archetypes from their wiki categories (Chippy hammersaw, Fang Tooth horizontal spinner, Black Beans unique, Name TBD lifter). Nothing else in the roster changed (checked: every other bot's data is identical after the rebuild).
 - Pipeline: `raw/brettzone/morningstar.json`, `raw/wiki_html/Morningstar.json`, `raw/morningstar/` in team-data; `compute_tournament_scan.py` and `reconcile.py` include it; `tools/build_data.py` and `tools/build_photos.py` have its entry. Tests: `node tools/test_roster.js`. SW cache `supernova-v30`.
 
+## v31: reload goes to the landing page
+- **Every browser reload shows the landing page**, whatever tab you were on (Calcs, the Weight sheet, a robot profile, …). The inline script in `index.html` checks `performance.getEntriesByType('navigation')[0].type === 'reload'` before first paint; on a reload it drops the hash with `history.replaceState` (address bar becomes the bare URL, so a second reload lands there too) and turns the landing on.
+- Fresh opens: the bare URL shows the landing; a fresh deep link (`#team`, `#calc/weight`, `#team/morningstar`, old `#weight`) still skips it. Back/forward into the app (navigation type `back_forward`) restores the tab you were on.
+- The v29 once-per-session flag (`sessionStorage['th2h_landing_left']`) is gone; it isn't needed now that every reload and bare-URL open shows the landing.
+- Still true: once you leave the landing, its history entry is replaced by the tab, so the nav and Back can't return to it during that page's lifetime.
+- The in-app **Refresh** button and pull-to-refresh only re-fetch fight data (they never reload the page), so they keep you on the current tab.
+- Service worker: it activates with `skipWaiting`/`clients.claim` and the app never calls `location.reload()`, so a new version can't cause a reload loop (tested: no extra navigations after a reload with the SW in control). Weight Budget sheets live in localStorage (`wb_v1_<botId>`) and are unchanged by reloads (tested: same saved data and parts after two reloads).
+- Tests: `node tools/test_landing.js` (updated). SW cache `supernova-v31`.
+

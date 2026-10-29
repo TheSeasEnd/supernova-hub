@@ -107,6 +107,7 @@ BOTS = [
  ('stoneforge','Stoneforge',dict(cls=3,builder='James Nguyen',weapon='Modular (drum / eggbeater)',sources=[['BrettZone',bz('stoneforge')],['NHRL wiki',WIKI+'Stoneforge']])),
  ('fullydefined','Fully Defined',dict(cls=3,builder='Ian MacInerney',weapon='Vertical spinner (hub motor)',sources=[['BrettZone',bz('fullydefined')],['NHRL wiki',WIKI+'Fully_Defined']])),
  ('comet','Comet',dict(cls=3,builder='Connor Howard',weapon='Vertical spinner',facts=dict(builder='NHRL wiki (Comet page: Builder/Driver Connor Howard; Connor Howard page lists Comet among his 3lb bots, alongside team bots Plot Twist and Luna)',weapon='NHRL wiki (Weapon: Vertical Spinner; category Vertical Spinners)'),note='Added Oct 25, 2026 (per Ezequiel). Discord channel not given. “Sun, moon, and comet” (Feb 2026) is a separate bot and isn’t included.',sources=[['BrettZone',bz('comet')],['NHRL wiki',WIKI+'Comet'],['NHRL wiki: Connor Howard',WIKI+'Connor_Howard'],['BrettZone Hero’s Gallery',HG+'comet']])),
+ ('morningstar','Morningstar',dict(cls=3,builder='Nick Grumski',weapon='Vertical disk thwack bot',facts=dict(builder='Per the user (Oct 29, 2026). Not confirmed by the NHRL wiki (Morningstar page: Builder and Driver TBA; Nick Grumski’s page lists Rapier, Saber and Alan but not Morningstar). BrettZone has no builder field',weapon='NHRL wiki (Weapon: Vertical Disk Thwack Bot; category Unique Weapons)'),note='Added Oct 29, 2026 (per the user). One event so far: NHRL October 2024 3lb. Discord channel not given.',sources=[['BrettZone',bz('morningstar')],['NHRL wiki',WIKI+'Morningstar']])),
  ('fireball','Fireball',dict(cls=3,note='No fights since Dec 2023 (likely retired).',sources=[['BrettZone',bz('fireball')],['NHRL wiki',WIKI+'Fireball']])),
  ('luna','Luna',dict(cls=12,builder='Connor Howard',weapon='Vertical spinner',facts=dict(builder='BrettZone Hero’s Gallery (April 2026 builder shot: “Luna, Connor Howard”); NHRL wiki still says TBA',weapon='Per Ezequiel / team (Oct 25, 2026); NHRL wiki still says TBA'),channel='plot-twist-luna',sources=[['BrettZone',bz('luna')],['NHRL wiki',WIKI+'Luna'],['BrettZone Hero’s Gallery',HG+'luna']])),
  ('alan','Alan',dict(cls=30,channel='alan-rapier',sources=[['BrettZone',bz('alan')],['NHRL wiki',WIKI+'Alan']])),
@@ -126,6 +127,7 @@ OT = json.load(open(f'{TD}/opponent_types.json'))
 TEAM_TYPES = {
     'luna': ['vertical-spinner', 'high', 'Luna', [], 'Per Ezequiel / team: vertical spinner (NHRL wiki says TBA).'],
     'barbie': ['eggbeater', 'high', 'Barbie', ['Eggbeaters'], 'Per Ezequiel / team: beater bar (NHRL wiki: Vertical Eggbeater Spinner).'],
+    'morningstar': ['unique', 'high', 'Morningstar', ['Unique Weapons'], 'NHRL wiki: Weapon “Vertical Disk Thwack Bot”, category Unique Weapons (checked Oct 29, 2026).'],
     'barbieandken': ['multibot', 'high', 'Barbie and Ken', [], 'Per Ezequiel / team: multibot, Barbie (beater bar) + Ken (drum).'],
 }
 for k, v in TEAM_TYPES.items(): OT['map'][k] = v

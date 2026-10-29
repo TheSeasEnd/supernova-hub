@@ -135,6 +135,15 @@ window.BOT_PHOTOS = {
 "caption": "October 2025 hero shot (still #117)",
 "url": "https://brettzone.nhrl.io/brettZone/v2/heros/comet"
 },
+"morningstar": {
+"src": "img/bots/morningstar.webp",
+"w": 600,
+"h": 393,
+"cut": true,
+"credit": "NHRL wiki",
+"caption": "Morningstar, October 2024",
+"url": "https://wiki.nhrl.io/wiki/index.php?title=File:Morningstar-Oct24.png"
+},
 "fireball": {
 "src": "img/bots/fireball.webp",
 "w": 600,

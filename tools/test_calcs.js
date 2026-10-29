@@ -21,6 +21,6 @@ const cjs = fs.readFileSync(path.join(__dirname, '../calcs.js'), 'utf8'), css = 
 ok(!/<iframe|renderEmbed|embedmode/.test(cjs) && !/framewrap|embedmode|\.ci-ext|\.calcnote/.test(css), 'iframe/embed code removed');
 ok(/target="_blank" rel="noopener">Open/.test(cjs), 'link-outs open in a new tab with noopener');
 ok(/c\.kind === 'native' && !c\.disabled \? id : 'list'/.test(cjs), 'non-native #calc/<id> falls back to list');
-ok(/supernova-v2[7-9]/.test(fs.readFileSync(path.join(__dirname, '../sw.js'), 'utf8')), 'sw v27+');
+ok(/supernova-v(2[7-9]|[3-9]\d)/.test(fs.readFileSync(path.join(__dirname, '../sw.js'), 'utf8')), 'sw v27+');
 ok(/current === 'list' && id && id !== 'list' && /.test(cjs), 'list render does not rewrite a #calc/<id> hash');
 console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

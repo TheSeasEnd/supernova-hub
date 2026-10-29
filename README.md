@@ -254,3 +254,12 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Animation (fade/rise and a slow glow on the flame) only runs with `prefers-reduced-motion: no-preference`.
 - Tests: `node tools/test_landing.js`. SW cache `supernova-v29`.
 
+## v30: Morningstar added
+- **Morningstar** (one word; 3lb) joins the roster, per the user. Reference: the NHRL wiki page the user gave, https://wiki.nhrl.io/wiki/index.php?title=Morningstar, plus BrettZone `morningstar` (https://brettzone.nhrl.io/brettZone/v2/b/morningstar).
+- Facts: weight class 3lb (wiki and BrettZone). Weapon "Vertical Disk Thwack Bot" (wiki), archetype **Unique weapon** (wiki category Unique Weapons). Builder **Nick Grumski** is user-provided and flagged as such: the wiki page says Builder (TBA) / Driver (TBA), and Nick Grumski's wiki page (same spelling) lists Rapier, Saber and Alan but not Morningstar. BrettZone has no builder field. No Discord channel given.
+- Record **2–2** (no forfeits; streak L1), all at NHRL October 2024 3lb on Oct 26, 2024: qualifiers L Chippy (JD), W Fang Tooth (JD), W Black Beans (KO); bracket R1 L Name TBD (JD). All 4 fights are in both BrettZone and the wiki table (source BOTH), so nothing was wiki-only and the pre-2024 wiki rule didn't apply.
+- Only one robot named Morningstar exists: BrettZone search finds a single `morningstar` (the other "morning" hit, Morning Shot, is a different bot) and the wiki's only Morningstar robot page is this one ("Max Morningstar" and "Olivia Morningstar" are people pages).
+- Photo: no BrettZone Hero's Gallery still exists (all 1,082 stills checked), so it uses the wiki image File:Morningstar-Oct24.png (transparent, trimmed, 600px WebP), credited "NHRL wiki · Morningstar, October 2024".
+- Its 4 opponents got archetypes from their wiki categories (Chippy hammersaw, Fang Tooth horizontal spinner, Black Beans unique, Name TBD lifter). Nothing else in the roster changed (checked: every other bot's data is identical after the rebuild).
+- Pipeline: `raw/brettzone/morningstar.json`, `raw/wiki_html/Morningstar.json`, `raw/morningstar/` in team-data; `compute_tournament_scan.py` and `reconcile.py` include it; `tools/build_data.py` and `tools/build_photos.py` have its entry. Tests: `node tools/test_roster.js`. SW cache `supernova-v30`.
+

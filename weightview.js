@@ -245,11 +245,11 @@
     if (a === 'template') { download('weight-budget-template.csv', W.templateCSV(), 'text/csv;charset=utf-8'); return; }
     if (a === 'xlsx') { var bt = bot(); download(fname('xlsx'), new Blob([W.toXLSX(sheet, { robot: bt ? bt.name : '', date: new Date().toISOString().slice(0, 10) })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); return; }
     if (a === 'json') {
-      var out = { app: 'too-hot-to-handle-hub', kind: 'weight-budget', version: 1, exportedAt: new Date().toISOString(), robots: {} }, names = {};
+      var out = { app: 'too-hot-to-handle-statistics-hub', kind: 'weight-budget', version: 1, exportedAt: new Date().toISOString(), robots: {} }, names = {};
       (window.BOTS || []).forEach(function (x) { names[x.id] = x.name; });
       for (var k = 0; k < localStorage.length; k++) { var key = localStorage.key(k); if (key && key.indexOf(KEY) === 0) { try { out.robots[key.slice(KEY.length)] = { name: names[key.slice(KEY.length)] || key.slice(KEY.length), sheet: JSON.parse(localStorage.getItem(key)) }; } catch (er) {} } }
       if (!out.robots[botId]) out.robots[botId] = { name: names[botId] || botId, sheet: sheet };
-      download('too-hot-weight-backup-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(out, null, 1), 'application/json'); return;
+      download('too-hot-statistics-hub-weight-backup-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(out, null, 1), 'application/json'); return;
     }
     if (a === 'clear') { if (!armClear) { armClear = true; render(); return; } armClear = false; sheet.parts = []; save(); render(); return; }
     if (a === 'impcancel') { pending = null; render(); return; }
@@ -266,7 +266,7 @@
     if (kind === 'json') {
       f.text().then(function (txt) {
         var d = JSON.parse(txt);
-        if (!d || d.kind !== 'weight-budget' || !d.robots || typeof d.robots !== 'object') throw new Error('This is not a Too Hot to Handle Hub weight backup.');
+        if (!d || d.kind !== 'weight-budget' || !d.robots || typeof d.robots !== 'object') throw new Error('This is not a Too Hot to Handle Statistics Hub weight backup.');
         var robots = {}, names = [];
         Object.keys(d.robots).forEach(function (id) { var r = d.robots[id]; if (r && r.sheet && Array.isArray(r.sheet.parts)) { robots[id] = r; names.push((r.name || id) + ' (' + r.sheet.parts.length + ' parts)'); } });
         if (!names.length) throw new Error('The backup has no robot sheets.');

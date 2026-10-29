@@ -1,6 +1,6 @@
 {
-  "name": "Too Hot to Handle Hub",
-  "short_name": "Too Hot Hub",
+  "name": "Too Hot to Handle Statistics Hub",
+  "short_name": "TH2H Stats",
   "description": "Fight stats for every NHRL robot on team Too Hot to Handle (BrettZone by NHRL + NHRL wiki).",
   "start_url": "./",
   "scope": "./",

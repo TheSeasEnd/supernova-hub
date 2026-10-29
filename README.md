@@ -1,4 +1,4 @@
-# Too Hot to Handle Hub · NHRL stats PWA for team Too Hot to Handle
+# Too Hot to Handle Statistics Hub · NHRL stats PWA for team Too Hot to Handle
 
 (Formerly “Supernova Hub”. The URL and repo name are unchanged: https://theseasend.github.io/supernova-hub/.)
 
@@ -235,4 +235,13 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Tests: `node tools/test_calcs.js` also checks that ROBO CALC is a link with Brian's credit and that no iframe code is left.
 - **Plot Twist photo**: replaced with the team's own transparent PNG (kept in `/workspace/team-data/raw/photos/team_plottwist.png`, entry `kind='team'` in `tools/build_photos.py`). Same pipeline as the other photos: trimmed to the alpha bounding box, 600px wide (600x427), WebP q72, `cut: true` so it sits on the dark panel like the other cut-outs. Credit now reads "Too Hot to Handle (team photo) · Plot Twist, photo supplied by the team" with no wiki link (`teamview.js` shows a plain credit when a photo has no URL).
 - SW cache `supernova-v27`.
+
+## v28: renamed to Too Hot to Handle Statistics Hub
+- The app is now **Too Hot to Handle Statistics Hub** everywhere visible: header/sidebar name line, page `<title>` (`<robot> · Too Hot to Handle Statistics Hub`), meta description, manifest `name`, the About card in More, and the weight backup error message.
+- Home-screen name (`short_name`, `apple-mobile-web-app-title`, `application-name`): **TH2H Stats** (10 characters, fits under an iOS/Android icon without truncation).
+- Layout: the header name is split into "Too Hot to Handle" + "Statistics Hub". The desktop sidebar wraps it onto two lines after "Handle". Phones 375px and wider show the full name on one line; narrower phones show "Too Hot to Handle Stats Hub" so the refresh button stays on screen (below 340px the letter spacing is also tightened). The full name stays in the element's `title`/`aria-label`.
+- Weight backup JSON: `app` is now `too-hot-to-handle-statistics-hub` and the file is `too-hot-statistics-hub-weight-backup-<date>.json`. Import only checks `kind: 'weight-budget'`, so older backups still restore. CSV/XLSX file names use the robot name and never contained the app name.
+- Repo name and URL are unchanged (TheSeasEnd/supernova-hub, theseasend.github.io/supernova-hub).
+- Fix (bug from v27): reloading the page on `#calc/weight` dropped back to the Calcs list, because the startup re-render of the list rewrote any `#calc/<id>` hash. The fallback rewrite now only happens when a specific unknown, disabled or link-out id is opened.
+- Tests: `node tools/test_branding.js`. SW cache `supernova-v28`.
 

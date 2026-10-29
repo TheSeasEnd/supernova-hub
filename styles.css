@@ -641,3 +641,11 @@ body.scroll-locked{position:fixed;left:0;right:0;overflow:hidden;width:100%}
   .wbcard-b2 .fgrid,.wbprint .fgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
   .wbadd{width:auto}
 }
+/* v28: app name "Too Hot to Handle Statistics Hub". Desktop sidebar breaks it after "Handle";
+   on very narrow phones (<375px) "Statistics" is shortened to "Stats" so the refresh button stays on screen. */
+.appname .an-a,.appname .an-b{white-space:nowrap}
+.appname .an-short{display:none}
+@media (max-width: 374px){ .top .brand .appname .an-full{display:none} .top .brand .appname .an-short{display:inline} }
+@media (max-width: 339px){ .top .brand .appname{letter-spacing:.12em} }
+@media (min-width: 900px){ .side .brand .appname .an-full{display:inline} .side .brand .appname .an-short{display:none} }
+

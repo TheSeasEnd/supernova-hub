@@ -72,7 +72,8 @@
     // Only native calcs open in-app. Unknown, disabled or link-out ids (e.g. an old #calc/robocalc
     // link from when ROBO CALC was embedded) fall back to the list and the URL is rewritten to #calc.
     var c = byId(id); current = c && c.kind === 'native' && !c.disabled ? id : 'list';
-    if (current === 'list' && /^#calc\/./.test(location.hash)) try { history.replaceState(null, '', '#calc'); } catch (e) {}
+    // (only when a specific id was asked for: open('list') from rerender() at startup must not touch a #calc/<id> hash)
+    if (current === 'list' && id && id !== 'list' && /^#calc\/./.test(location.hash)) try { history.replaceState(null, '', '#calc'); } catch (e) {}
     if (current === 'list') renderList(); else if (c.render === 'weight') window.WeightView.mount(root); else window.SagCalc.render(root);
 
   }

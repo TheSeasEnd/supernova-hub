@@ -1,4 +1,4 @@
-/* Too Hot to Handle Hub: combat robot stats PWA for every robot on team Too Hot to Handle (bots.js).
+/* Too Hot to Handle Statistics Hub: combat robot stats PWA for every robot on team Too Hot to Handle (bots.js).
    All stats are computed client-side from the BrettZone fights list.
    Data: BrettZone public API (brettzone.nhrl.io) by NHRL. */
 (function () {
@@ -338,7 +338,7 @@
     if (bot.specs && bot.wikiUrl) h += '<div class="card"><h2>' + esc(bot.name) + '</h2><div class="kv">' + bot.specs.map(function (kv) { return '<div>' + esc(kv[0]) + '</div><div>' + esc(kv[1]) + '</div>'; }).join('') + '</div>' +
       '<div class="note" style="margin-top:8px">' + (bot.team && bot.team.facts ? '' : 'Specs from the <a href="' + bot.wikiUrl + '" target="_blank" rel="noopener">NHRL wiki</a>.') + (bot.snapshot && bot.snapshot.heroImage ? ' Hero photo: BrettZone still.' : '') + '</div>' + factsHtml(bot.team) + '</div>';
     else if (bot.specs) h += '<div class="card"><h2>' + esc(bot.name) + '</h2><div class="kv">' + bot.specs.map(function (kv) { return '<div>' + esc(kv[0]) + '</div><div>' + esc(kv[1]) + '</div>'; }).join('') + '</div><div class="note" style="margin-top:8px">' + (bot.planned ? (bot.channel ? 'From the team’s Discord channel list.' : 'Planned per the team. Class, builder and weapon not known yet.') : 'No NHRL wiki page yet.') + '</div>' + factsHtml(bot.team) + '</div>';
-    h += '<div class="card"><h2>About</h2><div class="note"><b>Too Hot to Handle Hub</b>: an unofficial stats app for team Too Hot to Handle (Too Hot Robotics), not affiliated with NHRL. Add it to your home screen: Safari → Share → “Add to Home Screen”, or Chrome → ⋮ → “Install app”.</div></div>';
+    h += '<div class="card"><h2>About</h2><div class="note"><b>Too Hot to Handle Statistics Hub</b>: an unofficial stats app for team Too Hot to Handle (Too Hot Robotics), not affiliated with NHRL. Add it to your home screen: Safari → Share → “Add to Home Screen”, or Chrome → ⋮ → “Install app”.</div></div>';
     el.innerHTML = h;
   }
 
@@ -457,7 +457,7 @@
     $('botName').innerHTML = esc(b.name.slice(0, Math.ceil(b.name.length / 2))) + '<span>' + esc(b.name.slice(Math.ceil(b.name.length / 2))) + '</span>';
     $('botSub').textContent = b.subtitle || '';
     $('refreshBtn').classList.toggle('off', !b.live); $('refreshBtn').title = b.live ? 'Refresh data' : 'Snapshot, not live';
-    document.title = b.name + ' · Too Hot to Handle Hub';
+    document.title = b.name + ' · Too Hot to Handle Statistics Hub';
     renderAll();
     lastReq = 0; refresh();
   }

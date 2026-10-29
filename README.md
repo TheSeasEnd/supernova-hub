@@ -5,15 +5,15 @@
 Static HTML/CSS/JS, no build step. Serve the folder over HTTPS (or localhost), open on a phone → Add to Home Screen.
 
 ## Navigation
-Bottom bar: **Overview · Fights (All fights | Events) · Team · Archetypes · Calcs · Weight (work in progress) · More**. Tap the robot name in the header to switch bots. Switching swaps everything: Overview, Fights/Events, Archetypes (per-bot opponent mapping and corrections), Calcs (per-bot robot profile) and More (specs, wiki link).
-Hash routes: `#overview`, `#fights`, `#team`, `#team/<botId>`, `#archetypes`, `#calc`, `#calc/<id>`, `#weight`, `#more`. Tab switches replace history; calculator sub-pages push history, so the phone's back gesture returns to the list.
+Bottom bar: **Overview · Fights (All fights | Events) · Team · Archetypes · Calcs · More**. The Weight Budget sheet lives in Calcs (`#calc/weight`). Tap the robot name in the header to switch bots. Switching swaps everything: Overview, Fights/Events, Archetypes (per-bot opponent mapping and corrections), Calcs (per-bot robot profile) and More (specs, wiki link).
+Hash routes: `#overview`, `#fights`, `#team`, `#team/<botId>`, `#archetypes`, `#calc`, `#calc/<id>`, `#more` (old `#weight` links redirect to `#calc/weight`). Tab switches replace history; calculator sub-pages push history, so the phone's back gesture returns to the list.
 
 ## Files
 - `index.html`, `styles.css` (ROBO CALC-inspired "hot" theme, our own CSS), `app.js` (router, stats, live updates, screens)
 - `bots.js`: bot registry (id, BrettZone name, snapshot, dated rank, specs, notes). Supernova (12lb) and Blink (3lb). Each entry also has `footnoteTitle`/`recordFootnote`, `eventNotes` and `profileDefaults` (robot-profile defaults for the calculators).
 - `archetypes.js` + `data/archetypes.json`: editable opponent→archetype mapping with evidence, source URLs and confidence. Taxonomy = NHRL wiki weapon-type categories. Mapping is per bot (`opponents.supernova`, `opponents.blink`) plus `selfArchetypes`. User corrections are saved per bot in localStorage (`sn_arch_overrides_v1` for Supernova, `sn_blink_arch_overrides_v1` for Blink).
 - `calcs.js`: Calculators list (ROBO CALC, Ember, FingerTech, SDP/SI, Gates) + native Battery Sag & Wh (`sagcalc.js` UI, `sagmath.js` math)
-- `weightmath.js` (limits, totals, CSV/XLSX/zip; tests: `node tools/test_weightmath.js`) + `weightview.js`: Weight tab
+- `weightmath.js` (limits, totals, CSV/XLSX/zip; tests: `node tools/test_weightmath.js`) + `weightview.js`: Weight Budget calculator (in Calcs)
 - `profile.js`: robot profile (`window.RobotProfile`), one per bot (`sn_robot_profile_v1` for Supernova, `sn_blink_robot_profile_v1` for Blink), for calculators and a future robot designer. Blink's defaults use the wiki's 4S LiHV 1100 mAh; other values are labelled generic examples.
 - `data/kodex.js`: bundled KO-dex snapshot (see below)
 - `data/complete-fights.js` (`window.COMPLETE_FIGHTS`): complete Supernova and Blink fight lists, built from every BrettZone tournament fight list (scanned Oct 25, 2026 3:58 PM ET)
@@ -218,3 +218,11 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - 1lb has no NHRL weigh-in penalty text (SPARC states no tolerance); NHRL TKO notes stay on NHRL classes only.
 - Class labels now match the rules' own wording: "3lb", "12lb", "30lb" (the beetleweight/hobbyweight/featherweight names were mine, not NHRL's, and are gone).
 - SW cache `supernova-v25`.
+
+## v26: Weight moves into Calcs; Battery Sag greyed out again
+- **Battery Sag & Wh** is greyed out again with the "Coming soon" tag (`disabled: true, disabledLabel: 'Coming soon'` on the `battery` entry in `calcs.js`, with a comment). The card can't be opened and `#calc/battery` falls back to the list. `sagcalc.js`/`sagmath.js` are unchanged; delete the flag to turn it back on.
+- **Weight** is no longer a top-level tab (back to 6: Overview, Fights, Team, Archetypes, Calcs, More). It is now the **Weight Budget** card under "Built in" in Calcs, with the dashed "Work in progress" badge, and opens in-app at `#calc/weight` with a "‹ Calculators" back button. Old `#weight` links redirect there.
+- All Weight features are unchanged: per-robot sheets (same `wb_v1_<botId>` storage, so saved data carries over), the robot switcher still drives the sheet, CSV/XLSX/JSON import and export, limits and flags.
+- `weightview.js` now exposes `WeightView.mount(el)` (called by `calcs.js`) and `rerender()` (called through `Calcs.rerender()` on robot switch).
+- Tests: `node tools/test_calcs.js` (calc list config, 6 tabs, redirect, SW version) plus the existing weight and sag math tests.
+- SW cache `supernova-v26`.

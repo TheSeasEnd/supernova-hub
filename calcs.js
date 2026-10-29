@@ -1,5 +1,5 @@
 /* Calculators tab: a list of calculators (credited to their owners) + our own native
-   Battery Sag & Wh calculator (sagcalc.js + sagmath.js). Only ROBO CALC is embedded (iframe); Ember (Level 5 Robotics)
+   Battery Sag & Wh calculator (sagcalc.js + sagmath.js, currently disabled) and Weight Budget (weightview.js + weightmath.js). Only ROBO CALC is embedded (iframe); Ember (Level 5 Robotics)
    and the rest open in a new browser tab. No third-party calculator code is copied here. */
 (function () {
   'use strict';
@@ -8,10 +8,14 @@
   var EMBER_CREDIT = 'Ember by <a href="https://level5robotics.com" target="_blank" rel="noopener">Level 5 Robotics</a> (with the SCAR community)';
 
   var CALCS = [
-    // Add disabled: true (optionally disabledLabel) to grey a card out and block opening it; deep links then fall back to the list.
-    { id: 'battery', kind: 'native', group: 'Built in', title: 'Battery Sag & Wh',
+    // disabled: true greys a card out and blocks opening it (deep links fall back to the list); disabledLabel is the tag shown.
+    // Battery Sag & Wh is switched off for now: delete "disabled: true, disabledLabel: 'Coming soon'," below to turn it back on (sagcalc.js/sagmath.js are untouched).
+    { id: 'battery', kind: 'native', render: 'sag', disabled: true, disabledLabel: 'Coming soon', group: 'Built in', title: 'Battery Sag & Wh',
       desc: 'Any robot, any pack: watt-hours, pack resistance, voltage sag for weapon spin-up and drive pushes, late-match checks, heat and capacity.',
       credit: 'Built into this app · general-purpose estimate (sources inside)' },
+    { id: 'weight', kind: 'native', render: 'weight', badge: 'Work in progress', group: 'Built in', title: 'Weight Budget',
+      desc: 'Parts list per robot with category subtotals, 3D-print weights, and a running total vs. the class limit (NHRL 2026 rules; SPARC for 1lb). Excel/CSV import and export.',
+      credit: 'Built into this app · follows the robot switcher · saved on this device' },
     { id: 'robocalc', kind: 'embed', group: 'Embedded calculator', title: 'ROBO CALC',
       desc: 'Combat Robotics Calculator Tool: weapon, drive and more.',
       url: 'https://bdboxell.github.io/robocalc/',
@@ -49,7 +53,7 @@
         : c.kind === 'link'
         ? '<a class="btn ghost sm" href="' + esc(c.url) + '" target="_blank" rel="noopener">Open ↗</a>'
         : '<button class="btn sm" data-open="' + c.id + '">' + (c.kind === 'native' ? 'Open' : 'Open here') + '</button>';
-      h += '<div class="card calcitem' + (c.kind === 'native' ? ' native' : '') + (c.disabled ? ' disabled" aria-disabled="true' : '') + '"><div class="ci-main"><div class="ci-title">' + esc(c.title) + '</div>' +
+      h += '<div class="card calcitem' + (c.kind === 'native' ? ' native' : '') + (c.disabled ? ' disabled" aria-disabled="true' : '') + '"><div class="ci-main"><div class="ci-title">' + esc(c.title) + (c.badge ? ' <span class="tbuild">' + esc(c.badge) + '</span>' : '') + '</div>' +
         '<div class="ci-desc">' + esc(c.desc) + '</div><div class="ci-credit">' + c.credit + '</div></div><div class="ci-act">' + action +
         (c.kind === 'embed' ? '<a class="ci-ext" href="' + esc(c.url) + '" target="_blank" rel="noopener">Open in browser ↗</a>' : '') + '</div></div>';
     });
@@ -75,7 +79,7 @@
   function open(id, fromHash) {
     var c = byId(id); current = c && c.kind !== 'link' && !c.disabled ? id : 'list';
     if (c && c.disabled && /^#calc\//.test(location.hash)) try { history.replaceState(null, '', '#calc'); } catch (e) {}
-    if (current === 'list') renderList(); else if (c.kind === 'native') window.SagCalc.render(root); else renderEmbed(c);
+    if (current === 'list') renderList(); else if (c.render === 'weight') window.WeightView.mount(root); else if (c.kind === 'native') window.SagCalc.render(root); else renderEmbed(c);
     root.classList.toggle('embedmode', !!(c && c.kind === 'embed'));
 
   }
@@ -83,7 +87,7 @@
   window.Calcs = {
     init: function (el) { root = el; root.addEventListener('click', onClick); renderList(); },
     open: open,
-    rerender: function () { if (current !== 'battery') open(current); },
+    rerender: function () { if (current === 'weight') { if (window.WeightView) window.WeightView.rerender(); } else if (current !== 'battery') open(current); },
     list: CALCS
   };
 })();

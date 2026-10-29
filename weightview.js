@@ -1,4 +1,4 @@
-/* Weight tab (work in progress): per-robot weight budget spreadsheet. Math, limits and file formats live in weightmath.js.
+/* Weight budget calculator (work in progress; opened from Calcs, #calc/weight): per-robot weight budget spreadsheet. Math, limits and file formats live in weightmath.js.
    Saved per robot in localStorage ("wb_v1_<botId>"). Desktop (≥900px) shows a spreadsheet table, phones show cards. */
 (function () {
   'use strict';
@@ -184,7 +184,7 @@
   function render() {
     if (!root) return;
     load(); lastWide = wide();
-    var b = bot(), h = '<div class="wbhead"><div><div class="wbtitle">Weight budget <span class="tbuild">Work in progress</span></div><div class="note">' + esc(b ? b.name : '') + ' · parts list saved on this device, per robot (switch robots to switch sheets)</div></div></div>';
+    var b = bot(), h = '<div class="calcbar"><button class="back" data-back>‹ Calculators</button></div><div class="wbhead"><div><div class="wbtitle">Weight budget <span class="tbuild">Work in progress</span></div><div class="note">' + esc(b ? b.name : '') + ' · parts list saved on this device, per robot (switch robots to switch sheets)</div></div></div>';
     h += '<div class="wbtop"><div class="card wbsum" id="wbSum">' + summaryHtml() + '</div>' + limitHtml() + '</div>';
     h += importHtml();
     h += '<div class="card wbparts"><div class="wbparts-h"><h2>Parts <small>' + sheet.parts.length + '</small></h2><div class="wbtools">' +
@@ -281,12 +281,21 @@
       pending = { kind: 'sheet', file: f.name, res: res }; render();
     }).catch(function (er) { fail((er && er.message) || 'Could not read the file.' + (isX ? ' Try saving it as CSV.' : '')); });
   }
+  // Mounted by calcs.js as the "weight" calculator (inside #view-calc). Listeners are bound once per host element; the
+  // robot switcher calls Calcs.rerender() -> WeightView.rerender() so the sheet follows the current robot.
+  var bound = [];
+  function shown() { return !!(root && root.querySelector('.wbhead')); }
   window.WeightView = {
-    init: function (el) {
-      root = el; root.addEventListener('input', onInput); root.addEventListener('change', function (e) { if (e.target.dataset && e.target.dataset.wf) onFile(e); else onInput(e); }); root.addEventListener('click', onClick);
-      window.matchMedia('(min-width:900px)').addEventListener('change', function () { if (root.closest('.view') && root.classList.contains('active')) render(); else lastWide = null; });
+    mount: function (el) {
+      if (bound.indexOf(el) < 0) {
+        bound.push(el);
+        el.addEventListener('input', function (e) { if (root === el && shown()) onInput(e); });
+        el.addEventListener('change', function (e) { if (root !== el || !shown()) return; if (e.target.dataset && e.target.dataset.wf) onFile(e); else onInput(e); });
+        el.addEventListener('click', function (e) { if (root === el && shown()) onClick(e); });
+      }
+      root = el; pending = pending && pending.kind !== 'error' ? pending : null; render();
     },
-    open: function () { pending = pending && pending.kind !== 'error' ? pending : null; render(); },
-    rerender: function () { pending = null; openIds = {}; armClear = false; if (root && root.classList.contains('active')) render(); else if (root) root.innerHTML = ''; }
+    rerender: function () { pending = null; openIds = {}; armClear = false; if (shown()) render(); }
   };
+  window.matchMedia('(min-width:900px)').addEventListener('change', function () { if (shown()) render(); else lastWide = null; });
 })();

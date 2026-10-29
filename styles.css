@@ -81,12 +81,9 @@ main{padding:14px 14px calc(var(--tabh) + var(--safe-b) + 18px);max-width:640px;
 .status.warn{color:#ffb36b}
 .btn{display:inline-block;background:var(--accent);color:#0b0d12;font-weight:800;text-decoration:none;padding:10px 14px;border-radius:12px;font-size:14px;white-space:nowrap}
 .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
-.calcview.active{display:flex;flex-direction:column;height:calc(100vh - 140px - var(--safe-b) - var(--safe-t));height:calc(100dvh - 150px - var(--safe-b) - var(--safe-t))}
+.calcview.active{display:block;height:auto}
 .calcbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
 .calccredit{font-size:13px;color:var(--muted);line-height:1.35}
-.calcnote{font-size:11.5px;color:var(--muted);margin-bottom:8px}
-.framewrap{flex:1;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#fff;min-height:360px}
-.framewrap iframe{width:100%;height:100%;border:0;display:block}
 .credit{border:1px solid rgba(255,122,26,.45);background:linear-gradient(180deg,rgba(255,122,26,.10),rgba(255,122,26,.02))}
 .credit h3{margin:0 0 6px;font-size:17px}
 .credit p{margin:0 0 10px;font-size:14px;line-height:1.5;color:#d6dbe6}
@@ -104,14 +101,10 @@ sup a{text-decoration:none}
 .ci-credit{font-size:12px;color:var(--muted);margin-top:6px}
 .ci-credit a,.calccredit a{color:var(--accent2)}
 .ci-act{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.ci-ext{font-size:11.5px;color:var(--muted);white-space:nowrap}
 .btn.sm{padding:8px 12px;font-size:13px;border:0;cursor:pointer;font-family:inherit}
 .btn.ghost.sm{border:1px solid var(--line)}
 .back{background:none;border:0;color:var(--accent2);font-size:16px;font-weight:700;padding:6px 0;font-family:inherit}
 .calctitle{font-size:20px;font-weight:900;margin:2px 0 2px}
-.calcview.embedmode{display:none}
-.calcview.active.embedmode{display:flex;flex-direction:column;height:calc(100dvh - 150px - var(--safe-b) - var(--safe-t))}
-.calcview.active:not(.embedmode){display:block;height:auto}
 .exbanner{background:rgba(255,210,63,.12);border:1px solid rgba(255,210,63,.4);color:#ffe28a;border-radius:12px;padding:10px 12px;font-size:12.5px;margin:10px 0 12px;line-height:1.4}
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fld{display:flex;flex-direction:column;gap:4px;position:relative}
@@ -191,7 +184,6 @@ h1 span{color:var(--mag)}
 .ci-credit a,.calccredit a{color:var(--hot)}
 .calctitle{font-style:italic;text-transform:uppercase;letter-spacing:.04em}
 .back{color:var(--hot)}
-.framewrap{border-radius:6px;border-color:var(--hot);background:#121212}
 input{border-radius:4px;background:var(--panel2);border-color:var(--line);color:var(--mag);font-weight:700}
 input:focus{outline:none;border-color:var(--hot)}
 .fld span{color:var(--hot);font-weight:600}
@@ -452,11 +444,10 @@ kbd{font-family:inherit;font-size:10px;font-weight:700;border:1px solid #555;bor
   #view-team > .tcard{grid-column:auto;height:100%;box-sizing:border-box}
   #view-team .seg{max-width:560px}
   .tphoto.thumb img{height:140px}
-  /* calcs: list as a grid, embedded calculators use the window height */
+  /* calcs: list as a grid */
   #view-calc.active{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;align-items:start}
   #view-calc > *{grid-column:1/-1}
   #view-calc > .calcitem{grid-column:auto;margin-bottom:0;height:100%;box-sizing:border-box}
-  .framewrap{min-height:calc(100vh - 150px)}
   /* switcher: popover beside the sidebar, robots in columns by weight class */
   .sheet{align-items:flex-start;justify-content:flex-start;padding:16px 0 0 calc(var(--sidew) + 12px)}
   .sheet.open{background:rgba(0,0,0,.45)}
@@ -495,14 +486,6 @@ body.scroll-locked{position:fixed;left:0;right:0;overflow:hidden;width:100%}
 @media (min-width: 900px){ .sheetpanel{max-height:calc(100vh - 40px)} .sheetlist{max-height:calc(100vh - 170px)} }
 @media (max-width: 899px){ .sheetlist{max-height:calc(86vh - 150px)} }
 
-/* v16: ROBO CALC embed on desktop. The calculator is a responsive page (content max-width ~900px,
-   two-column modules above 768px), so the frame is given its natural desktop width (up to 1000px),
-   centred, and the full window height. No transform scaling is needed. */
-@media (min-width: 900px) {
-  #view-calc.active.embedmode{display:flex;flex-direction:column;align-items:center;height:calc(100vh - 64px);box-sizing:border-box}
-  #view-calc.embedmode > *{width:100%;max-width:1000px}
-  #view-calc.embedmode .framewrap{flex:1 1 auto;min-height:520px;height:auto;background:#121212}
-}
 /* v21: disabled calculator card (Calcs list) */
 .calcitem.disabled{opacity:.45;filter:grayscale(1);border-color:var(--line)!important;pointer-events:none;user-select:none;cursor:not-allowed}
 .calcitem.disabled .ci-title,.calcitem.disabled .ci-desc,.calcitem.disabled .ci-credit{color:var(--muted)}

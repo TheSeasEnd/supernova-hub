@@ -14,5 +14,12 @@ ok(/var TABS = \['overview', 'fights', 'team', 'archetypes', 'calc', 'more'\];/.
 ok(/#weight\(\\\/\|\$\)/.test(app) && /#calc\/weight/.test(app), '#weight redirects to #calc/weight');
 const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
 ok(!/data-tab="weight"/.test(html) && !/view-weight/.test(html) && (html.match(/data-tab="/g) || []).length === 6, 'index has 6 tabs');
-ok(/supernova-v26/.test(fs.readFileSync(path.join(__dirname, '../sw.js'), 'utf8')), 'sw v26');
+const rc = by('robocalc'); ok(rc && rc.kind === 'link' && rc.url === 'https://bdboxell.github.io/robocalc/', 'robocalc is a link-out');
+ok(/Brian Boxell \/ Too Hot Robotics/.test(rc.credit) && /github\.com\/bdboxell\/robocalc/.test(rc.credit) && /weapon, drive and more/.test(rc.desc), 'robocalc credit and description kept');
+ok(!L.some(c => c.kind === 'embed'), 'no embedded calculators left');
+const cjs = fs.readFileSync(path.join(__dirname, '../calcs.js'), 'utf8'), css = fs.readFileSync(path.join(__dirname, '../styles.css'), 'utf8');
+ok(!/<iframe|renderEmbed|embedmode/.test(cjs) && !/framewrap|embedmode|\.ci-ext|\.calcnote/.test(css), 'iframe/embed code removed');
+ok(/target="_blank" rel="noopener">Open/.test(cjs), 'link-outs open in a new tab with noopener');
+ok(/c\.kind === 'native' && !c\.disabled \? id : 'list'/.test(cjs), 'non-native #calc/<id> falls back to list');
+ok(/supernova-v27/.test(fs.readFileSync(path.join(__dirname, '../sw.js'), 'utf8')), 'sw v27');
 console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

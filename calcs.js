@@ -1,6 +1,6 @@
 /* Calculators tab: a list of calculators (credited to their owners) + our own native
-   Battery Sag & Wh calculator (sagcalc.js + sagmath.js, currently disabled) and Weight Budget (weightview.js + weightmath.js). Only ROBO CALC is embedded (iframe); Ember (Level 5 Robotics)
-   and the rest open in a new browser tab. No third-party calculator code is copied here. */
+   Battery Sag & Wh calculator (sagcalc.js + sagmath.js, currently disabled) and Weight Budget (weightview.js + weightmath.js). Nothing is embedded: ROBO CALC, Ember (Level 5 Robotics)
+   and the rest are link-outs that open in a new browser tab (target=_blank rel=noopener). No third-party calculator code is copied here. */
 (function () {
   'use strict';
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -16,11 +16,11 @@
     { id: 'weight', kind: 'native', render: 'weight', badge: 'Work in progress', group: 'Built in', title: 'Weight Budget',
       desc: 'Parts list per robot with category subtotals, 3D-print weights, and a running total vs. the class limit (NHRL 2026 rules; SPARC for 1lb). Excel/CSV import and export.',
       credit: 'Built into this app · follows the robot switcher · saved on this device' },
-    { id: 'robocalc', kind: 'embed', group: 'Embedded calculator', title: 'ROBO CALC',
+    // v27: ROBO CALC is a link-out (no iframe). Old #calc/robocalc links land on the Calcs list.
+    { id: 'robocalc', kind: 'link', group: 'ROBO CALC (opens in browser)', title: 'ROBO CALC',
       desc: 'Combat Robotics Calculator Tool: weapon, drive and more.',
       url: 'https://bdboxell.github.io/robocalc/',
-      credit: 'Calculator by <a href="https://github.com/bdboxell/robocalc" target="_blank" rel="noopener">Brian Boxell / Too Hot Robotics</a>',
-      note: 'CSV import/export may not work inside the embedded view on phones. Use “Open in browser” for that.' },
+      credit: 'Calculator by <a href="https://github.com/bdboxell/robocalc" target="_blank" rel="noopener">Brian Boxell / Too Hot Robotics</a>' },
     { id: 'ember-wh', kind: 'link', group: 'Ember by Level 5 Robotics (opens in browser)', title: 'Ember · Watt-Hour Calculator',
       desc: 'Battery energy in watt-hours (handy for event battery limits).', url: EMBER + '/watt-hour', credit: EMBER_CREDIT },
     { id: 'ember-battery', kind: 'link', group: 'Ember by Level 5 Robotics (opens in browser)', title: 'Ember · Battery Size Calculator',
@@ -52,22 +52,14 @@
       var action = c.disabled ? '<span class="ci-soon">' + esc(c.disabledLabel || 'Disabled') + '</span>'
         : c.kind === 'link'
         ? '<a class="btn ghost sm" href="' + esc(c.url) + '" target="_blank" rel="noopener">Open ↗</a>'
-        : '<button class="btn sm" data-open="' + c.id + '">' + (c.kind === 'native' ? 'Open' : 'Open here') + '</button>';
+        : '<button class="btn sm" data-open="' + c.id + '">Open</button>';
       h += '<div class="card calcitem' + (c.kind === 'native' ? ' native' : '') + (c.disabled ? ' disabled" aria-disabled="true' : '') + '"><div class="ci-main"><div class="ci-title">' + esc(c.title) + (c.badge ? ' <span class="tbuild">' + esc(c.badge) + '</span>' : '') + '</div>' +
-        '<div class="ci-desc">' + esc(c.desc) + '</div><div class="ci-credit">' + c.credit + '</div></div><div class="ci-act">' + action +
-        (c.kind === 'embed' ? '<a class="ci-ext" href="' + esc(c.url) + '" target="_blank" rel="noopener">Open in browser ↗</a>' : '') + '</div></div>';
+        '<div class="ci-desc">' + esc(c.desc) + '</div><div class="ci-credit">' + c.credit + '</div></div><div class="ci-act">' + action + '</div></div>';
     });
-    h += '<div class="note" style="padding:0 4px">External calculators belong to their owners and load live from their sites. Nothing is copied into this app. ROBO CALC loads in a frame here; the others open in a new browser tab.</div>';
+    h += '<div class="note" style="padding:0 4px">External calculators belong to their owners and load live from their sites. Nothing is copied or embedded in this app; each one opens in a new browser tab.</div>';
     root.innerHTML = h;
   }
 
-  function renderEmbed(c) {
-    root.innerHTML = '<div class="calcbar"><button class="back" data-back>‹ Calculators</button>' +
-      '<a class="btn sm" href="' + esc(c.url) + '" target="_blank" rel="noopener">Open in browser ↗</a></div>' +
-      '<div class="calctitle">' + esc(c.title) + '</div><div class="calccredit">' + c.credit + '</div>' +
-      (c.note ? '<div class="calcnote">' + esc(c.note) + '</div>' : '') +
-      '<div class="framewrap"><iframe title="' + esc(c.title) + '" src="' + esc(c.url) + '" referrerpolicy="no-referrer-when-downgrade"></iframe></div>';
-  }
 
   function onClick(e) {
     var t = e.target.closest('button'); if (!t || !root.contains(t)) return;
@@ -77,10 +69,11 @@
   }
 
   function open(id, fromHash) {
-    var c = byId(id); current = c && c.kind !== 'link' && !c.disabled ? id : 'list';
-    if (c && c.disabled && /^#calc\//.test(location.hash)) try { history.replaceState(null, '', '#calc'); } catch (e) {}
-    if (current === 'list') renderList(); else if (c.render === 'weight') window.WeightView.mount(root); else if (c.kind === 'native') window.SagCalc.render(root); else renderEmbed(c);
-    root.classList.toggle('embedmode', !!(c && c.kind === 'embed'));
+    // Only native calcs open in-app. Unknown, disabled or link-out ids (e.g. an old #calc/robocalc
+    // link from when ROBO CALC was embedded) fall back to the list and the URL is rewritten to #calc.
+    var c = byId(id); current = c && c.kind === 'native' && !c.disabled ? id : 'list';
+    if (current === 'list' && /^#calc\/./.test(location.hash)) try { history.replaceState(null, '', '#calc'); } catch (e) {}
+    if (current === 'list') renderList(); else if (c.render === 'weight') window.WeightView.mount(root); else window.SagCalc.render(root);
 
   }
 

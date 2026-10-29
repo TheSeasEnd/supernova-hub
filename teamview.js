@@ -50,7 +50,7 @@
     var p = window.BOT_PHOTOS && window.BOT_PHOTOS[id];
     if (!p) return '';
     return '<figure class="tphoto' + (p.cut ? ' cut' : '') + (thumb ? ' thumb' : '') + '"><img src="' + esc(p.src) + '" alt="' + esc(name) + ': ' + esc(p.caption) + '" width="' + p.w + '" height="' + p.h + '" loading="lazy" decoding="async" onerror="this.parentNode.remove()">' +
-      '<figcaption>Photo: ' + (thumb ? esc(p.credit) : '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.credit) + ' ↗</a> · ' + esc(p.caption)) + '</figcaption></figure>';
+      '<figcaption>Photo: ' + (thumb ? esc(p.credit) : (p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.credit) + ' ↗</a>' : esc(p.credit)) + ' · ' + esc(p.caption)) + '</figcaption></figure>';
   }
   window.TeamPhoto = photoHtml;
   function placeholderHtml() { return '<div class="tphoto none"><span>No robot yet</span></div>'; }
@@ -122,7 +122,7 @@
   function creditsHtml() {
     return '<div class="card credit tcredit"><h3>Credits</h3><div class="note credits">' +
       '<b>Fight data</b>: <a href="https://brettzone.nhrl.io" target="_blank" rel="noopener">BrettZone (brettzone.nhrl.io)</a> by <b>NHRL</b>.<br>' +
-      '<b>Older fights, specs and builders</b>: <a href="https://wiki.nhrl.io/" target="_blank" rel="noopener">NHRL wiki</a> (each bot’s Full Fight History). Team lineup: <a href="https://www.nhrl.io/meet-the-teams" target="_blank" rel="noopener">nhrl.io/meet-the-teams</a>. Robot photos: <a href="https://brettzone.nhrl.io/brettZone/v2/heros" target="_blank" rel="noopener">BrettZone Hero’s Gallery</a>, the NHRL wiki and builders’ own sites (credited under each photo). Some builders and weapons come from the <a href="https://brettzone.nhrl.io/brettZone/v2/heros" target="_blank" rel="noopener">BrettZone Hero’s Gallery</a>, <a href="https://www.robotcombatevents.com/" target="_blank" rel="noopener">Robot Combat Events</a>, the <a href="https://www.buildersdb.com/" target="_blank" rel="noopener">Builders Database</a> and builders’ own pages (credited on each robot).<br>' +
+      '<b>Older fights, specs and builders</b>: <a href="https://wiki.nhrl.io/" target="_blank" rel="noopener">NHRL wiki</a> (each bot’s Full Fight History). Team lineup: <a href="https://www.nhrl.io/meet-the-teams" target="_blank" rel="noopener">nhrl.io/meet-the-teams</a>. Robot photos: <a href="https://brettzone.nhrl.io/brettZone/v2/heros" target="_blank" rel="noopener">BrettZone Hero’s Gallery</a>, the NHRL wiki, builders’ own sites and the team (Plot Twist) (credited under each photo). Some builders and weapons come from the <a href="https://brettzone.nhrl.io/brettZone/v2/heros" target="_blank" rel="noopener">BrettZone Hero’s Gallery</a>, <a href="https://www.robotcombatevents.com/" target="_blank" rel="noopener">Robot Combat Events</a>, the <a href="https://www.buildersdb.com/" target="_blank" rel="noopener">Builders Database</a> and builders’ own pages (credited on each robot).<br>' +
       '<b>Team</b>: Too Hot to Handle / Too Hot Robotics, captained by <b>Brian Boxell</b>. The look follows his <a href="https://github.com/bdboxell/robocalc" target="_blank" rel="noopener">ROBO CALC</a> (our own CSS).<br>' +
       '<b>Ratings</b>: <a href="https://kodex.bot" target="_blank" rel="noopener">KO-dex</a>, an independent fan project (Supernova and Blink, snapshot).<br>' +
       '<b>Ember calculators</b>: <a href="https://level5robotics.com" target="_blank" rel="noopener">Level 5 Robotics</a>.</div></div>';

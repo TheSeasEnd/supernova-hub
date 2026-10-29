@@ -58,7 +58,7 @@ See the v22 section at the end of this file. The math is in `sagmath.js` (tests:
 
 ## Credits
 Fight data: BrettZone (brettzone.nhrl.io) by NHRL. Older fights, builders and specs: NHRL wiki. Team: Too Hot to Handle / Too Hot Robotics (Brian Boxell). Ratings and fight types by KO-dex (kodex.bot), an independent fan project, not affiliated with NHRL (snapshot, as of Oct 3, 2026). Archetypes: NHRL wiki, RobotCombatWiki, Combat Robots Wiki.
-Calculators belong to their owners (Brian Boxell / Too Hot Robotics; Level 5 Robotics; FingerTech Robotics; SDP/SI; Gates). They are only embedded or linked; none of their code is copied.
+Calculators belong to their owners (Brian Boxell / Too Hot Robotics; Level 5 Robotics; FingerTech Robotics; SDP/SI; Gates). They are only linked (each opens in a new tab); none is embedded and none of their code is copied.
 
 ## Deploy
 Push this folder to a GitHub repo and enable Pages (root), or drag it into Netlify Drop.
@@ -102,7 +102,8 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Each robot's hub Overview, Team card and Team detail now show a photo, bundled as roughly 600px webp in `img/bots/` (about 270 KB total) and cached by the service worker. Every photo has a credit line linking to its source. They're built by `tools/build_photos.py`, and the metadata is in `data/photos.js`.
 - Sources:
   - BrettZone Hero's Gallery stills: Eruption, Caldera 12, Clyde, Luna, Alan, Barbie, and the Supernova/Blink thumbnails.
-  - NHRL wiki page images: Caldera, The Power of Friendship!, Juxtaposition, Cereal Killer, Plot Twist, Phantom III, Stoneforge, Fully Defined, Fireball, Thumb War.
+  - NHRL wiki page images: Caldera, The Power of Friendship!, Juxtaposition, Cereal Killer, Phantom III, Stoneforge, Fully Defined, Fireball, Thumb War.
+  - Team-supplied: Plot Twist (since v27; transparent PNG from the team, replaces the wiki image).
   - The builder's site (nikbuchholz.weebly.com): Phantom IV.
 - Barbie and Ken has no photo; none was found. Planned robots show a "No robot yet" placeholder.
 - The Supernova and Blink hubs keep their existing BrettZone hero images.
@@ -123,7 +124,7 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
     - Overview, Archetypes and More lay out as masonry columns, so cards keep their natural height.
     - Fights show 2–3 fight cards per row inside each event.
     - Team is a 4-across card grid with the filters on top.
-    - Calcs is a card grid. Embedded calculators such as ROBO CALC fill the window height.
+    - Calcs is a card grid.
   - **Switcher:** a wide popover with search and weight-class groups laid out in columns.
   - **Hover and focus:** hover states on fights, cards and tabs, plus visible keyboard focus.
 - **Keyboard:**
@@ -226,3 +227,12 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - `weightview.js` now exposes `WeightView.mount(el)` (called by `calcs.js`) and `rerender()` (called through `Calcs.rerender()` on robot switch).
 - Tests: `node tools/test_calcs.js` (calc list config, 6 tabs, redirect, SW version) plus the existing weight and sag math tests.
 - SW cache `supernova-v26`.
+
+## v27: ROBO CALC becomes a link-out
+- ROBO CALC (Brian Boxell / Too Hot Robotics) is no longer embedded in an iframe. Like the Ember calculators since v16, its card in Calcs has an "Open ↗" link that opens https://bdboxell.github.io/robocalc/ in a new tab (`target=_blank rel=noopener`). The title, description and credit (linking github.com/bdboxell/robocalc) are unchanged; it sits under its own "ROBO CALC (opens in browser)" group. The More tab credit now says it is linked, not embedded.
+- The iframe code is gone: `renderEmbed`, the `embedmode` class, the "Open here"/"Open in browser" pair, the phone CSV note, and the `.framewrap`/`.calcnote`/`.ci-ext`/embed-height CSS (including the v16 desktop frame sizing). No calculator is embedded any more.
+- Old `#calc/robocalc` links (and any unknown, disabled or link-out `#calc/<id>`) show the Calcs list and the URL is rewritten to `#calc`. Only native calcs (Weight Budget; Battery Sag when re-enabled) open in-app.
+- Tests: `node tools/test_calcs.js` also checks that ROBO CALC is a link with Brian's credit and that no iframe code is left.
+- **Plot Twist photo**: replaced with the team's own transparent PNG (kept in `/workspace/team-data/raw/photos/team_plottwist.png`, entry `kind='team'` in `tools/build_photos.py`). Same pipeline as the other photos: trimmed to the alpha bounding box, 600px wide (600x427), WebP q72, `cut: true` so it sits on the dark panel like the other cut-outs. Credit now reads "Too Hot to Handle (team photo) · Plot Twist, photo supplied by the team" with no wiki link (`teamview.js` shows a plain credit when a photo has no URL).
+- SW cache `supernova-v27`.
+

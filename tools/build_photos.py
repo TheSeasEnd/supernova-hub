@@ -21,7 +21,8 @@ P = [
     wk('pof', 'wiki_pof.png', 'Thepoweroffriendship-removebg.png', 'The Power of Friendship, January 2024 event'),
     wk('juxtaposition', 'wiki_juxtaposition.png', 'Juxtaposition-April25.png', 'Juxtaposition, April 2025'),
     wk('cerealkiller', 'wiki_cerealkiller.png', 'Cerealkiller-Sept24.png', 'Cereal Killer, September 2024'),
-    wk('plottwist', 'wiki_plottwist.png', 'Plot Twist January.png', 'Plot Twist, January 2023'),
+    # v27: team-supplied photo (transparent PNG from the user), replaces the NHRL wiki image (File:Plot_Twist_January.png)
+    dict(id='plottwist', file='team_plottwist.png', kind='team', credit='Too Hot to Handle (team photo)', caption='Plot Twist, photo supplied by the team', url=''),
     dict(id='phantomiv', file='p4_7r7a2863-1.jpeg', kind='builder', credit='Nik Buchholz (builder’s site)', caption='Phantom IV, from the builder’s Phantom IV project page', url='https://nikbuchholz.weebly.com/phantom-iv---3lb-combat-robot.html'),
     wk('phantomiii', 'wiki_phantomiii.png', 'Phantom III.png', 'Phantom III'),
     wk('stoneforge', 'wiki_stoneforge.jpg', 'Stoneforge V5.jpg', 'Stoneforge, updated robot picture (modular configurations)'),
@@ -56,4 +57,4 @@ for p in P:
     out[p['id']] = dict(src=dst, w=im.width, h=im.height, cut=alpha, credit=p['credit'], caption=p['caption'], url=p['url'])
     print(p['id'], im.size, sz)
 print('total', total)
-open(os.path.join(APP, 'data/photos.js'), 'w').write('/* Robot photos (bundled, ~600px webp), built by tools/build_photos.py. Credits: BrettZone Hero’s Gallery (brettzone.nhrl.io), NHRL wiki (wiki.nhrl.io), builder sites. */\nwindow.BOT_PHOTOS = ' + json.dumps(out, ensure_ascii=False, indent=0) + ';\n')
+open(os.path.join(APP, 'data/photos.js'), 'w').write('/* Robot photos (bundled, ~600px webp), built by tools/build_photos.py. Credits: BrettZone Hero’s Gallery (brettzone.nhrl.io), NHRL wiki (wiki.nhrl.io), builder sites, team-supplied photos. */\nwindow.BOT_PHOTOS = ' + json.dumps(out, ensure_ascii=False, indent=0) + ';\n')

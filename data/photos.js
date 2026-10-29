@@ -1,4 +1,4 @@
-/* Robot photos (bundled, ~600px webp), built by tools/build_photos.py. Credits: BrettZone Hero’s Gallery (brettzone.nhrl.io), NHRL wiki (wiki.nhrl.io), builder sites. */
+/* Robot photos (bundled, ~600px webp), built by tools/build_photos.py. Credits: BrettZone Hero’s Gallery (brettzone.nhrl.io), NHRL wiki (wiki.nhrl.io), builder sites, team-supplied photos. */
 window.BOT_PHOTOS = {
 "supernova": {
 "src": "img/bots/supernova.webp",
@@ -84,11 +84,11 @@ window.BOT_PHOTOS = {
 "plottwist": {
 "src": "img/bots/plottwist.webp",
 "w": 600,
-"h": 407,
+"h": 427,
 "cut": true,
-"credit": "NHRL wiki",
-"caption": "Plot Twist, January 2023",
-"url": "https://wiki.nhrl.io/wiki/index.php?title=File:Plot_Twist_January.png"
+"credit": "Too Hot to Handle (team photo)",
+"caption": "Plot Twist, photo supplied by the team",
+"url": ""
 },
 "phantomiv": {
 "src": "img/bots/phantomiv.webp",

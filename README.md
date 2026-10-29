@@ -272,3 +272,13 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - Service worker: it activates with `skipWaiting`/`clients.claim` and the app never calls `location.reload()`, so a new version can't cause a reload loop (tested: no extra navigations after a reload with the SW in control). Weight Budget sheets live in localStorage (`wb_v1_<botId>`) and are unchanged by reloads (tested: same saved data and parts after two reloads).
 - Tests: `node tools/test_landing.js` (updated). SW cache `supernova-v31`.
 
+## v32: pull down updates stats, never reloads the page
+- Bug: on phones the browser's own pull-to-refresh reloaded the whole page, and since v31 a reload goes to the landing page.
+- Fix: `overscroll-behavior-y: contain` on `html` and `body` (v31 only had it on `body`, which isn't the scrolling element, so Chrome on Android still did its native pull-to-refresh). The app's pull gesture also calls `preventDefault()` on a downward pull at the top of the page (non-passive `touchmove`), which stops Safari's native pull-to-refresh as well.
+- The app's own pull-down (phones, including iOS home-screen apps, which have no native pull-to-refresh): pull down at the top of any tab (now including Calcs and the Weight sheet) past ~90px → "Release to update" → "Updating…" with a small spinner → "Updated" / "Up to date" / "Snapshot only, nothing to update" / "Couldn’t update (offline?)". It calls the existing `refresh(true)` (BrettZone fights for the current robot), keeps the tab and never reloads the page.
+- Left alone: pulls when the page is scrolled down (normal scrolling), sideways drags (wide tables), drags inside a scrolled box, and the robot switcher sheet.
+- On the landing page a pull is swallowed: no reload and no data refresh.
+- Real reloads (browser reload button, F5, Ctrl/Cmd+R) still go to the landing page. A browser can't tell the page whether a reload came from its toolbar button, a keyboard shortcut or a native pull-to-refresh, so the only way to keep pull-down on the tab is to stop the native pull from happening, which is what this does.
+- The spinner only rotates with `prefers-reduced-motion: no-preference`.
+- Tests: `node tools/test_ptr.js`. SW cache `supernova-v32`.
+

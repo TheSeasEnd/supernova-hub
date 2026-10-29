@@ -5,7 +5,8 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
-body{min-height:100vh;overscroll-behavior-y:contain}
+html,body{overscroll-behavior-y:contain} /* no native pull-to-refresh (it would reload the page -> landing); the app's own gesture updates data */
+body{min-height:100vh}
 a{color:var(--accent2)}
 .top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + var(--safe-t)) 16px 10px;background:linear-gradient(180deg,#0b0d12 70%,rgba(11,13,18,.85));backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px}
@@ -688,4 +689,13 @@ html.landing-on .tabs:hover,html.landing-on .tabs:focus-within{opacity:1}
 }
 @keyframes ldUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes ldGlow{from{box-shadow:0 0 0 2px var(--hot),0 10px 40px rgba(255,43,240,.22)}to{box-shadow:0 0 0 2px var(--hot),0 10px 56px rgba(255,166,33,.42)}}
+/* v32: pull-to-refresh indicator (app.js setupPTR) */
+.ptr{display:flex;align-items:center;justify-content:center;gap:8px;line-height:1}
+.ptr.armed{color:var(--hot)}
+.ptr.busy,.ptr.done{color:var(--text)}
+.ptr-ic{width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;display:none;box-sizing:border-box}
+.ptr.busy .ptr-ic{display:inline-block}
+@media (prefers-reduced-motion: no-preference){ .ptr.busy .ptr-ic{animation:ptrSpin .8s linear infinite} }
+@media (prefers-reduced-motion: reduce){ .ptr{transition:none} .ptr.busy .ptr-ic{border-top-color:currentColor;opacity:.6} }
+@keyframes ptrSpin{to{transform:rotate(360deg)}}
 

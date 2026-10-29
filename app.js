@@ -562,11 +562,44 @@
   window.App = { navigate: navigate, back: back, switchBot: function (id) { if (!bot || id !== bot.id) loadBot(id); navigate('#overview', false); }, esc: esc, currentBot: function () { return bot; } };
 
   /* ---------- wiring ---------- */
+  /* Pull-to-refresh (v32). The page must never reload from a pull-down, because a real reload goes to the
+     landing page (v31). So: CSS overscroll-behavior-y: contain on html/body turns off Chrome/Android's native
+     pull-to-refresh, and this handler calls preventDefault on a downward pull at the top of the page (non-passive
+     touchmove), which also stops Safari's native pull-to-refresh. Past the threshold it re-fetches the fight data
+     (refresh(true)) with an "Updating…" indicator and stays on the current tab. Same gesture in an iOS home-screen
+     app (no native pull-to-refresh there). On the landing page the pull is swallowed: no reload, no refresh. */
+  var PTR_GO = 90;
+  function inScrolledBox(t) { for (var n = t; n && n !== document.body && n !== document.documentElement; n = n.parentElement) if (n.scrollTop > 0) return true; return false; }
   function setupPTR() {
-    var startY = null, dy = 0, ptr = $('ptr');
-    window.addEventListener('touchstart', function (e) { var v = document.querySelector('.view.active'); if (window.scrollY <= 0 && v && v.id !== 'view-calc' && !$('sheet').classList.contains('open')) { startY = e.touches[0].clientY; dy = 0; } }, { passive: true });
-    window.addEventListener('touchmove', function (e) { if (startY === null) return; dy = e.touches[0].clientY - startY; if (dy > 0) { ptr.style.height = Math.min(dy / 2, 44) + 'px'; ptr.textContent = dy > 90 ? 'Release to refresh' : 'Pull to refresh'; } }, { passive: true });
-    window.addEventListener('touchend', function () { if (startY === null) return; var go = dy > 90; startY = null; ptr.style.height = '0'; if (go) refresh(true); });
+    var startY = null, startX = 0, dy = 0, busy = false, ptr = $('ptr'), hideT = 0;
+    function show(h, txt, cls) { clearTimeout(hideT); ptr.style.height = h + 'px'; ptr.className = 'ptr' + (cls ? ' ' + cls : ''); if (txt != null) ptr.innerHTML = '<span class="ptr-ic" aria-hidden="true"></span><span>' + txt + '</span>'; }
+    function hide(delay) { hideT = setTimeout(function () { ptr.style.height = '0'; ptr.className = 'ptr'; }, delay || 0); }
+    window.addEventListener('touchstart', function (e) {
+      startY = null;
+      if (busy || e.touches.length !== 1 || window.scrollY > 0 || $('sheet').classList.contains('open') || inScrolledBox(e.target)) return;
+      startY = e.touches[0].clientY; startX = e.touches[0].clientX; dy = 0;
+    }, { passive: true });
+    window.addEventListener('touchmove', function (e) {
+      if (startY === null) return;
+      var t = e.touches[0]; dy = t.clientY - startY;
+      if (dy <= 0) { if (!busy) ptr.style.height = '0'; return; }                                   // scrolling up: let the page scroll
+      if (Math.abs(t.clientX - startX) > dy || window.scrollY > 0) { startY = null; if (!busy) hide(); return; } // sideways (tables) or page moved
+      if (e.cancelable) e.preventDefault();                                                            // no native pull-to-refresh / page reload
+      if (landingOn()) return;
+      show(Math.min(dy / 2, 48), dy > PTR_GO ? 'Release to update' : 'Pull to update', dy > PTR_GO ? 'armed' : '');
+    }, { passive: false });
+    function end() {
+      if (startY === null) return; var go = dy > PTR_GO && !landingOn(); startY = null; dy = 0;
+      if (!go) { hide(); return; }
+      busy = true; show(40, 'Updating…', 'busy'); ptr.setAttribute('aria-busy', 'true');
+      var live = bot && bot.live;
+      refresh(true).then(function (r) { return r; }, function () { return 'err'; }).then(function (r) {
+        busy = false; ptr.removeAttribute('aria-busy');
+        show(40, !live ? 'Snapshot only, nothing to update' : r === false ? 'Up to date' : state.error ? 'Couldn’t update (offline?)' : 'Updated', 'done');
+        hide(900);
+      });
+    }
+    window.addEventListener('touchend', end); window.addEventListener('touchcancel', function () { startY = null; if (!busy) hide(); });
   }
 
   function init() {

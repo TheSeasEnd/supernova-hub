@@ -12,6 +12,14 @@
                30: { base: 30, ntl: 15, walker: 30, multi: { 2: 20, 3: 13.33, 4: 10 } } },
     overweightOz: 2.5 // up to 2.5 oz over: 1 TKO point (fight allowed if weight is fixed quickly); more than 2.5 oz over: 3 TKO points, immediate TKO
   };
+  // NHRL's 2026 rules define only 3lb, 12lb and 30lb. 1lb has no NHRL rule; 1lb events held in the NHRL pits (e.g. Shri's Garden Club, Oct 2, 2026)
+  // say they use the general SPARC rules, so the 1lb class uses SPARC Robot Construction Specifications v1.7 (Sep 1, 2026), section 3 "Weight Classes".
+  var SPARC = {
+    source: 'SPARC Robot Construction Specifications v1.7 (Sep 1, 2026), section 3 "Weight Classes" and 4 "Mobility"',
+    url: 'https://sparc.tools/SPARC_Robot_Construction_Specifications_v1.7.pdf', checked: 'Oct 28, 2026',
+    eventUrl: 'https://www.robotcombatevents.com/events/10157', eventNote: '1lb events in the NHRL pits (e.g. Shri\'s Garden Club at NHRL October 2026) list "General SPARC rules"; check your event\'s page.',
+    classes: { 1: { base: 1, shuffler: 1.25, ntl: 1.5, walker: 2, listedG: 454 } } // max weights in lb from the v1.7 table (rolling / shufflers / non-traditional / walker)
+  };
   // Locomotion categories and examples, word for word from the 2026 rules ("Non-Traditional Locomotion Definition", "True Walker Definition").
   var LOCO = [
     { id: 'traditional', kind: 'traditional', name: 'Traditional (wheels, treads/tracks, belts)', rule: 'Traditional Motion Systems use rotational motion of ground-contact components: all wheel forms (round, non-circular, spoked, offset axis), continuous treads, tracks, belt-driven systems, and vertical or near-vertical spinning shafts. No bonus.' },
@@ -81,27 +89,39 @@
   }
 
   // Class limit in grams for one sheet (whole entry, or per segment for multibots using the bonus).
-  // The rules: locomotion and multibot bonuses cannot be combined (choose one); when both are picked we flag it and apply neither until fixed.
+  // NHRL classes: locomotion and multibot bonuses cannot be combined (choose one); when both are picked we flag it and apply neither until fixed.
+  // SPARC 1lb: locomotion multipliers from v1.7; SPARC defines no multibot bonus, and some locomotion types need the organizer's call (flagged, not guessed).
   function limitOf(sheet) {
-    var ov = num(sheet.override), c = RULES.classes[sheet.cls], L = loco(sheet.loco), segs = Math.min(4, Math.max(1, parseInt(sheet.multi, 10) || 1));
-    var r = { lb: NaN, segLb: NaN, segs: segs, label: '', overridden: false, verified: false, loco: L, conflict: false, bonusLb: 0 };
+    var ov = num(sheet.override), cls = String(sheet.cls || ''), c = RULES.classes[cls], sp = SPARC.classes[cls], L = loco(sheet.loco), segs = Math.min(4, Math.max(1, parseInt(sheet.multi, 10) || 1));
+    var r = { lb: NaN, segLb: NaN, segs: segs, label: '', overridden: false, verified: false, loco: L, conflict: false, bonusLb: 0, flags: [], ruleset: c ? 'nhrl' : sp ? 'sparc' : '',
+      source: c ? { name: 'NHRL Open Rules 2026', url: RULES.url, checked: RULES.checked } : sp ? { name: 'SPARC Robot Construction Specifications v1.7', url: SPARC.url, checked: SPARC.checked } : null };
     if (c) {
       r.verified = true;
-      if (L.kind !== 'traditional' && segs > 1) { r.conflict = true; r.segs = 1; r.lb = c.base; r.label = sheet.cls + 'lb class limit (bonus not applied: locomotion and multibot bonuses cannot be combined)'; }
-      else if (L.kind === 'ntl') { r.bonusLb = c.ntl; r.lb = c.base + c.ntl; r.label = sheet.cls + 'lb + ' + c.ntl + 'lb non-traditional locomotion bonus'; }
-      else if (L.kind === 'walker') { r.bonusLb = c.walker; r.lb = c.base + c.walker; r.label = sheet.cls + 'lb + ' + c.walker + 'lb true walker bonus'; }
-      else if (segs > 1) { r.segLb = c.multi[segs]; r.lb = c.multi[segs] * segs; r.label = sheet.cls + 'lb multibot bonus: ' + segs + ' segments, ' + c.multi[segs] + 'lb max each'; }
-      else { r.lb = c.base; r.label = sheet.cls + 'lb class limit'; }
+      if (L.kind !== 'traditional' && segs > 1) { r.conflict = true; r.segs = 1; r.lb = c.base; r.label = cls + 'lb class limit (bonus not applied: locomotion and multibot bonuses cannot be combined)'; }
+      else if (L.kind === 'ntl') { r.bonusLb = c.ntl; r.lb = c.base + c.ntl; r.label = cls + 'lb + ' + c.ntl + 'lb non-traditional locomotion bonus'; }
+      else if (L.kind === 'walker') { r.bonusLb = c.walker; r.lb = c.base + c.walker; r.label = cls + 'lb + ' + c.walker + 'lb true walker bonus'; }
+      else if (segs > 1) { r.segLb = c.multi[segs]; r.lb = c.multi[segs] * segs; r.label = cls + 'lb multibot bonus: ' + segs + ' segments, ' + c.multi[segs] + 'lb max each'; }
+      else { r.lb = c.base; r.label = cls + 'lb class limit'; }
+    } else if (sp) {
+      r.verified = true; r.lb = sp.base; r.label = '1lb (SPARC) rolling limit';
+      var id = L.id;
+      if (id === 'shuffler') { r.lb = sp.shuffler; r.label = '1lb SPARC shuffler limit (1.25×)'; }
+      else if (id === 'walker') { r.lb = sp.walker; r.label = '1lb SPARC walker limit (2×)'; r.flags.push('SPARC walker rule: no rolling elements on the floor and no continuous rolling or cam-operated floor motion, directly or via a linkage. Contact the event early to confirm the bonus (NHRL’s walker pre-approval doesn’t apply here).'); }
+      else if (/^(bristle|torque|gyro|hover)$/.test(id)) { r.lb = sp.ntl; r.label = '1lb SPARC non-traditional limit (1.5×)'; }
+      else if (id === 'flying') { r.lb = sp.ntl; r.label = '1lb SPARC non-traditional limit (1.5×)'; r.flags.push('SPARC: flying “may be allowed at some events”; contact the event organizer.'); }
+      else if (id === 'ntl-other') { r.lb = sp.ntl; r.verified = false; r.label = '1lb SPARC non-traditional limit (1.5×), unverified for your design'; r.flags.push('Unverified: SPARC lists bristle/torque drive, gyro walkers and hovercrafts (plus jumping/flying at some events). Other methods are the organizer’s call; set a custom limit if they rule differently.'); }
+      else if (id === 'jansen') { r.lb = sp.base; r.verified = false; r.label = '1lb SPARC rolling limit (no bonus applied)'; r.flags.push('Unverified: SPARC v1.7 does not list Jansen linkages. A continuously driven linkage is excluded from the walker bonus; whether it counts as shuffling (1.25×) is the organizer’s call. No bonus applied; use the custom limit once confirmed.'); }
+      if (segs > 1) { r.segs = 1; r.verified = false; r.flags.push('Unverified: SPARC v1.7 defines no multibot weight bonus. No multibot bonus applied; the segments share the limit. Use the custom limit if your event allows one.'); }
     }
     if (isFinite(ov) && ov > 0) { r.lb = ov; r.overridden = true; r.verified = false; r.label = 'Custom limit (override)'; r.segLb = r.segs > 1 ? ov / r.segs : NaN; }
     r.g = r.lb * G_PER_LB; r.segG = r.segLb * G_PER_LB;
     return r;
   }
-  function status(totalG, limitG, warnPct) {
+  function status(totalG, limitG, warnPct, ruleset) {
     if (!isFinite(limitG) || limitG <= 0) return { level: 'unk', label: 'No limit set' };
     var w = num(warnPct); if (!isFinite(w) || w < 0) w = WARN_DEFAULT;
     var over = totalG - limitG;
-    if (over > 0) { var tko = over <= RULES.overweightOz * G_PER_OZ + 1e-9 ? 'up to 2.5 oz over: 1 TKO point at the pre-fight weigh-in' : 'more than 2.5 oz over: 3 TKO points, immediate TKO'; return { level: 'over', label: 'OVER', note: tko }; }
+    if (over > 0) { if (ruleset && ruleset !== 'nhrl') return { level: 'over', label: 'OVER', note: 'over the limit; SPARC v1.7 states no weigh-in tolerance, so check your event’s weigh-in rules' }; var tko = over <= RULES.overweightOz * G_PER_OZ + 1e-9 ? 'up to 2.5 oz over: 1 TKO point at the pre-fight weigh-in' : 'more than 2.5 oz over: 3 TKO points, immediate TKO'; return { level: 'over', label: 'OVER', note: tko }; }
     if (totalG >= limitG * (1 - w / 100)) return { level: 'warn', label: 'CLOSE', note: 'within ' + w + '% of the limit' };
     return { level: 'pass', label: 'OK' };
   }
@@ -117,8 +137,8 @@
       var s = lim.segs > 1 ? Math.min(Math.max(1, parseInt(p.seg, 10) || 1), lim.segs) : 1; segs[s] = (segs[s] || 0) + t;
       if (p.print) { var pi = printInfo(p); printed.n++; if (isFinite(pi.deltaG)) { printed.both++; printed.est += num(p.slicerG) * qtyOf(p); printed.meas += num(p.measuredG) * qtyOf(p); } }
     });
-    var st = status(total, lim.g, sheet.warnPct), segSt = [];
-    if (lim.segs > 1) for (var i = 1; i <= lim.segs; i++) segSt.push({ seg: i, g: segs[i] || 0, status: status(segs[i] || 0, lim.segG, sheet.warnPct) });
+    var st = status(total, lim.g, sheet.warnPct, lim.ruleset), segSt = [];
+    if (lim.segs > 1) for (var i = 1; i <= lim.segs; i++) segSt.push({ seg: i, g: segs[i] || 0, status: status(segs[i] || 0, lim.segG, sheet.warnPct, lim.ruleset) });
     var weapon = byCat.Weapon ? byCat.Weapon.g : 0;
     return { total: total, exempt: exempt, limit: lim, remaining: lim.g - total, pct: lim.g > 0 ? total / lim.g * 100 : NaN, status: st, byCat: byCat, order: order, segs: segSt,
       printed: printed, unweighed: unweighed, weaponPct: lim.g > 0 ? weapon / lim.g * 100 : NaN };
@@ -293,7 +313,7 @@
       [{ v: 'Limit (g)', s: 1 }, isFinite(s.limit.g) ? { v: +s.limit.g.toFixed(2), s: 2 } : { v: '' }], [{ v: 'Limit (lb)', s: 1 }, isFinite(s.limit.lb) ? { v: s.limit.lb } : { v: '' }],
       [{ v: 'Counted total (g)', s: 1 }, { v: +s.total.toFixed(2), f: 'SUMIFS(Parts!E2:E' + Math.max(2, lastRow) + ',Parts!Q2:Q' + Math.max(2, lastRow) + ',"<>yes")', s: 2 }],
       [{ v: 'Remaining (g)', s: 1 }, isFinite(s.limit.g) ? { v: +(s.limit.g - s.total).toFixed(2), f: 'B4-B6', s: 2 } : { v: '' }],
-      [{ v: 'Exempt, not counted (g)', s: 1 }, { v: +s.exempt.toFixed(2), s: 2 }], [{ v: 'Warn within %', s: 1 }, { v: num(sheet.warnPct) }], [{ v: 'Rules source', s: 1 }, { v: RULES.url }], [{ v: 'Locomotion', s: 1 }, { v: s.limit.loco.name }], [{ v: 'Multibot segments', s: 1 }, { v: s.limit.segs }], [], [{ v: 'Category', s: 1 }, { v: 'Subtotal (g)', s: 1 }]];
+      [{ v: 'Exempt, not counted (g)', s: 1 }, { v: +s.exempt.toFixed(2), s: 2 }], [{ v: 'Warn within %', s: 1 }, { v: num(sheet.warnPct) }], [{ v: 'Rules source', s: 1 }, { v: s.limit.source ? s.limit.source.url : '' }], [{ v: 'Locomotion', s: 1 }, { v: s.limit.loco.name }], [{ v: 'Multibot segments', s: 1 }, { v: s.limit.segs }], [], [{ v: 'Category', s: 1 }, { v: 'Subtotal (g)', s: 1 }]];
     s.order.forEach(function (c) { if (s.byCat[c].n) S.push([{ v: c }, { v: +s.byCat[c].g.toFixed(2), s: 2 }]); });
     var enc = function (t) { return utf8(t); };
     var files = [
@@ -353,7 +373,7 @@
     });
   }
 
-  var api = { G_PER_LB: G_PER_LB, G_PER_OZ: G_PER_OZ, RULES: RULES, WARN_DEFAULT: WARN_DEFAULT, migrate: migrate, LOCO: LOCO, MULTI: MULTI, loco: loco, MATERIALS: MATERIALS, CATS: CATS, SOURCES: SOURCES, COLS: COLS,
+  var api = { G_PER_LB: G_PER_LB, G_PER_OZ: G_PER_OZ, RULES: RULES, SPARC: SPARC, WARN_DEFAULT: WARN_DEFAULT, migrate: migrate, LOCO: LOCO, MULTI: MULTI, loco: loco, MATERIALS: MATERIALS, CATS: CATS, SOURCES: SOURCES, COLS: COLS,
     num: num, toG: toG, fromG: fromG, fmtW: fmtW, material: material, newPart: newPart, newSheet: newSheet, unitWeight: unitWeight, qtyOf: qtyOf, partTotal: partTotal, printInfo: printInfo,
     limitOf: limitOf, status: status, summary: summary, sortedParts: sortedParts, toCSV: toCSV, templateCSV: templateCSV, parseCSV: parseCSV, headerKey: headerKey, rowsToParts: rowsToParts,
     crc32: crc32, zip: zip, unzip: unzip, toXLSX: toXLSX, readXLSX: readXLSX };

@@ -10,7 +10,7 @@
   function load() {
     var b = bot(); botId = b ? b.id : 'default';
     var s = null; try { s = JSON.parse(localStorage.getItem(KEY + botId) || 'null'); } catch (e) {}
-    var cls = b && [3, 12, 30].indexOf(+b.weightClass) >= 0 ? String(b.weightClass) : '';
+    var cls = b && [1, 3, 12, 30].indexOf(+b.weightClass) >= 0 ? String(b.weightClass) : '';
     sheet = s && s.parts ? Object.assign(W.newSheet(cls), W.migrate(s)) : W.newSheet(cls);
     if (!sheet.cats || !sheet.cats.length) sheet.cats = W.CATS.slice();
   }
@@ -25,6 +25,8 @@
   function numIn(path, val, ph) { return inp(path, val, ' type="number" inputmode="decimal" step="any" min="0"' + (ph ? ' placeholder="' + esc(ph) + '"' : '')); }
   function catOpts() { var c = sheet.cats.slice(); sheet.parts.forEach(function (p) { if (c.indexOf(p.cat) < 0) c.push(p.cat); }); return c.map(function (x) { return [x, x]; }); }
   var RULE_LINK = function () { return '<a href="' + W.RULES.url + '" target="_blank" rel="noopener">NHRL Open Rules 2026</a>'; };
+  var SPARC_LINK = function () { return '<a href="' + W.SPARC.url + '" target="_blank" rel="noopener">SPARC Robot Construction Specifications v1.7</a>'; };
+  var SPARC_LOCO = { traditional: 'Rolling (wheels, tracks or the whole robot)', shuffler: 'Shuffler (SPARC 1.25×)', bristle: 'Bristle drive (SPARC non-traditional 1.5×)', flying: 'Flying (SPARC non-traditional 1.5×, event decides)', gyro: 'Gyro walker (SPARC non-traditional 1.5×)', torque: 'Torque drive (SPARC non-traditional 1.5×)', jansen: 'Jansen linkage (not listed by SPARC)', hover: 'Hovercraft (SPARC non-traditional 1.5×)', 'ntl-other': 'Other non-traditional (unverified)', walker: 'Walker (SPARC 2×)' };
 
   /* ---------- summary ---------- */
   function bar(g, limG, st) {
@@ -40,8 +42,9 @@
       h += '<div class="wbkv"><span>Limit</span><b>' + esc(both(L.g)) + '</b><span></span><small>' + esc(L.label) + (L.overridden ? ' · not from the rules' : '') + '</small>' +
         '<span>' + (s.remaining >= 0 ? 'Remaining' : 'Over by') + '</span><b class="' + (s.remaining >= 0 ? '' : 'neg') + '">' + esc(both(Math.abs(s.remaining))) + '</b>' +
         '<span>Used</span><b>' + s.pct.toFixed(1) + '%</b></div>';
-      if (st.note) h += '<div class="wbnote ' + st.level + '">' + esc(st.note) + (st.level === 'over' ? ' (NHRL pre-fight weight check). Robots also will not pass bot inspection if overweight.' : '') + '</div>';
+      if (st.note) h += '<div class="wbnote ' + st.level + '">' + esc(st.note) + (st.level === 'over' && L.ruleset === 'nhrl' ? ' (NHRL pre-fight weight check). Robots also will not pass bot inspection if overweight.' : '') + '</div>';
     } else h += '<div class="wbnote warn">No limit set: pick the weight class below' + (b && b.planned ? ' (this robot’s class is Unknown in the team data)' : '') + ', or enter a custom limit.</div>';
+    (L.flags || []).forEach(function (f) { h += '<div class="wbnote warn">' + esc(f) + '</div>'; });
     if (L.conflict) h += '<div class="wbnote over">Locomotion bonus and multibot bonus cannot be combined (NHRL rules: choose one). No bonus is applied until you pick one.</div>';
     if (s.segs.length) h += '<div class="wbsegs">' + s.segs.map(function (x) { return '<div class="wbseg"><div class="wbseg-h"><span>Segment ' + x.seg + '</span><b>' + esc(W.fmtW(x.g, U())) + ' / ' + esc(W.fmtW(L.segG, U())) + '</b><span class="wbst sm ' + x.status.level + '">' + esc(x.status.label) + '</span></div>' + bar(x.g, L.segG, x.status) + '</div>'; }).join('') + '</div>';
     var extra = [];
@@ -55,20 +58,27 @@
 
   /* ---------- limit / settings card ---------- */
   function limitHtml() {
-    var L = W.limitOf(sheet), loco = W.loco(sheet.loco), c = W.RULES.classes[sheet.cls], h = '<div class="card wblimit"><h2>Class limit</h2><div class="fgrid wb3">';
-    h += '<label class="fld"><span>Weight class</span>' + sel('s.cls', [['', 'Unknown, pick one'], ['3', '3lb (beetleweight)'], ['12', '12lb (hobbyweight)'], ['30', '30lb (featherweight)']], sheet.cls) + '</label>';
-    h += '<label class="fld"><span>Locomotion type</span>' + sel('s.loco', W.LOCO.map(function (l) { return [l.id, l.name]; }), sheet.loco) + '</label>';
-    h += '<label class="fld"><span>Multibot</span>' + sel('s.multi', W.MULTI, sheet.multi || 1) + '</label>';
+    var L = W.limitOf(sheet), loco = W.loco(sheet.loco), c = W.RULES.classes[sheet.cls], sp = W.SPARC.classes[sheet.cls], h = '<div class="card wblimit"><h2>Class limit</h2><div class="fgrid wb3">';
+    h += '<label class="fld"><span>Weight class</span>' + sel('s.cls', [['', 'Unknown, pick one'], ['1', '1lb (SPARC rules; not an NHRL class)'], ['3', '3lb'], ['12', '12lb'], ['30', '30lb']], sheet.cls) + '</label>';
+    h += '<label class="fld"><span>Locomotion type</span>' + sel('s.loco', W.LOCO.map(function (l) { return [l.id, sp ? SPARC_LOCO[l.id] : l.name]; }), sheet.loco) + '</label>';
+    h += '<label class="fld"><span>Multibot</span>' + sel('s.multi', W.MULTI.map(function (m) { return [m[0], sp && m[0] > 1 ? m[1].replace('Multibot bonus', 'Multibot') + ' (no SPARC bonus)' : m[1]]; }), sheet.multi || 1) + '</label>';
     h += '<label class="fld"><span>Custom limit override <b class="sgtag">optional</b></span>' + numIn('s.override', sheet.override, 'from rules') + '<em>lb</em></label>';
     h += '<label class="fld"><span>Warn when within</span>' + numIn('s.warnPct', sheet.warnPct, String(W.WARN_DEFAULT)) + '<em>%</em></label>';
     h += '<label class="fld"><span>Enter weights in</span>' + sel('s.unit', [['g', 'grams (g)'], ['oz', 'ounces (oz)'], ['lb', 'pounds (lb)']], U()) + '</label></div>';
+    if (sp) {
+      h += '<div class="note wbrule"><b>1lb under SPARC rules:</b> NHRL’s 2026 rules define only 3lb, 12lb and 30lb, so this uses ' + SPARC_LINK() + ' (' + esc(W.SPARC.checked) + ' check), section 3 “Weight Classes”: rolling ' + sp.base + ' lb (SPARC lists 454 g), shuffler ' + sp.shuffler + ' lb, non-traditional ' + sp.ntl + ' lb, walker ' + sp.walker + ' lb. ' +
+        'Section 4: walkers have no rolling elements on the floor and no continuous rolling or cam-operated floor motion (directly or via a linkage); shuffling is rotational cam-operated legs; non-traditional is bristle/torque drive, gyro walkers, hovercrafts (jumping and flying only at some events). SPARC asks builders of non-wheeled robots to contact the event early. SPARC defines no multibot bonus. ' +
+        '<a href="' + W.SPARC.eventUrl + '" target="_blank" rel="noopener">Example 1lb event at NHRL</a> using “General SPARC rules”. Your event’s own rules win.</div>';
+      h += '<div class="note">Source: ' + SPARC_LINK() + '. ' + (L.overridden ? '<b class="wbwarn">Using your custom limit, not the rules.</b>' : L.verified ? 'Limit taken from the SPARC table.' : '<b class="wbwarn">Not verified for this choice: see the note above; set a custom limit once your event confirms.</b>') + '</div>';
+    } else {
     var bonusTxt = !c ? 'Pick a class to see the allowance.' : loco.kind === 'ntl' ? '+' + c.ntl + ' lb non-traditional locomotion bonus → ' + (c.base + c.ntl) + ' lb.' : loco.kind === 'walker' ? '+' + c.walker + ' lb true walker bonus → ' + (c.base + c.walker) + ' lb. Needs NHRL approval before registration.' : 'No locomotion bonus: ' + c.base + ' lb.';
     h += '<div class="note wbrule"><b>' + esc(loco.name) + ':</b> ' + esc(bonusTxt) + ' ' +
       (loco.kind === 'traditional' ? esc(loco.rule) : loco.kind === 'ntl' ? 'Listed by NHRL as a non-traditional locomotion example (shuffling, bristle bots, flying systems, gyroscopic precession, torque reaction, Jansen linkages, hovercrafts). Cannot use unpowered rotating objects (wheels, drums, rollers, ball bearings) to reduce friction, or wheel-like features to ease rotation, in any orientation.' :
         'Legs that contact the floor and move with two or more independently controlled degrees of freedom; locomotion must not be possible from continuous motor rotation or single-degree-of-freedom leg motion; must also meet the non-traditional rules.') +
       ' NHRL has final say on locomotion bonuses. Multibots: every segment must qualify. Declare bonus use before the event.</div>';
     h += '<div class="note">Source: ' + RULE_LINK() + ' (checked ' + esc(W.RULES.checked) + '). ' + (L.overridden ? '<b class="wbwarn">Using your custom limit, not the rules.</b>' : L.verified ? 'Limit taken from the rules table.' : '<b class="wbwarn">No verified limit for this robot yet.</b>') + '</div>';
-    h += '<details class="wbrules"><summary>NHRL weight rules (2026) used here</summary>' + rulesHtml() + '</details></div>';
+    }
+    h += '<details class="wbrules"><summary>Weight rules used here (NHRL 2026, SPARC v1.7 for 1lb)</summary>' + rulesHtml() + '</details></div>';
     return h;
   }
   function rulesHtml() {
@@ -80,6 +90,8 @@
       '<li>Multibot bonus: up to 4 segments, each gets an equal share; unused weight can’t move between segments. Without the bonus, weight can be split freely.</li>' +
       '<li>Exemptions (mark parts “Exempt”): systems with fuel or stored liquids/gases are weighed dry (flamethrowers with an empty tank installed; pneumatic and ICE tanks removed; hydraulic fluid pre-declared and subtracted). Electronics used only for discrete autonomous functions and active cameras don’t count, but need NHRL approval.</li>' +
       '<li>Also: rigidly coupled spinning weapon parts can’t exceed the nominal class limit; weapon modules can’t exceed 50% of the robot’s maximum weight including bonuses.</li></ul>' +
+      '<div class="sectiontitle sgst">1lb (SPARC, not an NHRL class)</div><table class="sgtbl wbrtbl"><tr><th>Class</th><th>Rolling</th><th>Shuffler (1.25×)</th><th>Non-traditional (1.5×)</th><th>Walker (2×)</th></tr><tr><td>1 lb</td><td>1 lb (454 g)</td><td>1.25 lb</td><td>1.5 lb</td><td>2 lb</td></tr></table>' +
+      '<div class="note">Source: ' + SPARC_LINK() + ' (Sep 1, 2026), sections 3 and 4. SPARC defines no multibot bonus and no weigh-in tolerance; Jansen linkages and “other” methods aren’t classified, so the app flags them instead of guessing. The NHRL penalties and exemptions above apply to NHRL classes only.</div>' +
       '<div class="note">Source: ' + RULE_LINK() + ' sections “Weight Requirements”, “Locomotion Based Weight Bonuses”, “Multibot Weight Bonuses”, “Weight Exemptions”, “Modular Weapons” and “Pre-Fight Weight Checks”. Always check the current rules before an event.</div>';
   }
 

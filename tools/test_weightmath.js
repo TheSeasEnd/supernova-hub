@@ -15,6 +15,18 @@ function near(a, b, m, t) { ok(Math.abs(a - b) <= (t || 1e-6), m + ' (got ' + a 
   ok(L(12, 'shuffler', 2).conflict && L(12, 'shuffler', 2).lb === 12, 'conflict NTL+multibot -> no bonus');
   ok(L(12, 'traditional', 1, 11.5).lb === 11.5 && L(12, 'traditional', 1, 11.5).overridden && !L(12, 'traditional', 1, 11.5).verified, 'override');
   ok(isNaN(L('').lb) && !L('').verified, 'no class -> no limit');
+  // v25: 1lb class from SPARC v1.7 (NHRL defines no 1lb class)
+  ok(!W.RULES.classes[1] && W.SPARC.classes[1].base === 1, '1lb not in NHRL table, in SPARC');
+  near(L(1).lb, 1, '1lb rolling'); ok(L(1).ruleset === 'sparc' && L(1).verified && /sparc\.tools/.test(L(1).source.url), '1lb source SPARC');
+  near(L(1, 'shuffler').lb, 1.25, '1lb shuffler 1.25x'); near(L(1, 'bristle').lb, 1.5, '1lb bristle 1.5x'); near(L(1, 'gyro').lb, 1.5, '1lb gyro'); near(L(1, 'hover').lb, 1.5, '1lb hover'); near(L(1, 'torque').lb, 1.5, '1lb torque');
+  near(L(1, 'walker').lb, 2, '1lb walker 2x'); ok(L(1, 'walker').flags.length === 1, 'walker confirm flag');
+  ok(L(1, 'flying').lb === 1.5 && L(1, 'flying').flags.length === 1, 'flying flagged');
+  ok(L(1, 'jansen').lb === 1 && !L(1, 'jansen').verified && L(1, 'jansen').flags.length === 1, 'jansen unverified, no bonus');
+  ok(L(1, 'ntl-other').lb === 1.5 && !L(1, 'ntl-other').verified, 'other ntl unverified');
+  const m1 = L(1, 'traditional', 3); ok(m1.lb === 1 && m1.segs === 1 && !m1.verified && /multibot/.test(m1.flags[0]), '1lb multibot unverified, no bonus');
+  ok(L(1, 'traditional', 1, 1.1).lb === 1.1 && L(1, 'traditional', 1, 1.1).overridden, '1lb override');
+  ok(!/TKO/.test(W.summary(Object.assign(W.newSheet('1'), { parts: [Object.assign(W.newPart(), { unitG: 500 })] })).status.note), '1lb over: no NHRL TKO note');
+  ok(/TKO/.test(W.summary(Object.assign(W.newSheet('3'), { parts: [Object.assign(W.newPart(), { unitG: 1400 })] })).status.note), '3lb over: NHRL TKO note');
   // totals + status
   const sh = W.newSheet('3');
   const a = Object.assign(W.newPart('Drive'), { name: 'motor', qty: 2, unitG: 30 });

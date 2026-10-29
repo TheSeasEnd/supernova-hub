@@ -34,6 +34,13 @@ function near(a, b, m, t) { ok(Math.abs(a - b) <= (t || 1e-6), m + ' (got ' + a 
   // multibot segments
   const ms = Object.assign(W.newSheet('12'), { multi: 2 }); ms.parts = [Object.assign(W.newPart('Weapon'), { unitG: 4 * LB, seg: 1 }), Object.assign(W.newPart('Drive'), { unitG: 9 * LB, seg: 2 })];
   s = W.summary(ms); ok(s.segs.length === 2 && s.segs[0].status.level === 'pass' && s.segs[1].status.level === 'over', 'segment status');
+  // v24: 5% default + migration of v23 sheets
+  ok(W.newSheet('12').warnPct === 5 && W.WARN_DEFAULT === 5, 'default warn 5%');
+  ok(W.status(lim * 0.96, lim).level === 'warn', 'no margin given -> 5% default');
+  ok(W.migrate({ v: 1, warnPct: 3, parts: [] }).warnPct === 5, 'v1 at old default 3 -> 5'); ok(W.migrate({ v: 1, warnPct: '', parts: [] }).warnPct === 5, 'v1 blank -> 5');
+  const cu = W.migrate({ v: 1, warnPct: 2, parts: [] }); ok(cu.warnPct === 2 && cu.warnCustom, 'v1 custom kept');
+  ok(W.migrate({ v: 2, warnPct: 3, warnCustom: true, parts: [] }).warnPct === 3, 'v2 custom 3 kept');
+  ok(W.material('pa6gf').name === 'GF nylon (PA6-GF)' && W.material('pa6gf').d === 1.14, 'GF nylon label'); ok(/^PAHT-CF/.test(W.material('pahtcf').name) && W.material('pahtcf').d === 1.06, 'PAHT-CF label');
   // CSV round trip
   b.slicerG = 200; b.measuredG = 210; b.mat = 'pa6cf'; b.infill = 40; b.notes = 'has, comma "quote"';
   const csv = W.toCSV(sh); ok(csv.charCodeAt(0) === 0xfeff, 'BOM'); ok(/\r\n/.test(csv), 'CRLF');

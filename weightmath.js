@@ -36,8 +36,8 @@
     { id: 'asa', name: 'ASA', d: 1.05, src: 'Bambu Lab ASA TDS', url: 'https://wiki.bambulab.com/filament-acc/abs-asa-pc/6eaf4c432d1d4014a1975e55a55ed00b.pdf' },
     { id: 'nylon', name: 'Nylon (CoPA)', d: 1.12, src: 'Polymaker PolyMide CoPA TDS v5.5', url: 'https://polymaker.com/wp-content/uploads/lana-downloads/TDS_Polymaker_PolyMide-CoPA_V5.5_2026-01-06_EN.pdf' },
     { id: 'pa6cf', name: 'CF-nylon (PA6-CF)', d: 1.09, src: 'Bambu Lab PA6-CF TDS', url: 'https://store.bblcdn.eu/s8/default/a64af9edb0f64095ad18bc4ad4faf1ec/Bambu_PA6-CF_Technical_Data_Sheet-v2.pdf' },
-    { id: 'pahtcf', name: 'CF-nylon (PAHT-CF)', d: 1.06, src: 'Bambu Lab PAHT-CF TDS', url: 'https://store.bblcdn.eu/s8/default/91dea87af3414d878a0696d2c51b98f7/Bambu_PAHT-CF_Technical_Data_Sheet_V2.pdf' },
-    { id: 'pa6gf', name: 'GF-nylon (PA6-GF)', d: 1.14, src: 'Bambu Lab PA6-GF TDS', url: 'https://wiki.bambulab.com/filament-acc/absgf-pa6gf/bambu_pa6-gf_technical_data_sheet.pdf' },
+    { id: 'pahtcf', name: 'PAHT-CF (CF nylon)', d: 1.06, src: 'Bambu Lab PAHT-CF TDS', url: 'https://store.bblcdn.eu/s8/default/91dea87af3414d878a0696d2c51b98f7/Bambu_PAHT-CF_Technical_Data_Sheet_V2.pdf' },
+    { id: 'pa6gf', name: 'GF nylon (PA6-GF)', d: 1.14, src: 'Bambu Lab PA6-GF TDS', url: 'https://wiki.bambulab.com/filament-acc/absgf-pa6gf/bambu_pa6-gf_technical_data_sheet.pdf' },
     { id: 'tpu', name: 'TPU 95A', d: 1.22, src: 'Bambu Lab TPU 95A HF TDS', url: 'https://store.bblcdn.eu/s8/default/16df21baf482453999b3dbb61cc110e7/Bambu_TPU_95A_HF_Technical_Data_Sheet.pdf' },
     { id: 'other', name: 'Other (enter density)', d: null, src: null, url: null }
   ];
@@ -55,8 +55,17 @@
     return { id: newId(), name: '', cat: cat || 'Other', qty: 1, unitG: '', source: 'estimated', notes: '', seg: 1, exempt: false, exemptWhy: '',
       print: false, mat: 'pla', density: '', infill: '', walls: '', layer: '', slicerG: '', measuredG: '', volCm3: '' };
   }
-  function newSheet(cls) { return { v: 1, cls: cls ? String(cls) : '', loco: 'traditional', multi: 1, override: '', warnPct: 3, unit: 'g', cats: CATS.slice(), parts: [] }; }
+  var WARN_DEFAULT = 5;
+  function newSheet(cls) { return { v: 2, cls: cls ? String(cls) : '', loco: 'traditional', multi: 1, override: '', warnPct: WARN_DEFAULT, warnCustom: false, unit: 'g', cats: CATS.slice(), parts: [] }; }
 
+  // Saved sheets from v23 (v:1) stored the old 3% default with no way to tell it apart from a typed 3, so v1 sheets at 3 (or blank) move to the new default;
+  // any other value counts as customized. From v2 on, editing the field sets warnCustom.
+  function migrate(s) {
+    if (!s || typeof s !== 'object') return s;
+    if (!(s.v >= 2)) { var w = num(s.warnPct); if (!isFinite(w) || w === 3) { s.warnPct = WARN_DEFAULT; s.warnCustom = false; } else s.warnCustom = true; s.v = 2; }
+    else if (!s.warnCustom) s.warnPct = WARN_DEFAULT;
+    return s;
+  }
   // Weight of ONE unit of a part, in grams: printed parts use measured grams, then the slicer estimate, then the typed unit weight.
   function unitWeight(p) {
     if (p.print) { var m = num(p.measuredG), s = num(p.slicerG); if (isFinite(m)) return { g: m, from: 'measured print' }; if (isFinite(s)) return { g: s, from: 'slicer estimate' }; }
@@ -90,7 +99,7 @@
   }
   function status(totalG, limitG, warnPct) {
     if (!isFinite(limitG) || limitG <= 0) return { level: 'unk', label: 'No limit set' };
-    var w = num(warnPct); if (!isFinite(w) || w < 0) w = 3;
+    var w = num(warnPct); if (!isFinite(w) || w < 0) w = WARN_DEFAULT;
     var over = totalG - limitG;
     if (over > 0) { var tko = over <= RULES.overweightOz * G_PER_OZ + 1e-9 ? 'up to 2.5 oz over: 1 TKO point at the pre-fight weigh-in' : 'more than 2.5 oz over: 3 TKO points, immediate TKO'; return { level: 'over', label: 'OVER', note: tko }; }
     if (totalG >= limitG * (1 - w / 100)) return { level: 'warn', label: 'CLOSE', note: 'within ' + w + '% of the limit' };
@@ -344,7 +353,7 @@
     });
   }
 
-  var api = { G_PER_LB: G_PER_LB, G_PER_OZ: G_PER_OZ, RULES: RULES, LOCO: LOCO, MULTI: MULTI, loco: loco, MATERIALS: MATERIALS, CATS: CATS, SOURCES: SOURCES, COLS: COLS,
+  var api = { G_PER_LB: G_PER_LB, G_PER_OZ: G_PER_OZ, RULES: RULES, WARN_DEFAULT: WARN_DEFAULT, migrate: migrate, LOCO: LOCO, MULTI: MULTI, loco: loco, MATERIALS: MATERIALS, CATS: CATS, SOURCES: SOURCES, COLS: COLS,
     num: num, toG: toG, fromG: fromG, fmtW: fmtW, material: material, newPart: newPart, newSheet: newSheet, unitWeight: unitWeight, qtyOf: qtyOf, partTotal: partTotal, printInfo: printInfo,
     limitOf: limitOf, status: status, summary: summary, sortedParts: sortedParts, toCSV: toCSV, templateCSV: templateCSV, parseCSV: parseCSV, headerKey: headerKey, rowsToParts: rowsToParts,
     crc32: crc32, zip: zip, unzip: unzip, toXLSX: toXLSX, readXLSX: readXLSX };

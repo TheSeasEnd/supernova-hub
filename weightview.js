@@ -11,7 +11,7 @@
     var b = bot(); botId = b ? b.id : 'default';
     var s = null; try { s = JSON.parse(localStorage.getItem(KEY + botId) || 'null'); } catch (e) {}
     var cls = b && [3, 12, 30].indexOf(+b.weightClass) >= 0 ? String(b.weightClass) : '';
-    sheet = s && s.parts ? Object.assign(W.newSheet(cls), s) : W.newSheet(cls);
+    sheet = s && s.parts ? Object.assign(W.newSheet(cls), W.migrate(s)) : W.newSheet(cls);
     if (!sheet.cats || !sheet.cats.length) sheet.cats = W.CATS.slice();
   }
   function save() { try { localStorage.setItem(KEY + botId, JSON.stringify(sheet)); } catch (e) {} }
@@ -28,7 +28,7 @@
 
   /* ---------- summary ---------- */
   function bar(g, limG, st) {
-    var pct = limG > 0 ? Math.min(100, g / limG * 100) : 0, wp = limG > 0 ? 100 - (W.num(sheet.warnPct) >= 0 ? W.num(sheet.warnPct) : 3) : 0;
+    var pct = limG > 0 ? Math.min(100, g / limG * 100) : 0, wp = limG > 0 ? 100 - (W.num(sheet.warnPct) >= 0 ? W.num(sheet.warnPct) : W.WARN_DEFAULT) : 0;
     return '<div class="wbbar ' + st.level + '"><i style="width:' + pct.toFixed(1) + '%"></i>' + (limG > 0 ? '<b style="left:' + wp + '%" title="warn line"></b>' : '') + '</div>';
   }
   function summaryHtml() {
@@ -60,7 +60,7 @@
     h += '<label class="fld"><span>Locomotion type</span>' + sel('s.loco', W.LOCO.map(function (l) { return [l.id, l.name]; }), sheet.loco) + '</label>';
     h += '<label class="fld"><span>Multibot</span>' + sel('s.multi', W.MULTI, sheet.multi || 1) + '</label>';
     h += '<label class="fld"><span>Custom limit override <b class="sgtag">optional</b></span>' + numIn('s.override', sheet.override, 'from rules') + '<em>lb</em></label>';
-    h += '<label class="fld"><span>Warn when within</span>' + numIn('s.warnPct', sheet.warnPct, '3') + '<em>%</em></label>';
+    h += '<label class="fld"><span>Warn when within</span>' + numIn('s.warnPct', sheet.warnPct, String(W.WARN_DEFAULT)) + '<em>%</em></label>';
     h += '<label class="fld"><span>Enter weights in</span>' + sel('s.unit', [['g', 'grams (g)'], ['oz', 'ounces (oz)'], ['lb', 'pounds (lb)']], U()) + '</label></div>';
     var bonusTxt = !c ? 'Pick a class to see the allowance.' : loco.kind === 'ntl' ? '+' + c.ntl + ' lb non-traditional locomotion bonus → ' + (c.base + c.ntl) + ' lb.' : loco.kind === 'walker' ? '+' + c.walker + ' lb true walker bonus → ' + (c.base + c.walker) + ' lb. Needs NHRL approval before registration.' : 'No locomotion bonus: ' + c.base + ' lb.';
     h += '<div class="note wbrule"><b>' + esc(loco.name) + ':</b> ' + esc(bonusTxt) + ' ' +
@@ -203,7 +203,7 @@
     var t = e.target, path = t.dataset && t.dataset.w; if (!path) return;
     var dot = path.indexOf('.'), id = path.slice(0, dot), f = path.slice(dot + 1), v = t.type === 'checkbox' ? t.checked : t.value;
     if (id === 's') {
-      sheet[f] = f === 'multi' ? +v : v; save();
+      sheet[f] = f === 'multi' ? +v : v; if (f === 'warnPct') sheet.warnCustom = v !== '' && +v !== W.WARN_DEFAULT; save();
       if (e.type === 'change' && t.tagName === 'SELECT') render(); else refreshNumbers();
       return;
     }

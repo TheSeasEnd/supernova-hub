@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="42 45 430 430">
+<!-- v33: the flame mark on its own (no tile, no ring) for the header, sidebar and landing page.
+     The inner tongue is cut out (mask), so whatever is behind the mark (page background, vignette, glow) shows through.
+     icons/icon.svg and the PNG app icons keep their dark tile because home screens and browser tabs need a solid icon. -->
+<defs>
+<linearGradient id="h" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff2bf0"/><stop offset=".5" stop-color="#ffa621"/><stop offset="1" stop-color="#ffd27a"/></linearGradient>
+<mask id="cut" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><rect width="512" height="512" fill="#fff"/><path fill="#000" fill-opacity=".85" d="M258 300c8 38-18 56-30 74-10 15-14 28-14 42 0 28 20 48 44 48s42-20 42-46c0-30-18-58-42-118z"/></mask>
+</defs>
+<path fill="url(#h)" mask="url(#cut)" d="M262 52c14 70-30 108-62 150-30 40-58 82-58 140 0 70 52 122 116 122s114-50 114-120c0-52-24-90-48-118 4 34-6 62-30 76 10-58-8-110-32-150z"/>
+</svg>

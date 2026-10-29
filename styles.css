@@ -10,7 +10,7 @@ body{min-height:100vh}
 a{color:var(--accent2)}
 .top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + var(--safe-t)) 16px 10px;background:linear-gradient(180deg,#0b0d12 70%,rgba(11,13,18,.85));backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px}
-.logo{width:38px;height:38px;border-radius:10px}
+.logo{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(255,166,33,.35))} /* v33: bare flame, no tile */
 h1{margin:0;font-size:22px;letter-spacing:.14em;font-weight:900;background:linear-gradient(90deg,#fff,var(--accent2) 60%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{font-size:11.5px;color:var(--muted);letter-spacing:.04em;margin-top:1px}
 .refresh{background:var(--panel);border:1px solid var(--line);color:var(--text);width:42px;height:42px;border-radius:12px;display:grid;place-items:center}
@@ -142,7 +142,6 @@ a{color:var(--accent)}
 h1{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--text);font-style:italic;font-weight:700;letter-spacing:.12em;font-size:23px;text-shadow:2px 2px 0 var(--hot)}
 h1 span{color:var(--mag)}
 .sub{color:var(--hot);text-transform:uppercase;letter-spacing:.14em;font-weight:600;font-size:10.5px}
-.logo{border-radius:6px}
 .refresh{background:transparent;border:1px solid var(--mag);color:var(--mag);border-radius:6px}
 .card{border-radius:6px;border-color:var(--line);background:var(--panel)}
 .card h2,.sectiontitle{color:var(--hot);letter-spacing:.14em;font-weight:700}
@@ -661,7 +660,10 @@ html.landing-on .tabs:hover,html.landing-on .tabs:focus-within{opacity:1}
 .landing{min-height:calc(100vh - var(--tabh) - var(--safe-b) - 32px);min-height:calc(100dvh - var(--tabh) - var(--safe-b) - 32px);align-items:center;justify-content:center;text-align:center;padding:calc(12px + var(--safe-t)) 8px 12px;position:relative}
 .landing::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 45% at 50% 38%,rgba(255,166,33,.16),rgba(255,43,240,.07) 55%,transparent 75%)}
 .ld-in{position:relative;max-width:760px;display:flex;flex-direction:column;align-items:center}
-.ld-mark img{display:block;width:112px;height:112px;border-radius:22px;box-shadow:0 0 0 2px var(--hot),0 10px 40px rgba(255,43,240,.28)}
+.ld-mark{position:relative;width:112px;height:112px}
+/* v33: no tile or ring; a soft glow behind the bare flame blends into the landing vignette (no hard edges) */
+.ld-mark::before{content:'';position:absolute;left:50%;top:56%;width:230%;height:230%;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,166,33,.30) 0%,rgba(255,43,240,.14) 38%,rgba(255,43,240,0) 68%)}
+.ld-mark img{position:relative;display:block;width:100%;height:100%;filter:drop-shadow(0 0 18px rgba(255,166,33,.35))}
 .ld-kicker{margin-top:22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--hot);font-weight:700}
 .ld-title{margin:10px 0 0;font-size:clamp(21px,7.1vw,58px);line-height:1.08;letter-spacing:.06em;text-transform:uppercase;text-shadow:3px 3px 0 var(--hot)}
 .ld-title .ld-l1,.ld-title .ld-l2{display:block;white-space:nowrap}
@@ -676,7 +678,7 @@ html.landing-on .tabs:hover,html.landing-on .tabs:focus-within{opacity:1}
 .ld-credit a{color:var(--muted)}
 @media (min-width: 900px){
   .landing{min-height:calc(100vh - 64px)}
-  .ld-mark img{width:136px;height:136px;border-radius:26px}
+  .ld-mark{width:136px;height:136px}
   .ld-tag{font-size:17px}
   .ld-ph{display:none} .ld-dt{display:inline}
   html.landing-on .tabs{padding-top:18px}
@@ -685,10 +687,10 @@ html.landing-on .tabs:hover,html.landing-on .tabs:focus-within{opacity:1}
   html.landing-on .ld-in > *{animation:ldUp .5s cubic-bezier(.2,.7,.2,1) both}
   html.landing-on .ld-in > :nth-child(2){animation-delay:.06s} html.landing-on .ld-in > :nth-child(3){animation-delay:.12s}
   html.landing-on .ld-in > :nth-child(4){animation-delay:.18s} html.landing-on .ld-in > :nth-child(n+5){animation-delay:.24s}
-  html.landing-on .ld-mark img{animation:ldGlow 2.8s ease-in-out .6s infinite alternate}
+  html.landing-on .ld-mark::before{animation:ldGlow 2.8s ease-in-out .6s infinite alternate}
 }
 @keyframes ldUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@keyframes ldGlow{from{box-shadow:0 0 0 2px var(--hot),0 10px 40px rgba(255,43,240,.22)}to{box-shadow:0 0 0 2px var(--hot),0 10px 56px rgba(255,166,33,.42)}}
+@keyframes ldGlow{from{opacity:.75;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
 /* v32: pull-to-refresh indicator (app.js setupPTR) */
 .ptr{display:flex;align-items:center;justify-content:center;gap:8px;line-height:1}
 .ptr.armed{color:var(--hot)}

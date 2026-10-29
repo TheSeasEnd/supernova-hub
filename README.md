@@ -282,3 +282,10 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - The spinner only rotates with `prefers-reduced-motion: no-preference`.
 - Tests: `node tools/test_ptr.js`. SW cache `supernova-v32`.
 
+## v33: flame logo without its tile
+- New `icons/flame.svg`: just the flame (same gradient and shape as the app icon), with no dark rounded tile, no ring and no baked-in glow. The inner tongue is cut out with a mask, so the page background or vignette shows through it instead of a dark patch.
+- Used in the header (phone), the sidebar (desktop) and the landing page. The header/sidebar mark has a faint orange drop-shadow so it stays readable at 38–42px on the dark bars.
+- Landing page: the orange ring and rounded tile are gone. A soft round orange-to-magenta glow sits behind the flame and fades to transparent, blending into the landing vignette with no edges. The glow's slow pulse only runs with `prefers-reduced-motion: no-preference`.
+- Unchanged on purpose: `icons/icon.svg` (favicon) and the PNG home-screen icons (`icon-192/512`, maskable, apple-touch). They are full-bleed dark squares with no border or ring; home screens and browser tabs need a solid icon, and the OS adds its own rounding.
+- Tests: `node tools/test_logo.js`. SW cache `supernova-v33` (adds `icons/flame.svg`).
+

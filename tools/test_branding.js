@@ -9,5 +9,5 @@ ok(man.name === N && man.short_name === 'TH2H Stats' && man.short_name.length <=
 ok(app.includes("' · " + N + "'") && app.includes('<b>' + N + '</b>'), 'document.title + About card');
 ok(wv.includes("app: 'too-hot-to-handle-statistics-hub'") && wv.includes('too-hot-statistics-hub-weight-backup-') && wv.includes(N + ' weight backup'), 'weight backup export');
 for (const f of ['index.html', 'manifest.webmanifest', 'app.js', 'weightview.js', 'teamview.js', 'calcs.js', 'sagcalc.js', 'weightmath.js']) ok(!/Too Hot to Handle Hub|Too Hot Hub|too-hot-to-handle-hub/.test(R(f)), 'old name gone from ' + f);
-ok(/supernova-v28/.test(R('sw.js')), 'sw v28');
+ok(/supernova-v(2[89]|[3-9]\d)/.test(R('sw.js')), 'sw v28+');
 console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

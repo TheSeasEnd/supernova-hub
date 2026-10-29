@@ -457,7 +457,7 @@
     $('botName').innerHTML = esc(b.name.slice(0, Math.ceil(b.name.length / 2))) + '<span>' + esc(b.name.slice(Math.ceil(b.name.length / 2))) + '</span>';
     $('botSub').textContent = b.subtitle || '';
     $('refreshBtn').classList.toggle('off', !b.live); $('refreshBtn').title = b.live ? 'Refresh data' : 'Snapshot, not live';
-    document.title = b.name + ' · Too Hot to Handle Statistics Hub';
+    document.title = landingOn() ? 'Too Hot to Handle Statistics Hub' : b.name + ' · Too Hot to Handle Statistics Hub';
     renderAll();
     lastReq = 0; refresh();
   }
@@ -512,7 +512,34 @@
 
   /* ---------- router (hash: #tab or #tab/sub) ---------- */
   function parse(hash) { var p = (hash || '').replace(/^#/, '').split('/'); var tab = TABS.indexOf(p[0]) >= 0 ? p[0] : 'overview'; return { tab: tab, sub: p[1] || '' }; }
+  /* ---------- landing (v29): title screen for the bare URL, not a tab ----------
+     Shown only when the page opens with no hash and this tab session hasn't left it yet
+     (sessionStorage 'th2h_landing_left'; the early class is set by the inline script in index.html).
+     Leaving it (its button, any tab, link, deep link, hash change) sets the flag and replaces the
+     bare-URL history entry with the new tab, so Back can't return to it and reloads stay on the tab.
+     A bare URL opened again in the same session goes to the last tab (sessionStorage 'th2h_last_hash'). */
+  var LANDING_KEY = 'th2h_landing_left', LAST_KEY = 'th2h_last_hash';
+  function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+  function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+  function landingOn() { return document.documentElement.classList.contains('landing-on'); }
+  function leaveLanding() {
+    if (!landingOn()) return;
+    ssSet(LANDING_KEY, '1');
+    document.documentElement.classList.remove('landing-on');
+    $('landing').setAttribute('aria-hidden', 'true');
+    if (bot) document.title = bot.name + ' · Too Hot to Handle Statistics Hub';
+  }
+  function showLanding() {
+    $('landing').setAttribute('aria-hidden', 'false');
+    document.title = 'Too Hot to Handle Statistics Hub';
+    document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+  }
   function route() {
+    var bare = !location.hash.replace(/^#/, '');
+    if (bare && landingOn()) { showLanding(); return; }
+    leaveLanding();
+    // Bare URL after the landing was left (same session): go to the last tab instead of showing it again.
+    if (bare) try { history.replaceState(null, '', ssGet(LAST_KEY) || '#overview'); } catch (e) {}
     // The Weight tab moved into Calcs (v26): keep old #weight links working.
     if (/^#weight(\/|$)/.test(location.hash)) try { history.replaceState(null, '', '#calc/weight'); } catch (e) { location.hash = '#calc/weight'; }
     var r = parse(location.hash);
@@ -520,11 +547,13 @@
     document.querySelectorAll('.view').forEach(function (v) { v.classList.toggle('active', v.id === 'view-' + r.tab); });
     if (r.tab === 'calc' && window.Calcs) window.Calcs.open(r.sub || 'list');
     if (r.tab === 'team' && window.TeamView) window.TeamView.open(r.sub || '');
+    ssSet(LAST_KEY, location.hash || '#overview');
     window.scrollTo(0, 0);
   }
   // Tab switches replace history (no long back stacks); sub-pages push so the phone's back gesture returns.
   function navigate(hash, push) {
     if (location.hash === hash) { route(); return; }
+    if (landingOn()) push = false; // never keep the landing (bare URL) in the back stack
     if (push) history.pushState({ sub: true }, '', hash); else history.replaceState(null, '', hash);
     route();
   }
@@ -576,6 +605,8 @@
     $('refreshBtn').addEventListener('click', function () { refresh(true); });
     $('botSwitch').addEventListener('click', openSheet);
     window.addEventListener('popstate', route);
+    window.addEventListener('hashchange', function () { if (landingOn()) route(); }); // typed/edited hash while on the landing
+    $('landingGo').addEventListener('click', function () { navigate('#team', false); });
     setupPTR();
     if (window.Archetypes) window.Archetypes.load().then(function () { renderAll(); });
     loadBot(localStorage.getItem('sn_current_bot') || 'supernova');

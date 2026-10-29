@@ -17,6 +17,8 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="styles.css">
+<script>/* v29 landing: shown only for the bare URL, once per tab session (see app.js "landing"). Set early so the first paint is the title screen. */
+try { if (!location.hash.replace(/^#/, '') && !sessionStorage.getItem('th2h_landing_left')) document.documentElement.classList.add('landing-on'); } catch (e) {}</script>
 </head>
 <body>
 <aside class="side" id="side">
@@ -46,6 +48,17 @@
 </aside>
 <div id="ptr" class="ptr">Pull to refresh</div>
 <main id="main">
+  <section id="landing" class="landing" aria-label="Welcome" aria-hidden="true">
+    <div class="ld-in">
+      <div class="ld-mark"><img src="icons/icon.svg" alt="" width="112" height="112"></div>
+      <div class="ld-kicker">Team Too Hot to Handle</div>
+      <h1 class="ld-title"><span class="ld-l1">Too Hot to Handle</span> <span class="ld-l2">Statistics Hub</span></h1>
+      <p class="ld-tag">Fight records, events and build calculators for every robot on the team.</p>
+      <button class="btn ld-go" id="landingGo" type="button">Meet the team <span aria-hidden="true">→</span></button>
+      <div class="ld-hint"><span class="ld-ph">Or pick a tab below</span><span class="ld-dt">Or pick a section from the sidebar</span></div>
+      <div class="ld-credit">Fight data from <a href="https://brettzone.nhrl.io" target="_blank" rel="noopener">BrettZone</a> by NHRL and the <a href="https://wiki.nhrl.io/" target="_blank" rel="noopener">NHRL wiki</a> · unofficial, not affiliated with NHRL</div>
+    </div>
+  </section>
   <section id="view-overview" class="view active" aria-label="Overview"></section>
   <section id="view-fights" class="view" aria-label="Fights and events"></section>
   <section id="view-team" class="view" aria-label="Team"></section>

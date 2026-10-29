@@ -648,4 +648,44 @@ body.scroll-locked{position:fixed;left:0;right:0;overflow:hidden;width:100%}
 @media (max-width: 374px){ .top .brand .appname .an-full{display:none} .top .brand .appname .an-short{display:inline} }
 @media (max-width: 339px){ .top .brand .appname{letter-spacing:.12em} }
 @media (min-width: 900px){ .side .brand .appname .an-full{display:inline} .side .brand .appname .an-short{display:none} }
+/* v29: landing / title screen. Only while html.landing-on (bare URL, first visit in this tab session).
+   Not a tab: views and the header are hidden; the tab bar / sidebar stay usable (dimmed) to leave. */
+.landing{display:none}
+html.landing-on .landing{display:flex}
+html.landing-on main > .view,html.landing-on .top,html.landing-on .sidebot,html.landing-on #ptr{display:none!important}
+html.landing-on .tabs button.active{color:var(--muted)}
+html.landing-on .tabs button.active svg{filter:none}
+html.landing-on .tabs{opacity:.7;transition:opacity .2s}
+html.landing-on .tabs:hover,html.landing-on .tabs:focus-within{opacity:1}
+.landing{min-height:calc(100vh - var(--tabh) - var(--safe-b) - 32px);min-height:calc(100dvh - var(--tabh) - var(--safe-b) - 32px);align-items:center;justify-content:center;text-align:center;padding:calc(12px + var(--safe-t)) 8px 12px;position:relative}
+.landing::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 45% at 50% 38%,rgba(255,166,33,.16),rgba(255,43,240,.07) 55%,transparent 75%)}
+.ld-in{position:relative;max-width:760px;display:flex;flex-direction:column;align-items:center}
+.ld-mark img{display:block;width:112px;height:112px;border-radius:22px;box-shadow:0 0 0 2px var(--hot),0 10px 40px rgba(255,43,240,.28)}
+.ld-kicker{margin-top:22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--hot);font-weight:700}
+.ld-title{margin:10px 0 0;font-size:clamp(21px,7.1vw,58px);line-height:1.08;letter-spacing:.06em;text-transform:uppercase;text-shadow:3px 3px 0 var(--hot)}
+.ld-title .ld-l1,.ld-title .ld-l2{display:block;white-space:nowrap}
+.ld-title .ld-l1{color:var(--text);text-shadow:3px 3px 0 var(--hot)}
+.ld-title .ld-l2{color:var(--mag);text-shadow:3px 3px 0 rgba(255,166,33,.55)}
+.ld-tag{margin:16px 0 0;font-size:15px;line-height:1.5;color:#d6dbe6;max-width:440px}
+.ld-go{margin-top:26px;font-size:15px;padding:14px 26px;min-height:48px;border:0;cursor:pointer;font-family:inherit}
+.ld-go span{margin-left:6px}
+.ld-hint{margin-top:14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ld-dt{display:none}
+.ld-credit{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.5;max-width:380px}
+.ld-credit a{color:var(--muted)}
+@media (min-width: 900px){
+  .landing{min-height:calc(100vh - 64px)}
+  .ld-mark img{width:136px;height:136px;border-radius:26px}
+  .ld-tag{font-size:17px}
+  .ld-ph{display:none} .ld-dt{display:inline}
+  html.landing-on .tabs{padding-top:18px}
+}
+@media (prefers-reduced-motion: no-preference){
+  html.landing-on .ld-in > *{animation:ldUp .5s cubic-bezier(.2,.7,.2,1) both}
+  html.landing-on .ld-in > :nth-child(2){animation-delay:.06s} html.landing-on .ld-in > :nth-child(3){animation-delay:.12s}
+  html.landing-on .ld-in > :nth-child(4){animation-delay:.18s} html.landing-on .ld-in > :nth-child(n+5){animation-delay:.24s}
+  html.landing-on .ld-mark img{animation:ldGlow 2.8s ease-in-out .6s infinite alternate}
+}
+@keyframes ldUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes ldGlow{from{box-shadow:0 0 0 2px var(--hot),0 10px 40px rgba(255,43,240,.22)}to{box-shadow:0 0 0 2px var(--hot),0 10px 56px rgba(255,166,33,.42)}}
 

@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var F = window.FreqMath, root = null, cfg = null, botId = null, bound = [];
-  var KEY = 'wsa_v1_', SR = 48000, WARN_MB = 200, MAX_MB = 1024, MAX_SEC = 300;
+  var KEY = 'wsa_v1_', SR = 48000, WARN_MB = 200, MAX_MB = 1024, MAX_SEC = 300, BMFF_MAX_MB = 4096, DIRECT_MB = 300, PHONE_DIRECT_MB = 100, PHONE_WARN_MB = 100, DECODE_TIMEOUT_MS = 15000;
   var st = { phase: 'empty', msg: null, prog: 0, progLabel: '', name: '', size: 0, type: '', x: null, sr: 0, dur: 0, truncated: false,
     fft: 8192, fmin: 20, fmax: 4000, t0: 0, t1: 0, count: 6, sg: null, spec: null, peaks: [], selF: null, selSrc: '', sug: null,
     tmin: 20, tmax: 4000, octave: true, tr: null, token: 0, manual: { mode: 'f', val: '' } };
@@ -40,11 +40,12 @@
       'Saved on this device for ' + esc(bot() ? bot().name : 'this robot') + ' (switch robots to switch settings).</div></div>';
   }
   function fileCard() {
-    var h = '<div class="card"><h2>Recording</h2><label class="btn sm wsa-file">Choose video or audio<input type="file" id="wsaFile" accept="video/mp4,video/quicktime,video/webm,audio/*,.mp4,.mov,.m4v,.webm,.wav,.mp3,.m4a,.aac,.ogg,.opus,.flac"></label>' +
-      '<div class="note">Video (mp4, mov, webm) or audio (wav, m4a, mp3, ogg, flac). <b>Nothing is uploaded:</b> the file is read and analysed in this browser tab only. Files over ' + WARN_MB + ' MB get a warning, over ' + (MAX_MB / 1024) + ' GB are refused; only the first ' + (MAX_SEC / 60) + ' minutes are analysed.</div>';
-    if (st.phase === 'reading' || st.phase === 'decoding' || st.phase === 'analysing') h += '<div class="wsa-prog" role="progressbar" aria-label="' + esc(st.progLabel) + '"' + (st.phase === 'decoding' ? '' : ' aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(st.prog * 100) + '"') + '><i class="' + (st.phase === 'decoding' ? 'ind' : '') + '" style="width:' + (st.phase === 'decoding' ? 100 : Math.round(st.prog * 100)) + '%"></i></div><div class="note" id="wsaProgTxt">' + esc(st.progLabel) + '</div>';
+    var h = '<div class="card"><h2>Recording</h2><label class="btn sm wsa-file">Choose video or audio<input type="file" id="wsaFile" accept="video/*,audio/*,video/quicktime,video/mp4,.mov,.mp4,.m4v,.webm,.wav,.m4a,.mp3,.aac,.caf,.ogg,.opus,.flac"></label>' +
+      '<div class="note">Video (iPhone .mov, mp4, webm) or audio (wav, m4a, mp3, ogg, flac). On iPhone, pick from Photo Library, Take Video or Choose File (Files app). <b>Nothing is uploaded:</b> the file is read and analysed in this browser tab only. ' +
+      'If the browser can’t decode a .mov/.mp4 itself, the app extracts its audio track and converts it in the tab (rewrapped as .m4a), with a download. Videos over ' + (isPhone() ? PHONE_DIRECT_MB : DIRECT_MB) + ' MB are handled the same way so only the audio is read (limit ' + BMFF_MAX_MB / 1024 + ' GB); other files over ' + (isPhone() ? PHONE_WARN_MB : WARN_MB) + ' MB get a memory warning and over ' + (MAX_MB / 1024) + ' GB are refused. Only the first ' + (MAX_SEC / 60) + ' minutes are analysed.</div>';
+    if (st.phase === 'reading' || st.phase === 'decoding' || st.phase === 'analysing' || st.phase === 'converting') h += '<div class="wsa-prog" role="progressbar" aria-label="' + esc(st.progLabel) + '"' + (st.phase === 'decoding' ? '' : ' aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(st.prog * 100) + '"') + '><i class="' + (st.phase === 'decoding' ? 'ind' : '') + '" style="width:' + (st.phase === 'decoding' ? 100 : Math.round(st.prog * 100)) + '%"></i></div><div class="note" id="wsaProgTxt">' + esc(st.progLabel) + '</div>';
     if (st.msg) h += '<div class="wbnote ' + st.msg.level + '" role="' + (st.msg.level === 'over' ? 'alert' : 'status') + '">' + st.msg.html + '</div>';
-    if (st.x) h += '<div class="note wsa-meta">' + metaText() + '</div>';
+    if (st.x) h += '<div class="note wsa-meta">' + metaText() + '</div>' + convHtml();
     return h + '</div>';
   }
   function metaText() { return esc(st.name) + ' · ' + fmt(st.size / 1048576, 1) + ' MB · ' + clock(st.dur) + (st.truncated ? ' (first ' + MAX_SEC / 60 + ' min)' : '') + ' · decoded at ' + fmt(st.sr) + ' Hz · Nyquist ' + hz(st.sr / 2) + ' · max measurable ≈ ' + fmt(F.maxRpm(st.sr, N())) + ' RPM at N = ' + esc(cfg.n); }
@@ -161,7 +162,7 @@
       '<li><b>Phone audio processing:</b> automatic gain control, noise suppression and compression change levels and can distort or remove tones. Clipping (a very loud weapon close to the mic) adds false harmonics. Record from a few metres away and avoid “voice” or noise-reduction modes if your phone has them.</li>' +
       '<li><b>Spin-up and spin-down:</b> a long FFT averages over its length (' + fmt(st.fft / sr * 1000) + ' ms now), so fast speed changes smear and the RPM track lags. Use a smaller FFT for the track and a bigger one for a steady top speed.</li>' +
       '<li><b>Formulas:</b> tip speed S (mph) = π × F × D ÷ 17.6 with F in Hz (rev/s) and D in inches, from ' + DESMOS + ' (17.6 = 63,360 in/mile ÷ 3,600 s/h). From audio, F = peak frequency ÷ N (our addition). RPM = 60 × F. m/s = mph × 0.44704 and ft/s = mph × 5280 ÷ 3600 (exact). The FFT is a standard radix-2 Cooley–Tukey transform with a Hann window, written for this app (no external code).</li>' +
-      '<li>Video files: some containers and codecs (for example iPhone .mov, often HEVC video) don’t decode in every browser. If yours fails, share or export the clip as audio (m4a/wav) or re-export as an H.264 MP4.</li></ul></details>';
+      '<li>Video files: some browsers can’t decode the audio in some containers (for example iPhone .mov). Then the built-in converter (our own MP4/MOV audio extractor, no upload) copies the audio track out: AAC, Apple Lossless or MP3 are rewrapped unchanged as .m4a; uncompressed PCM is read directly. The video track (H.264 or HEVC) is never decoded, so the video codec doesn’t matter. Fragmented/streaming MP4 and other audio codecs aren’t supported; export the clip as audio (m4a/wav) or an H.264 MP4 instead.</li></ul></details>';
   }
   function render() {
     if (!root) return;
@@ -308,41 +309,133 @@
       (vid ? 'The clip may have no audio track, or its container/codec isn’t supported here' + (mov ? ' (iPhone .mov files, often HEVC video, don’t decode in every browser)' : '') + '. ' : 'The format may not be supported in this browser. ') +
       'Try: share or export the clip as an audio file (m4a or wav), re-export the video as an H.264 MP4, or open the app in another browser (Safari on iPhone, Chrome on Android). You can also type a known RPM in the plain calculator.';
   }
-  function onFile(f) {
-    if (!f) return; st.token++; st.msg = null;
-    var mb = f.size / 1048576;
-    if (mb > MAX_MB) { fail('<b>' + esc(f.name) + '</b> is ' + fmt(mb, 0) + ' MB, over the ' + (MAX_MB / 1024) + ' GB limit: the whole file plus its decoded audio must fit in this tab’s memory. Trim the clip to the spin-up (a few seconds is enough) or export just the audio.'); return; }
-    var warn = mb > WARN_MB ? 'Large file (' + fmt(mb, 0) + ' MB): decoding needs a lot of memory and may fail or be slow, especially on phones. A short trimmed clip or an audio-only export works better.' : '';
-    st.x = null; st.sg = null; st.spec = null; st.peaks = []; st.tr = null; st.selF = null; st.selSrc = ''; st.sug = null;
-    st.name = f.name; st.size = f.size; st.type = f.type; st.phase = 'reading'; st.prog = 0; st.progLabel = 'Reading file… 0%'; if (warn) st.msg = { level: 'warn', html: esc(warn) }; render();
-    var tok = st.token, rd = new FileReader();
-    rd.onprogress = function (e) { if (tok !== st.token || !e.lengthComputable) return; st.prog = e.loaded / e.total; st.progLabel = 'Reading file… ' + Math.round(st.prog * 100) + '%'; var bar = root && root.querySelector('.wsa-prog i'), txt = $('wsaProgTxt'); if (bar) bar.style.width = Math.round(st.prog * 100) + '%'; if (txt) txt.textContent = st.progLabel; };
-    rd.onerror = function () { if (tok === st.token) fail('Could not read <b>' + esc(f.name) + '</b> from the device.'); };
-    rd.onload = function () {
-      if (tok !== st.token) return; st.phase = 'decoding'; st.progLabel = 'Decoding audio… (no progress available for this step)'; render();
-      var OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-      if (!OAC) { fail('This browser has no Web Audio API, so the audio can’t be decoded here. Use the plain calculator.'); return; }
-      var ctx; try { ctx = new OAC(1, 1, SR); } catch (e) { fail('Could not start the audio decoder in this browser.'); return; }
-      var done = false, ok = function (buf) {
-        if (done || tok !== st.token) return; done = true;
-        if (!buf || !buf.length) { fail(decodeErr(f)); return; }
-        var len = Math.min(buf.length, Math.round(MAX_SEC * buf.sampleRate)), x = new Float32Array(len), ch = buf.numberOfChannels;
-        for (var c = 0; c < ch; c++) { var d = buf.getChannelData(c); for (var i = 0; i < len; i++) x[i] += d[i] / ch; }
-        var peak = 0; for (var j = 0; j < len; j++) { var a = Math.abs(x[j]); if (a > peak) peak = a; }
-        st.x = x; st.sr = buf.sampleRate; st.dur = len / buf.sampleRate; st.truncated = buf.length > len; st.t0 = 0; st.t1 = st.dur;
-        var notes = []; if (warn) notes.push(esc(warn));
-        if (st.truncated) notes.push('Clip is ' + clock(buf.length / buf.sampleRate) + ': only the first ' + MAX_SEC / 60 + ' minutes are analysed.');
-        if (peak < 1e-4) notes.push('The audio is silent or nearly silent, so there is nothing to measure.');
-        else if (peak > 0.985) notes.push('The audio reaches full scale (clipping): distortion adds false harmonics. Record further from the weapon if you can.');
-        if (st.dur < 0.2) notes.push('Very short clip: frequency resolution will be poor.');
-        st.msg = notes.length ? { level: 'warn', html: notes.join(' ') } : null;
-        clampBand(); analyse();
-      };
-      var bad = function () { if (!done && tok === st.token) { done = true; fail((warn ? esc(warn) + '<br>' : '') + decodeErr(f)); } };
-      try { var p = ctx.decodeAudioData(rd.result, ok, bad); if (p && p.then) p.then(ok, bad); } catch (e) { bad(); }
-    };
-    rd.readAsArrayBuffer(f);
+  function isPhone() { return window.matchMedia('(pointer: coarse)').matches || /iPhone|iPad|iPod|Android/.test(navigator.userAgent || ''); }
+  // test hooks (used by tools/e2e_wsa36.js): WSA_FORCE_DECODE_FAIL = 'original' (fail the first decode) or 'all' (also the .m4a)
+  function forced(which) { var v = window.WSA_FORCE_DECODE_FAIL; return v === 'all' || (v === 'original' && which === 'original'); }
+  function setProg(fr, label) { st.prog = fr; st.progLabel = label; var bar = root && root.querySelector('.wsa-prog i'), txt = $('wsaProgTxt'); if (bar) { bar.style.width = Math.round(fr * 100) + '%'; bar.parentNode.setAttribute('aria-valuenow', Math.round(fr * 100)); } if (txt) txt.textContent = label; }
+  function sniff(f) { // ISO base media (MP4 / MOV / M4A / 3GP)? Looks at the first box header only.
+    return f.slice(0, 12).arrayBuffer ? f.slice(0, 12).arrayBuffer().then(function (a) { var u = new Uint8Array(a), t = String.fromCharCode(u[4], u[5], u[6], u[7]); return /^(ftyp|moov|mdat|wide|free|skip|pnot)$/.test(t); }, function () { return false; })
+      : Promise.resolve(/\.(mov|mp4|m4v|m4a|3gp)$/i.test(f.name));
   }
+  function decodeBuf(ab, which) {
+    var OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!OAC) return Promise.reject(new Error('noaudioapi'));
+    if (forced(which)) return Promise.reject(new Error('forced'));
+    return new Promise(function (res, rej) {
+      var ctx; try { ctx = new OAC(1, 1, SR); } catch (e) { rej(e); return; }
+      // Some browsers never answer when they lack a codec (seen in WebKit without media plugins), so give up after a while.
+      var ms = Math.min(90000, DECODE_TIMEOUT_MS + ab.byteLength / 1048576 * 500), timer = setTimeout(function () { bad(new Error('timeout')); }, ms);
+      var done = false, ok = function (b) { if (!done) { done = true; clearTimeout(timer); if (b && b.length) res(b); else rej(new Error('empty')); } }, bad = function (e) { if (!done) { done = true; clearTimeout(timer); rej(e || new Error('decode')); } };
+      try { var p = ctx.decodeAudioData(ab, ok, bad); if (p && p.then) p.then(ok, bad); } catch (e) { bad(e); }
+    });
+  }
+  function bufToMono(buf) {
+    var len = Math.min(buf.length, Math.round(MAX_SEC * buf.sampleRate)), x = new Float32Array(len), ch = buf.numberOfChannels;
+    for (var c = 0; c < ch; c++) { var d = buf.getChannelData(c); for (var i = 0; i < len; i++) x[i] += d[i] / ch; }
+    return { x: x, rate: buf.sampleRate, fullDur: buf.length / buf.sampleRate };
+  }
+  function finish(a, warn, extra) {
+    var x = a.x.length > Math.round(MAX_SEC * a.rate) ? a.x.subarray(0, Math.round(MAX_SEC * a.rate)) : a.x, len = x.length, peak = 0;
+    for (var j = 0; j < len; j++) { var v = Math.abs(x[j]); if (v > peak) peak = v; }
+    st.x = x; st.sr = a.rate; st.dur = len / a.rate; st.truncated = !!a.truncated || a.fullDur > st.dur + 0.01; st.t0 = 0; st.t1 = st.dur;
+    var notes = []; if (warn) notes.push(esc(warn));
+    if (st.truncated) notes.push('Only the first ' + MAX_SEC / 60 + ' minutes are analysed' + (a.fullDur ? ' (clip is ' + clock(a.fullDur) + ')' : '') + '.');
+    if (peak < 1e-4) notes.push('The audio is silent or nearly silent, so there is nothing to measure.');
+    else if (peak > 0.985) notes.push('The audio reaches full scale (clipping): distortion adds false harmonics. Record further from the weapon if you can.');
+    if (st.dur < 0.2) notes.push('Very short clip: frequency resolution will be poor.');
+    st.msg = notes.length ? { level: 'warn', html: notes.join(' ') } : null;
+    clampBand(); analyse();
+  }
+  var conv = null; // last conversion: {why, info, how, m4a Blob}
+  function loadConverter() {
+    if (window.MovAudio) return Promise.resolve();
+    return new Promise(function (res, rej) { var sc = document.createElement('script'); sc.src = 'mp4audio.js'; sc.onload = function () { window.MovAudio ? res() : rej(new Error('load')); }; sc.onerror = function () { sc.remove(); rej(Object.assign(new Error('load'), { code: 'load' })); }; document.head.appendChild(sc); });
+  }
+  var CONV_ERR = { notmp4: 'it isn’t an MP4/MOV file', nomoov: 'its index (moov box) is missing: the file may be incomplete, still being saved, or cut short', noaudio: 'it has no audio track', fragmented: 'it is a fragmented MP4 (streaming format), which the converter doesn’t handle', corrupt: 'it looks damaged or cut short', toobig: 'its index is unusually large', load: 'the converter (mp4audio.js) couldn’t be downloaded. It loads the first time it’s needed, then works offline; connect once and try again' };
+  function convErr(f, e, stage) {
+    var why = e && e.code && CONV_ERR[e.code] ? CONV_ERR[e.code] : e && e.code === 'codec' ? e.message : stage === 'decode' ? 'its ' + (conv && conv.info ? ({ aac: 'AAC', alac: 'Apple Lossless (ALAC)', mp3: 'MP3' })[conv.info.codec] || '' : '') + ' audio was extracted but this browser can’t decode that codec' + (conv && conv.info && conv.info.codec === 'alac' ? ' (Chrome and Firefox don’t play Apple Lossless; Safari does)' : '') : 'of an unexpected error' + (e && e.message ? ' (' + esc(e.message) + ')' : '');
+    return 'Couldn’t convert <b>' + esc(f.name) + '</b>: ' + why + '. Nothing was uploaded. Try: share or export the clip as an audio file (m4a or wav), re-export it as an H.264 MP4, or use the plain calculator below.';
+  }
+  function convert(f, tok, why, warn) {
+    st.phase = 'converting'; st.prog = 0; st.progLabel = 'Converting: loading the converter…'; render();
+    var info = null;
+    loadConverter().then(function () {
+      if (tok !== st.token) return null;
+      setProg(0, 'Converting: reading the video’s index…');
+      return window.MovAudio.extract(f, { maxSec: MAX_SEC, onProgress: function (fr, stage) { if (tok === st.token) setProg(fr, stage === 'index' ? 'Converting: reading the video’s index…' : 'Converting: extracting the audio track… ' + Math.round(fr * 100) + '%'); } });
+    }).then(function (inf) {
+      if (!inf || tok !== st.token) return;
+      info = inf; conv = { why: why, info: info, name: f.name, size: f.size };
+      if (info.kind === 'pcm') { conv.how = 'pcm'; finish({ x: info.x, rate: info.rate, truncated: info.truncated }, warn); return; }
+      var m4a = window.MovAudio.toM4A(info); conv.m4a = new Blob([m4a], { type: 'audio/mp4' }); conv.m4aBytes = m4a.length;
+      setProg(1, 'Converting: decoding the extracted audio…');
+      return decodeBuf(m4a.buffer, 'm4a').then(function (buf) { if (tok !== st.token) return; conv.how = 'rewrap'; var a = bufToMono(buf); a.truncated = info.truncated; finish(a, warn); },
+        function () {
+          return window.MovAudio.decodeWebCodecs(info).then(function (r) { if (tok !== st.token) return; conv.how = 'webcodecs'; finish({ x: r.x, rate: r.rate, truncated: info.truncated }, warn); },
+            function (e2) { if (tok === st.token) { var m = (warn ? esc(warn) + '<br>' : '') + convErr(f, e2 && e2.code === 'nowebcodecs' ? null : e2, 'decode'); conv = null; fail(m); } });
+        });
+    }).catch(function (e) { if (tok === st.token) { conv = null; fail((warn ? esc(warn) + '<br>' : '') + convErr(f, e)); } });
+  }
+  function onFile(f) {
+    if (!f) return; st.token++; st.msg = null; conv = null;
+    var mb = f.size / 1048576, tok = st.token, phone = isPhone();
+    st.x = null; st.sg = null; st.spec = null; st.peaks = []; st.tr = null; st.selF = null; st.selSrc = ''; st.sug = null;
+    st.name = f.name; st.size = f.size; st.type = f.type; st.phase = 'reading'; st.prog = 0; st.progLabel = 'Opening ' + f.name + '…'; render();
+    sniff(f).then(function (bmff) {
+      if (tok !== st.token) return;
+      if (mb > (bmff ? BMFF_MAX_MB : MAX_MB)) { fail('<b>' + esc(f.name) + '</b> is ' + fmt(mb, 0) + ' MB, over the ' + fmt((bmff ? BMFF_MAX_MB : MAX_MB) / 1024, 0) + ' GB limit for ' + (bmff ? 'videos' : 'this kind of file') + '. Trim the clip to the spin-up (a few seconds is enough) or export just the audio.'); return; }
+      var direct = phone ? PHONE_DIRECT_MB : DIRECT_MB, warnAt = phone ? PHONE_WARN_MB : WARN_MB;
+      if (bmff && (mb > direct || window.WSA_FORCE_CONVERT === true)) { convert(f, tok, mb > direct ? 'big' : 'forced', ''); return; }
+      var warn = mb > warnAt ? 'Large file (' + fmt(mb, 0) + ' MB): decoding needs a lot of memory and may fail or be slow' + (phone ? ' on a phone' : ', especially on phones') + '. A short trimmed clip or an audio-only export works better.' : '';
+      st.phase = 'reading'; st.prog = 0; st.progLabel = 'Reading file… 0%'; if (warn) st.msg = { level: 'warn', html: esc(warn) }; render();
+      var rd = new FileReader();
+      rd.onprogress = function (e) { if (tok === st.token && e.lengthComputable) setProg(e.loaded / e.total, 'Reading file… ' + Math.round(e.loaded / e.total * 100) + '%'); };
+      rd.onerror = function () { if (tok === st.token) fail('Could not read <b>' + esc(f.name) + '</b> from the device.'); };
+      rd.onload = function () {
+        if (tok !== st.token) return; st.phase = 'decoding'; st.progLabel = 'Decoding audio… (no progress available for this step)'; render();
+        var ab = rd.result;
+        decodeBuf(ab, 'original').then(function (buf) { if (tok === st.token) finish(bufToMono(buf), warn); }, function (e) {
+          if (tok !== st.token) return;
+          if (e && e.message === 'noaudioapi') { fail('This browser has no Web Audio API, so the audio can’t be decoded here. Use the plain calculator.'); return; }
+          ab = null; rd = null; // drop the original buffer before converting
+          if (bmff) { convert(f, tok, 'fallback', warn); return; }
+          // decodeAudioData may have detached the buffer, so re-read from the file (WAV only: plain PCM is easy to read in JS)
+          var readAll = function (blob) { return blob.arrayBuffer ? blob.arrayBuffer() : new Promise(function (r, j) { var q = new FileReader(); q.onload = function () { r(q.result); }; q.onerror = j; q.readAsArrayBuffer(blob); }); };
+          readAll(f.slice(0, 12)).then(function (h12) {
+            var hd = new Uint8Array(h12), isWav = String.fromCharCode.apply(null, hd.subarray(0, 4)) === 'RIFF' && String.fromCharCode.apply(null, hd.subarray(8, 12)) === 'WAVE';
+            if (!isWav || tok !== st.token) { if (tok === st.token) fail((warn ? esc(warn) + '<br>' : '') + decodeErr(f)); return; }
+            st.phase = 'converting'; st.prog = 1; st.progLabel = 'Converting: reading the WAV in JavaScript…'; render();
+            return loadConverter().then(function () { return readAll(f); }).then(function (raw) {
+              var w = window.MovAudio.wavToMono(new Uint8Array(raw)); if (tok !== st.token) return;
+              conv = { why: 'fallback', how: 'wav', name: f.name, size: f.size, info: { kind: 'pcm', bits: w.bits, pcmType: w.pcmType, rate: w.rate, channels: w.channels, bytes: raw.byteLength } }; finish({ x: w.x, rate: w.rate }, warn);
+            });
+          }).catch(function () { if (tok === st.token) fail((warn ? esc(warn) + '<br>' : '') + decodeErr(f)); });
+          return;
+
+        });
+      };
+      rd.readAsArrayBuffer(f);
+    });
+  }
+  function convHtml() {
+    if (!conv || !st.x) return '';
+    var i = conv.info;
+    if (conv.how === 'wav') return '<div class="wbnote ok wsa-conv" role="status"><b>Read in this tab, nothing uploaded.</b> This browser couldn’t decode the WAV itself, so its ' + i.bits + '-bit PCM audio (' + fmt(i.rate) + ' Hz, ' + i.channels + ' channel' + (i.channels === 1 ? '' : 's') + ') was read directly in JavaScript.</div>' +
+      '<div class="sgbtns wsa-dl"><button type="button" class="btn ghost sm" data-a="dlwav">Download WAV (mono, as analysed, ' + fmt((44 + st.x.length * 2) / 1048576, 1) + ' MB)</button></div>';
+    var ext = (conv.name.match(/\.[^.]+$/) || [''])[0].toLowerCase() || 'video', codec = i.kind === 'pcm' ? 'uncompressed PCM (' + i.bits + '-bit ' + (i.pcmType === 'float' ? 'float' : 'integer') + ')' : i.codec === 'aac' ? 'AAC' : i.codec === 'alac' ? 'Apple Lossless (ALAC)' : 'MP3';
+    var h = '<div class="wbnote ok wsa-conv" role="status"><b>Converted in this tab, nothing uploaded.</b> ';
+    h += conv.why === 'fallback' ? 'This browser couldn’t decode the audio in the ' + esc(ext) + ' file directly, so the converter took over. ' : conv.why === 'big' ? 'The file is large (' + fmt(conv.size / 1048576, 0) + ' MB), so instead of loading the whole video only its audio track was read (' + fmt(i.bytes / 1048576, 1) + ' MB). ' : 'Converter test mode. ';
+    h += 'The ' + codec + ' audio track (' + fmt(i.rate) + ' Hz, ' + i.channels + ' channel' + (i.channels === 1 ? '' : 's') + ') was ' + (i.kind === 'pcm' ? 'read directly' : 'copied out unchanged and rewrapped as an audio-only MP4 (.m4a)' + (conv.how === 'webcodecs' ? ', then decoded with WebCodecs (the browser wouldn’t decode the .m4a)' : ', then decoded by the browser')) + '. ';
+    h += 'The video track was not read or converted, so there is no video in the download.' + (i.truncated ? ' Only the first ' + MAX_SEC / 60 + ' minutes were extracted.' : '') + '</div>';
+    h += '<div class="sgbtns wsa-dl">' + (conv.m4a ? '<button type="button" class="btn ghost sm" data-a="dlm4a">Download converted audio (.m4a, ' + fmt(conv.m4aBytes / 1048576, 1) + ' MB)</button>' : '') +
+      '<button type="button" class="btn ghost sm" data-a="dlwav">Download WAV (mono, as analysed, ' + fmt((44 + st.x.length * 2) / 1048576, 1) + ' MB)</button></div>';
+    return h;
+  }
+  function download(blob, name) {
+    var url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+  }
+  function baseName() { return (st.name || 'clip').replace(/\.[^.]+$/, ''); }
 
   /* ---------- events ---------- */
   var drag = null;
@@ -383,6 +476,8 @@
     if (b.hasAttribute('data-back')) return; // handled by calcs.js
     if (b.name === 'wsaPk') { var p = st.peaks[+b.value]; if (p) { st.selF = p.f; st.selSrc = 'peak'; var s = st.sug; refreshParts(); st.sug = s; var pk = $('wsaPeaks'); if (pk) pk.innerHTML = peaksHtml(); var r = root.querySelector('input[name=wsaPk][value="' + b.value + '"]'); if (r) r.focus(); } return; }
     var a = b.dataset.a;
+    if (a === 'dlm4a' && conv && conv.m4a) { download(conv.m4a, baseName() + '-audio.m4a'); return; }
+    if (a === 'dlwav' && st.x) { var M = window.MovAudio; if (M) download(new Blob([M.toWav(st.x, st.sr)], { type: 'audio/wav' }), baseName() + '-mono.wav'); else loadConverter().then(function () { download(new Blob([window.MovAudio.toWav(st.x, st.sr)], { type: 'audio/wav' }), baseName() + '-mono.wav'); }); return; }
     if (a === 'all') { st.t0 = 0; st.t1 = st.dur; updateSpectrum(); render(); }
     else if (a === 'suggest') {
       var sg = st.spec && F.suggest(st.spec, st.sr, st.fft, st.peaks);

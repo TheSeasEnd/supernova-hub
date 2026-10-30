@@ -12,7 +12,7 @@ const v = R('freqview.js');
 ok(/decodeAudioData/.test(v) && /OfflineAudioContext/.test(v) && /readAsArrayBuffer/.test(v), 'Web Audio decode of the file ArrayBuffer');
 ok(!/fetch\(|XMLHttpRequest|sendBeacon|FormData/.test(v), 'nothing is uploaded (no network calls in the view)');
 ok(/Nothing is uploaded/.test(v) && /HEVC/.test(v) && /re-export/.test(v), 'privacy + decode-failure guidance shown');
-ok(/accept="video\/mp4,video\/quicktime,video\/webm,audio\/\*/.test(v), 'accepts mp4/mov/webm and audio');
+ok(/accept="video\/\*,audio\/\*,video\/quicktime,video\/mp4,\.mov,\.mp4,\.m4v,\.webm,/.test(v), "accepts any video/audio incl. mov/mp4/webm");
 ok(/WARN_MB = 200, MAX_MB = 1024, MAX_SEC = 300/.test(v), 'size warning, size limit, duration cap');
 ok(/S = π × F × D ÷ 17\.6/.test(v) && /Desmos “Tip Speed via Frequency”/.test(v), 'Desmos formula shown and credited in the UI');
 ok(/F = peak ÷ N/.test(v) && /our addition, not part of the Desmos graph/.test(v), 'N step labelled as our addition');

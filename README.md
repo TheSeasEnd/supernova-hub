@@ -321,3 +321,27 @@ New built-in card in **Calcs**, *Weapon Speed Analyzer* (Work in progress badge)
   - `node tools/test_wsa.js`: wiring, credit, privacy and accessibility checks.
   - Browser: `node tools/gen_wsa_media.js` (then the ffmpeg lines in its header), then `NODE_PATH=<dir with playwright-core> node tools/e2e_wsa.js [url]`. This loads synthetic WAV, MP4 (H.264/AAC), MOV and WebM (VP9/Opus) files through the file input. On Google Chrome 156 and on Playwright's open-source Chromium headless shell 156, all four decode, and a 280 Hz peak with N = 2, D = 8 in gives 8,400 RPM and 199.9 mph. A video with no audio track and a corrupt file both show the decode-failure message.
 - SW cache `supernova-v35` (adds `freqmath.js` and `freqview.js`).
+
+## v36: iPhone .mov support and the built-in converter
+- **File picker:** `accept="video/*,audio/*,video/quicktime,video/mp4,.mov,.mp4,…"`, with no `capture` and no `multiple`. On iPhone this should offer Photo Library, Take Video and Choose File (Files app). `video/*` lets any video in Photos be picked, and `video/quicktime` / `.mov` cover Files. Depending on the iOS version, Photos may hand over the original HEVC .mov or a compressed H.264 copy; both work, because only the audio track is used.
+- **Fallback converter, `mp4audio.js`:** our own code, no third-party library, so there is no extra license. It is lazy-loaded with a `<script>` tag only when needed. It isn't in `index.html` or the precache list; the service worker caches it on first use, so after that it also works offline. Everything runs on the main thread: no SharedArrayBuffer, COOP/COEP, WebAssembly or upload.
+  - **When it runs:** for an MP4/MOV/M4A file (detected from its first box), when the browser's `decodeAudioData` fails, or when it doesn't answer within 15 s plus 0.5 s per MB. Some browsers without a codec never answer; WebKit without media plugins does this.
+  - **How it reads the file:** it reads only the `moov` index and the audio track's bytes with `Blob.slice`. The video track (H.264 or HEVC) is never read or decoded.
+  - **AAC, Apple Lossless (ALAC) or MP3 audio:** the compressed frames are copied unchanged into an audio-only MP4 (`.m4a`, our own minimal ISO-BMFF writer, with the sample entry rebuilt as a plain ISO v0 entry), and that file is decoded. If the .m4a still won't decode and AAC is supported by the WebCodecs `AudioDecoder`, that decodes it instead.
+  - **Uncompressed PCM in MOV** (`sowt`, `twos`, `in24`, `in32`, `fl32`, `fl64`, `raw `, `lpcm` v2, with `enda` endianness): read directly.
+  - **WAV the browser won't decode:** read in JS as well.
+  - **Not supported:** fragmented MP4, and other codecs such as AC-3 or Opus-in-MP4. These get a clear error with alternatives.
+- **Big videos:** MP4/MOV over 100 MB on phones (300 MB on desktop) skip the whole-file decode and go straight to the converter, so only the audio is read; the limit is 4 GB. A 595 MB H.264 test .mov was analysed in about 0.2 s, reading 0.14 MB. Other files keep the earlier warning (100 MB on phones, 200 MB on desktop) and the 1 GB limit.
+- **Honest UI:** after a conversion a note says why it happened (decode failed, or file too big) and exactly what was done (codec, rate, channels, "copied out unchanged and rewrapped as an audio-only MP4 (.m4a)", or "read directly", or "decoded with WebCodecs"). It also says the video track wasn't converted and nothing was uploaded.
+  - Buttons: **Download converted audio (.m4a)**, an MP4 container with audio only, and **Download WAV** (mono, as analysed).
+  - Progress is shown for loading the converter, reading the index and extracting the audio. Errors name the cause (no audio track, missing index or cut-short file, fragmented, unsupported codec, converter not downloaded while offline).
+- **Tests:**
+  - `node tools/test_mp4audio.js`, 43 checks on small ffmpeg-made fixtures in `tools/fixtures/`: H.264+AAC .mov, HEVC+AAC .mov, ALAC, PCM s24le / s16be stereo / f32le, and no-audio. It checks parsing, the 280 Hz tone, amplitude, a bit-exact `.m4a` round trip, the duration cap, the error codes, progress, WAV write/read and esds/ASC parsing.
+  - Browser test: `PW_CORE=<path to playwright-core> node tools/e2e_wsa36.js [url] [chrome|chromium|webkit]`. It runs every test file normally, with `window.WSA_FORCE_DECODE_FAIL = 'original'` (forces the converter) and with `'all'` (also fails the .m4a decode, so it tests WebCodecs or PCM), and checks the downloads with ffprobe.
+  - Test media: `node tools/gen_wsa_media.js`, then, in `$WSA_MEDIA` (default `/tmp/pt/media`), with `V="-f lavfi -i color=c=0x221111:s=320x240:r=15"`:
+    - `ffmpeg $V -i spinup.wav -shortest -c:v libx264 -pix_fmt yuv420p -c:a aac -ar 44100 -ac 2 -f mov iphone_h264_aac.mov`
+    - the same with `-c:v libx265 -tag:v hvc1` for HEVC (`iphone_hevc_aac.mov`)
+    - `-c:a pcm_s16le|pcm_s16be|pcm_s24le|pcm_f32le|alac` for the PCM and ALAC files
+    - `-timecode 01:00:00:00` for a timecode track; two `-map` audio tracks; `-movflags +faststart`.
+- **Not tested on a real iPhone:** the iOS picker sheet, Photos transcoding, real iPhone camera files (which carry extra metadata tracks and often have the index at the end; the converter handles both, as tested with ffmpeg files) and iOS memory limits. WebKit was tested with Playwright's WebKit 27.2 on Linux (WPE port, GStreamer codecs), not Safari on iOS.
+- SW cache `supernova-v36`.

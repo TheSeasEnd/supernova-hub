@@ -46,5 +46,6 @@ const peak = (x, sr) => { const n = 4096, sg = F.spectrogram(x, sr, n), sp = F.a
   ok(/convert\(f, tok, 'fallback', warn\)/.test(v) && /mb > direct/.test(v) && /DECODE_TIMEOUT_MS = 15000/.test(v), 'fallback on decode failure, audio-only path for big videos, decode timeout');
   ok(/Converted in this tab, nothing uploaded/.test(v) && /The video track was not read or converted/.test(v) && /Download converted audio \(\.m4a/.test(v), 'honest conversion note + downloads');
   ok(/WSA_FORCE_DECODE_FAIL/.test(v), 'test hook to force the fallback');
+  ok((v.match(/code: 'load'/g) || []).length === 2 && /couldn’t be downloaded/.test(v), 'converter load failure (offline before first use) gives the clear message');
   console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);
 })();

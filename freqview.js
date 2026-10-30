@@ -349,7 +349,7 @@
   var conv = null; // last conversion: {why, info, how, m4a Blob}
   function loadConverter() {
     if (window.MovAudio) return Promise.resolve();
-    return new Promise(function (res, rej) { var sc = document.createElement('script'); sc.src = 'mp4audio.js'; sc.onload = function () { window.MovAudio ? res() : rej(new Error('load')); }; sc.onerror = function () { sc.remove(); rej(Object.assign(new Error('load'), { code: 'load' })); }; document.head.appendChild(sc); });
+    return new Promise(function (res, rej) { var sc = document.createElement('script'); sc.src = 'mp4audio.js'; sc.onload = function () { window.MovAudio ? res() : rej(Object.assign(new Error('load'), { code: 'load' })); /* offline, the SW may answer with index.html */ }; sc.onerror = function () { sc.remove(); rej(Object.assign(new Error('load'), { code: 'load' })); }; document.head.appendChild(sc); });
   }
   var CONV_ERR = { notmp4: 'it isn’t an MP4/MOV file', nomoov: 'its index (moov box) is missing: the file may be incomplete, still being saved, or cut short', noaudio: 'it has no audio track', fragmented: 'it is a fragmented MP4 (streaming format), which the converter doesn’t handle', corrupt: 'it looks damaged or cut short', toobig: 'its index is unusually large', load: 'the converter (mp4audio.js) couldn’t be downloaded. It loads the first time it’s needed, then works offline; connect once and try again' };
   function convErr(f, e, stage) {

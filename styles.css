@@ -745,3 +745,8 @@ html.landing-on .tabs:hover,html.landing-on .tabs:focus-within{opacity:1}
 @media (prefers-reduced-motion: no-preference){ .wsa-prog i{transition:width .2s} .wsa-prog i.ind{animation:wsaPulse 1.2s ease-in-out infinite alternate} }
 @keyframes wsaPulse{from{opacity:.35}to{opacity:.9}}
 .fgrid.wsa-trc{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* v36 converter note + downloads */
+.wbnote.ok{background:rgba(140,255,26,.08);border:1px solid rgba(140,255,26,.4);color:#dfffc0}
+.wsa-conv{margin-top:10px}
+.wsa-dl{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.wsa-dl .btn{white-space:normal;text-align:left;max-width:100%;line-height:1.3}

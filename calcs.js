@@ -1,5 +1,5 @@
 /* Calculators tab: a list of calculators (credited to their owners) + our own native
-   Battery Sag & Wh calculator (sagcalc.js + sagmath.js, currently disabled) and Weight Budget (weightview.js + weightmath.js). Nothing is embedded: ROBO CALC, Ember (Level 5 Robotics)
+   Battery Sag & Wh calculator (sagcalc.js + sagmath.js, currently disabled) and Weight Budget (weightview.js + weightmath.js), Weapon Speed Analyzer (freqview.js + freqmath.js). Nothing is embedded: ROBO CALC, Ember (Level 5 Robotics)
    and the rest are link-outs that open in a new browser tab (target=_blank rel=noopener). No third-party calculator code is copied here. */
 (function () {
   'use strict';
@@ -16,6 +16,9 @@
     { id: 'weight', kind: 'native', render: 'weight', badge: 'Work in progress', group: 'Built in', title: 'Weight Budget',
       desc: 'Parts list per robot with category subtotals, 3D-print weights, and a running total vs. the class limit (NHRL 2026 rules; SPARC for 1lb). Excel/CSV import and export.',
       credit: 'Built into this app · follows the robot switcher · saved on this device' },
+    { id: 'wsa', kind: 'native', render: 'wsa', badge: 'Work in progress', group: 'Built in', title: 'Weapon Speed Analyzer',
+      desc: 'Frequency analyzer: load a video or audio clip of the weapon spinning, find its frequency on a spectrogram and get the tip speed (S = π·F·D ÷ 17.6 mph, from the Desmos “Tip Speed via Frequency” calculator), RPM and an RPM-over-time curve. Or type F in directly.',
+      credit: 'Built into this app · runs in your browser, nothing is uploaded · tip-speed formula from <a href="https://www.desmos.com/calculator/6asghipk6w" target="_blank" rel="noopener">Desmos “Tip Speed via Frequency”</a> · follows the robot switcher' },
     // v27: ROBO CALC is a link-out (no iframe). Old #calc/robocalc links land on the Calcs list.
     { id: 'robocalc', kind: 'link', group: 'ROBO CALC (opens in browser)', title: 'ROBO CALC',
       desc: 'Combat Robotics Calculator Tool: weapon, drive and more.',
@@ -74,14 +77,14 @@
     var c = byId(id); current = c && c.kind === 'native' && !c.disabled ? id : 'list';
     // (only when a specific id was asked for: open('list') from rerender() at startup must not touch a #calc/<id> hash)
     if (current === 'list' && id && id !== 'list' && /^#calc\/./.test(location.hash)) try { history.replaceState(null, '', '#calc'); } catch (e) {}
-    if (current === 'list') renderList(); else if (c.render === 'weight') window.WeightView.mount(root); else window.SagCalc.render(root);
+    if (current === 'list') renderList(); else if (c.render === 'weight') window.WeightView.mount(root); else if (c.render === 'wsa') window.FreqView.mount(root); else window.SagCalc.render(root);
 
   }
 
   window.Calcs = {
     init: function (el) { root = el; root.addEventListener('click', onClick); renderList(); },
     open: open,
-    rerender: function () { if (current === 'weight') { if (window.WeightView) window.WeightView.rerender(); } else if (current !== 'battery') open(current); },
+    rerender: function () { if (current === 'weight') { if (window.WeightView) window.WeightView.rerender(); } else if (current === 'wsa') { if (window.FreqView) window.FreqView.rerender(); } else if (current !== 'battery') open(current); },
     list: CALCS
   };
 })();

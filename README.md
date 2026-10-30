@@ -293,3 +293,31 @@ Push this folder to a GitHub repo and enable Pages (root), or drag it into Netli
 - The landing page button now reads **Enter →** instead of "Meet the team →". The arrow is kept but hidden from screen readers, so they announce "Enter". It still goes to the Team tab (history replace, same as before). There is no separate aria-label.
 - Tests: `tools/test_landing.js` checks the label. SW cache `supernova-v34`.
 
+
+## v35: Weapon Speed Analyzer (work in progress)
+New built-in card in **Calcs**, *Weapon Speed Analyzer* (Work in progress badge). It opens in the app at `#calc/wsa` with a "‹ Calculators" back button, like Weight Budget. Code: `freqview.js` (UI) and `freqmath.js` (math, no DOM).
+
+- **Tip-speed math (user's source):** the Desmos graph [“Tip Speed via Frequency”](https://www.desmos.com/calculator/6asghipk6w), S = π × F × D ÷ 17.6. F is the weapon frequency in Hz (revolutions per second), D is the blade diameter in inches, and S is the tip speed in mph (17.6 = 63,360 in per mile ÷ 3,600 s). The graph's author isn't stated, so none is named here; only the formula is used, nothing is copied. S in mph is the headline result, with RPM (60 × F), m/s and ft/s shown below it.
+- **Inputs:** D in inches (or switch to mm; the app converts to inches), and F, either typed in (plain calculator: F in Hz, or RPM, or impacts per second) or taken from a recording.
+- **Our addition (not in the Desmos graph):** *impacts per revolution* N (default 1; bar spinner 2, 1-tooth disc 1, 3-tooth drum 3). The audio peak is usually the tooth-pass rate, so from audio F = peak ÷ N.
+- **Recording:** pick a video (mp4, mov, webm) or an audio file (wav, m4a, mp3, ogg, flac).
+  - The file is read with FileReader (with progress) and decoded with the Web Audio API (`OfflineAudioContext.decodeAudioData` at 48 kHz, mixed to mono). **Nothing is uploaded.**
+  - Files over 200 MB get a memory warning, files over 1 GB are refused, and only the first 5 minutes are analysed. Silence and clipping are flagged.
+  - Decode failures (no audio track, an unsupported container or codec such as iPhone HEVC .mov in some browsers) show a message suggesting an audio export, an H.264 MP4 re-export or another browser.
+- **Analysis:**
+  - Our own radix-2 FFT with a Hann window drives a spectrogram (FFT size 2048–32768; frames are capped for memory).
+  - Drag or touch-drag across the spectrogram, or use the two sliders, to choose the time window to average.
+  - The averaged spectrum lists the top N peaks (Hz and dB relative to the strongest). The user picks the fundamental; harmonic ratios to the chosen peak are shown.
+  - *Suggest fundamental* (harmonic-sum heuristic: the lowest peak whose ×2, ×3… family scores within 85% of the best) is labelled as a suggestion, never final.
+  - Band min/max filters out motor rumble and ESC whine; Nyquist and the sample rate are shown.
+  - The *RPM over time* chart tracks the strongest peak per frame inside a track band, with a 5-frame median and an optional octave check. Its maximum is shown as the top speed (and its S).
+  - The result includes bin-size uncertainty (sample rate ÷ FFT size → ± half a bin in RPM and mph).
+  - An optional Kv × voltage ÷ reduction sanity check flags readings above the no-load ceiling, which are probably a harmonic.
+- **Accuracy notes in the UI:** resolution; harmonics and subharmonics; motor whine and ESC PWM tones; Doppler (about v ÷ 343 m/s); rolling noise; Nyquist and aliasing; AAC low-pass; phone AGC, noise suppression and clipping; FFT smear during spin-up. The result is an estimate.
+- **Per robot:** N, D, the unit and the Kv fields are saved in `localStorage` key `wsa_v1_<botId>`. The view follows the robot switcher.
+- **Layout and accessibility:** phone and desktop (two columns at ≥900 px) layouts; labelled inputs, sliders, radio-button peak picker and canvas `aria-label`s; the progress animation only runs with `prefers-reduced-motion: no-preference`.
+- **Tests:**
+  - `node tools/test_freqmath.js`: FFT vs a slow DFT, Parseval, Hann; tones and noise found within one bin; harmonics with a louder 2nd harmonic, where suggest still finds the fundamental; band limits; window selection; spin-up/hold/spin-down chirp tracking; the octave check; silence; memory caps; the weapon math; and the Desmos examples F = 140, D = 8 → S ≈ 199.9 mph and F = 140 → 8,400 RPM.
+  - `node tools/test_wsa.js`: wiring, credit, privacy and accessibility checks.
+  - Browser: `node tools/gen_wsa_media.js` (then the ffmpeg lines in its header), then `NODE_PATH=<dir with playwright-core> node tools/e2e_wsa.js [url]`. This loads synthetic WAV, MP4 (H.264/AAC), MOV and WebM (VP9/Opus) files through the file input. On Google Chrome 156 and on Playwright's open-source Chromium headless shell 156, all four decode, and a 280 Hz peak with N = 2, D = 8 in gives 8,400 RPM and 199.9 mph. A video with no audio track and a corrupt file both show the decode-failure message.
+- SW cache `supernova-v35` (adds `freqmath.js` and `freqview.js`).

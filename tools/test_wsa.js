@@ -1,0 +1,25 @@
+// node tools/test_wsa.js: Weapon Speed Analyzer wiring (calcs card, scripts, SW cache, Desmos credit, privacy text).
+const fs = require('fs'), vm = require('vm'), path = require('path'); const R = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } };
+const win = {}; vm.runInNewContext(R('calcs.js'), { window: win, document: {}, history: {}, location: { hash: '' } });
+const c = win.Calcs.list.find(x => x.id === 'wsa');
+ok(c && c.kind === 'native' && c.render === 'wsa' && !c.disabled && c.badge === 'Work in progress' && c.title === 'Weapon Speed Analyzer', 'WIP in-app card #calc/wsa');
+ok(/desmos\.com\/calculator\/6asghipk6w/.test(c.credit) && /Tip Speed via Frequency/.test(c.credit), 'card credits the Desmos graph');
+const cjs = R('calcs.js'); ok(/c\.render === 'wsa'\) window\.FreqView\.mount\(root\)/.test(cjs) && /current === 'wsa'\) \{ if \(window\.FreqView\) window\.FreqView\.rerender\(\)/.test(cjs), 'calcs mounts FreqView and follows the robot switcher');
+const html = R('index.html'); ok(html.indexOf('freqmath.js') > 0 && html.indexOf('freqmath.js') < html.indexOf('freqview.js'), 'scripts loaded, math first');
+const sw = R('sw.js'); ok(/'freqmath\.js', 'freqview\.js'/.test(sw) && /supernova-v(3[5-9]|[4-9]\d)/.test(sw), 'SW caches both, v35+');
+const v = R('freqview.js');
+ok(/decodeAudioData/.test(v) && /OfflineAudioContext/.test(v) && /readAsArrayBuffer/.test(v), 'Web Audio decode of the file ArrayBuffer');
+ok(!/fetch\(|XMLHttpRequest|sendBeacon|FormData/.test(v), 'nothing is uploaded (no network calls in the view)');
+ok(/Nothing is uploaded/.test(v) && /HEVC/.test(v) && /re-export/.test(v), 'privacy + decode-failure guidance shown');
+ok(/accept="video\/mp4,video\/quicktime,video\/webm,audio\/\*/.test(v), 'accepts mp4/mov/webm and audio');
+ok(/WARN_MB = 200, MAX_MB = 1024, MAX_SEC = 300/.test(v), 'size warning, size limit, duration cap');
+ok(/S = π × F × D ÷ 17\.6/.test(v) && /Desmos “Tip Speed via Frequency”/.test(v), 'Desmos formula shown and credited in the UI');
+ok(/F = peak ÷ N/.test(v) && /our addition, not part of the Desmos graph/.test(v), 'N step labelled as our addition');
+ok(/n: '1', d: '', unit: 'in'/.test(v) && /KEY = 'wsa_v1_'/.test(v), 'defaults N=1, inches; saved per robot');
+ok(/Suggestion only/.test(v) && /suggested, not confirmed/.test(v), 'suggestion clearly flagged');
+ok(/Nyquist/.test(v) && /AGC|automatic gain control/.test(v) && /Doppler/.test(v) && /Kv × V/.test(v) && /PWM/.test(v), 'accuracy notes');
+ok(/aria-label="Spectrogram/.test(v) && /type="range" id="wsaT0"/.test(v) && /name="wsaPk"/.test(v), 'accessible canvas label, sliders, radio peak picker');
+ok(/touch-action:pan-y/.test(R('styles.css')) && /prefers-reduced-motion: no-preference\)\{ \.wsa-prog/.test(R('styles.css')) && /reduced\(\) \? 'auto' : 'smooth'/.test(v), 'touch selection + reduced motion');
+ok(/data-back'\)\) return; \/\/ handled by calcs\.js/.test(v), 'back handled once (calcs.js)');
+console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

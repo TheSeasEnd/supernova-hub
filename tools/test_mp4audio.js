@@ -47,5 +47,6 @@ const peak = (x, sr) => { const n = 4096, sg = F.spectrogram(x, sr, n), sp = F.a
   ok(/Converted in this tab, nothing uploaded/.test(v) && /The video track was not read or converted/.test(v) && /Download converted audio \(\.m4a/.test(v), 'honest conversion note + downloads');
   ok(/WSA_FORCE_DECODE_FAIL/.test(v), 'test hook to force the fallback');
   ok((v.match(/code: 'load'/g) || []).length === 2 && /couldn’t be downloaded/.test(v), 'converter load failure (offline before first use) gives the clear message');
+  for (const f of ['freqview.js', 'mp4audio.js', 'freqmath.js']) { let okc = true; try { new (require('vm').Script)(fs.readFileSync(path.join(__dirname, '..', f), 'utf8')); } catch (e) { okc = false; } ok(okc, f + ' parses'); }
   console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);
 })();

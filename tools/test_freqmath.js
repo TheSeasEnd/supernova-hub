@@ -82,4 +82,11 @@ ok(near(F.fromF(140, 8).mph, F.tipSpeed(F.toMeters(8, 'in'), 8400).mph, 1e-9), '
 ok(near(F.fromF(140, 8).mps, 89.37, 0.01) && near(F.fromF(140, 8).fts, 293.2, 0.05), 'secondary m/s and ft/s');
 ok(near(F.toInches(203.2, 'mm'), 8, 1e-12) && F.toInches(8, 'in') === 8, 'mm toggle converts to inches');
 ok(near(F.desmosMph(F.revHz(280, 2), 8), 199.9, 0.05), 'audio peak 280 Hz with N=2 -> F=140 -> 199.9 mph');
+// v37: number of impactors (our addition): F = tone ÷ impactors, then the Desmos S = π F D / 17.6
+ok(F.toneToF(280, 2) === 140 && near(F.desmosMph(F.toneToF(280, 2), 8), 199.9, 0.05), 'tone 280 Hz with 2 impactors, D=8 -> F=140 -> 199.9 mph');
+ok(F.toneToF(140, 1) === 140 && F.desmosMph(F.toneToF(140, 1), 8) === F.desmosMph(140, 8) && F.fromF(F.toneToF(140, 1), 8).rpm === 8400, 'tone 140 Hz with 1 impactor = same as before (199.9 mph, 8,400 RPM)');
+ok(F.toneToF(420, 3) === 140 && F.toneToF(560, '4') === 140, '3 and 4 impactors');
+ok([1, 2, 3, 4, 12].every(n => F.impactors(n) === n) && F.impactors('2') === 2 && F.impactors(' 3 ') === 3, 'impactors: whole numbers >= 1 accepted');
+ok(['0', 0, '-1', '1.5', 1.5, '', null, 'abc', '2x', 'NaN'].every(v => isNaN(F.impactors(v))), 'impactors: 0, negative, fractional, empty and text rejected');
+ok(isNaN(F.toneToF(280, 0)) && isNaN(F.toneToF(280, '1.5')) && isNaN(F.toneToF('', 2)) && isNaN(F.toneToF(-5, 2)), 'toneToF is NaN for invalid input');
 console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

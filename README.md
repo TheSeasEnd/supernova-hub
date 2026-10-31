@@ -345,3 +345,14 @@ New built-in card in **Calcs**, *Weapon Speed Analyzer* (Work in progress badge)
     - `-timecode 01:00:00:00` for a timecode track; two `-map` audio tracks; `-movflags +faststart`.
 - **Not tested on a real iPhone:** the iOS picker sheet, Photos transcoding, real iPhone camera files (which carry extra metadata tracks and often have the index at the end; the converter handles both, as tested with ffmpeg files) and iOS memory limits. WebKit was tested with Playwright's WebKit 27.2 on Linux (WPE port, GStreamer codecs), not Safari on iOS.
 - SW cache `supernova-v36`.
+
+## v37: Number of impactors
+The v35 "N · impacts per revolution" field is now a first-class **Number of impactors** input: the teeth, blades or bars that hit per revolution.
+- **Where:** in the Weapon card, right under D. It also appears in the plain calculator when "I know" is set to **Audio tone / impact frequency**, so it works without any recording. Both copies edit the same saved value.
+- **Input:** quick picks **1 2 3 4** (44 px buttons with `aria-pressed`), plus a typed field for any other count. It must be a whole number, 1 or more; anything else (0, 1.5, empty, text) shows "Number of impactors must be a whole number, 1 or more" and no result.
+- **Math:** F = tone ÷ impactors, where the tone is the chosen audio peak, the RPM-track peak or a typed tone. Then S = π × F × D ÷ 17.6, unchanged from the [Desmos “Tip Speed via Frequency”](https://www.desmos.com/calculator/6asghipk6w) graph. Each result shows both lines, for example "Tone 280 Hz ÷ 2 impactors = F 140.00 Hz", then "S = π × F × D ÷ 17.6 = π × 140.00 × 8.00 ÷ 17.6". The impactor factor is our addition, labelled as such, and is not part of the Desmos graph. Typing F or RPM directly ignores the impactor count.
+- **Caution shown in the UI:** if the impactors are unevenly spaced, or only some of them hit the floor or make the sound, the tone can sit at a different multiple of the spin rate than the number of impactors, so check against Kv × voltage. A drum or bar with 2 hits per revolution makes a tone at 2× the spin rate (F = tone ÷ 2).
+- **Saved per robot** in the same `wsa_v1_<botId>` key, as `imp`. A saved v35/v36 `n` value is migrated to `imp` on first load and `n` is removed.
+- **Code:** `FreqMath.impactors(v)` (whole number ≥ 1, else NaN) and `FreqMath.toneToF(tone, impactors)`.
+- **Tests:** `node tools/test_freqmath.js` covers tone 280 Hz with 2 impactors and D = 8 → F = 140 → ≈ 199.9 mph, tone 140 Hz with 1 impactor matching the earlier result (199.9 mph, 8,400 RPM), 3 and 4 impactors, and invalid input. `node tools/test_impactors.js` checks the UI wiring. In the browser, `PW_CORE=<playwright-core> node tools/e2e_wsa37.js [url] [chrome|webkit]` tests the quick picks, typing, validation, the plain tone calculator, migration from an old `n`, and the audio path (280 Hz spin-up recording with 2 impactors → 140 Hz → 199.9 mph).
+- SW cache `supernova-v37`.

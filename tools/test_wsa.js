@@ -15,8 +15,8 @@ ok(/Nothing is uploaded/.test(v) && /HEVC/.test(v) && /re-export/.test(v), 'priv
 ok(/accept="video\/\*,audio\/\*,video\/quicktime,video\/mp4,\.mov,\.mp4,\.m4v,\.webm,/.test(v), "accepts any video/audio incl. mov/mp4/webm");
 ok(/WARN_MB = 200, MAX_MB = 1024, MAX_SEC = 300/.test(v), 'size warning, size limit, duration cap');
 ok(/S = π × F × D ÷ 17\.6/.test(v) && /Desmos “Tip Speed via Frequency”/.test(v), 'Desmos formula shown and credited in the UI');
-ok(/F = peak ÷ N/.test(v) && /our addition, not part of the Desmos graph/.test(v), 'N step labelled as our addition');
-ok(/n: '1', d: '', unit: 'in'/.test(v) && /KEY = 'wsa_v1_'/.test(v), 'defaults N=1, inches; saved per robot');
+ok(/F = tone ÷ impactors/.test(v) && /This factor is our addition, not part of the Desmos graph/.test(v), 'impactor factor labelled as our addition');
+ok(/imp: '1', d: '', unit: 'in'/.test(v) && /KEY = 'wsa_v1_'/.test(v), 'defaults 1 impactor, inches; saved per robot');
 ok(/Suggestion only/.test(v) && /suggested, not confirmed/.test(v), 'suggestion clearly flagged');
 ok(/Nyquist/.test(v) && /AGC|automatic gain control/.test(v) && /Doppler/.test(v) && /Kv × V/.test(v) && /PWM/.test(v), 'accuracy notes');
 ok(/aria-label="Spectrogram/.test(v) && /type="range" id="wsaT0"/.test(v) && /name="wsaPk"/.test(v), 'accessible canvas label, sliders, radio peak picker');

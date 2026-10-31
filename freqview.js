@@ -1,7 +1,7 @@
 /* Weapon Speed Analyzer (work in progress; opened from Calcs, #calc/wsa). Load a video or audio clip of the weapon spinning,
    decode its audio in the browser (Web Audio API), look at a spectrogram, average a time window, pick the weapon's impact
    frequency and get RPM + tip speed; optional RPM-over-time track. Math lives in freqmath.js. Nothing is uploaded.
-   Per-robot settings (impacts per rev, diameter, Kv check) are saved in localStorage "wsa_v1_<botId>". */
+   Per-robot settings (number of impactors, diameter, Kv check) are saved in localStorage "wsa_v1_<botId>". */
 (function () {
   'use strict';
   var F = window.FreqMath, root = null, cfg = null, botId = null, bound = [];
@@ -19,10 +19,13 @@
   function load() {
     var b = bot(); botId = b ? b.id : 'default'; var s = null;
     try { s = JSON.parse(localStorage.getItem(KEY + botId) || 'null'); } catch (e) {}
-    cfg = Object.assign({ n: '1', d: '', unit: 'in', kv: '', volts: '', ratio: '' }, s || {});
+    // v37: the old "N · impacts per revolution" value (cfg.n) becomes cfg.imp, "Number of impactors"; migrate once and drop n.
+    if (s && s.imp == null && s.n != null) { s.imp = String(s.n); delete s.n; try { localStorage.setItem(KEY + botId, JSON.stringify(s)); } catch (e) {} }
+    cfg = Object.assign({ imp: '1', d: '', unit: 'in', kv: '', volts: '', ratio: '' }, s || {});
   }
   function save() { try { localStorage.setItem(KEY + botId, JSON.stringify(cfg)); } catch (e) {} }
-  function N() { var n = F.num(cfg.n); return n > 0 ? n : NaN; }
+  function N() { return F.impactors(cfg.imp); }
+  function impTxt(n) { n = n == null ? N() : n; return isFinite(n) ? n + ' impactor' + (n === 1 ? '' : 's') : '— impactors'; }
   function dIn() { var d = F.num(cfg.d); return d > 0 ? F.toInches(d, cfg.unit) : NaN; }
   var DESMOS = '<a href="https://www.desmos.com/calculator/6asghipk6w" target="_blank" rel="noopener">Desmos “Tip Speed via Frequency”</a>';
 
@@ -31,14 +34,29 @@
   function numIn(k, v, ph, extra) { return '<input type="number" inputmode="decimal" step="any" min="0" data-c="' + k + '" value="' + esc(v) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + (extra || '') + '>'; }
   function weaponCard() {
     var di = dIn();
-    return '<div class="card"><h2>Weapon</h2><div class="fgrid">' +
+    return '<div class="card"><h2>Weapon</h2><div class="wsa-wpn">' +
       fld('D · blade diameter, tip to tip', '<span class="wsa-du">' + numIn('d', cfg.d, cfg.unit === 'mm' ? 'e.g. 203' : 'e.g. 8') +
         '<select data-c="unit" aria-label="Diameter unit"><option value="in"' + (cfg.unit !== 'mm' ? ' selected' : '') + '>in</option><option value="mm"' + (cfg.unit === 'mm' ? ' selected' : '') + '>mm</option></select></span>') +
-      fld('N · impacts per revolution', numIn('n', cfg.n, '1', ' min="1" step="1"'), 'audio only') +
-      '</div><div class="note" id="wsaDin">' + (cfg.unit === 'mm' && isFinite(di) ? 'D = ' + fmt(di, 2) + ' in (mm ÷ 25.4; the formula uses inches). ' : '') + 'D is in inches like the Desmos calculator; switch to mm to type millimetres.</div>' +
-      '<div class="note">N only matters when F comes from the audio: the strongest audio peak is often the tooth-pass rate (teeth × revolutions per second) rather than the rotation rate, so F = peak ÷ N (bar spinner 2, disc with 1 tooth 1, drum with 3 teeth 3; default 1). This N step is our addition, not part of the Desmos graph. ' +
-      'Saved on this device for ' + esc(bot() ? bot().name : 'this robot') + ' (switch robots to switch settings).</div></div>';
+      '<div class="note" id="wsaDin">' + (cfg.unit === 'mm' && isFinite(di) ? 'D = ' + fmt(di, 2) + ' in (mm ÷ 25.4; the formula uses inches). ' : '') + 'D is in inches like the Desmos calculator; switch to mm to type millimetres.</div></div>' + impHtml('w') +
+      '<div class="note wsa-saved">Saved on this device for ' + esc(bot() ? bot().name : 'this robot') + ' (switch robots to switch settings).</div></div>';
   }
+  var IMP_CAUTION = '<b>Caution:</b> if the impactors are unevenly spaced, or only some of them hit the floor or make the sound, the tone can sit at a different multiple of the spin rate than the number of impactors; check the result against Kv × voltage. A drum or bar with 2 hits per revolution makes a tone at 2× the spin rate (F = tone ÷ 2).';
+  function impHtml(w) {
+    var n = N(), bad = !isFinite(n);
+    return '<div class="wsa-imp" role="group" aria-labelledby="wsaImpL' + w + '"><div class="wsa-impl" id="wsaImpL' + w + '">Number of impactors <b class="sgtag">our addition</b></div>' +
+      '<div class="wsa-impr"><div class="wsa-impq">' + [1, 2, 3, 4].map(function (k) { return '<button type="button" class="btn ghost sm" data-a="imp" data-v="' + k + '" data-w="' + w + '" aria-pressed="' + (n === k) + '" aria-label="' + k + ' impactor' + (k === 1 ? '' : 's') + '">' + k + '</button>'; }).join('') + '</div>' +
+      '<input type="number" inputmode="numeric" min="1" step="1" data-c="imp" data-w="' + w + '" value="' + esc(cfg.imp) + '" placeholder="1" aria-label="Number of impactors (type any whole number)" aria-describedby="wsaImpH' + w + '"' + (bad ? ' aria-invalid="true"' : '') + '></div>' +
+      '<div class="note" id="wsaImpH' + w + '">Teeth, blades or bars that hit per revolution (1-tooth disc 1, bar or 2-tooth disc 2, 3-tooth drum 3). From an audio tone, F = tone ÷ impactors. This factor is our addition, not part of the Desmos graph.</div>' +
+      '<div class="wbnote warn wsa-imperr" role="alert"' + (bad ? '' : ' hidden') + '>Number of impactors must be a whole number, 1 or more.</div>' +
+      '<div class="note wsa-impc">' + IMP_CAUTION + '</div></div>';
+  }
+  function syncImp(src) {
+    var n = N(), bad = !isFinite(n);
+    [].forEach.call(root.querySelectorAll('input[data-c="imp"]'), function (el) { if (el !== src) el.value = cfg.imp; if (bad) el.setAttribute('aria-invalid', 'true'); else el.removeAttribute('aria-invalid'); });
+    [].forEach.call(root.querySelectorAll('button[data-a="imp"]'), function (b) { b.setAttribute('aria-pressed', String(+b.dataset.v === n)); });
+    [].forEach.call(root.querySelectorAll('.wsa-imperr'), function (e) { e.hidden = !bad; });
+  }
+  function toneLine(tone, Fr) { return '<div class="note wsa-form wsa-tone">Tone ' + hz(tone) + ' ÷ ' + impTxt() + ' = F ' + fmt(Fr, 2) + ' Hz</div>'; }
   function fileCard() {
     var h = '<div class="card"><h2>Recording</h2><label class="btn sm wsa-file">Choose video or audio<input type="file" id="wsaFile" accept="video/*,audio/*,video/quicktime,video/mp4,.mov,.mp4,.m4v,.webm,.wav,.m4a,.mp3,.aac,.caf,.ogg,.opus,.flac"></label>' +
       '<div class="note">Video (iPhone .mov, mp4, webm) or audio (wav, m4a, mp3, ogg, flac). On iPhone, pick from Photo Library, Take Video or Choose File (Files app). <b>Nothing is uploaded:</b> the file is read and analysed in this browser tab only. ' +
@@ -48,8 +66,8 @@
     if (st.x) h += '<div class="note wsa-meta">' + metaText() + '</div>' + convHtml();
     return h + '</div>';
   }
-  function metaText() { return esc(st.name) + ' · ' + fmt(st.size / 1048576, 1) + ' MB · ' + clock(st.dur) + (st.truncated ? ' (first ' + MAX_SEC / 60 + ' min)' : '') + ' · decoded at ' + fmt(st.sr) + ' Hz · Nyquist ' + hz(st.sr / 2) + ' · max measurable ≈ ' + fmt(F.maxRpm(st.sr, N())) + ' RPM at N = ' + esc(cfg.n); }
-  function resNote() { return 'Resolution: ' + fmt(F.resolution(st.sr, st.fft), 2) + ' Hz per bin (sample rate ÷ FFT size) → about ±' + fmt(F.rpmUncertainty(st.sr, st.fft, N())) + ' RPM at N = ' + esc(cfg.n) + '. A bigger FFT gives finer frequency steps but smears fast speed changes.'; }
+  function metaText() { return esc(st.name) + ' · ' + fmt(st.size / 1048576, 1) + ' MB · ' + clock(st.dur) + (st.truncated ? ' (first ' + MAX_SEC / 60 + ' min)' : '') + ' · decoded at ' + fmt(st.sr) + ' Hz · Nyquist ' + hz(st.sr / 2) + ' · max measurable ≈ ' + fmt(F.maxRpm(st.sr, N())) + ' RPM with ' + impTxt(); }
+  function resNote() { return 'Resolution: ' + fmt(F.resolution(st.sr, st.fft), 2) + ' Hz per bin (sample rate ÷ FFT size) → about ±' + fmt(F.rpmUncertainty(st.sr, st.fft, N())) + ' RPM with ' + impTxt() + '. A bigger FFT gives finer frequency steps but smears fast speed changes.'; }
   function opts(list, cur) { return list.map(function (o) { return '<option value="' + o[0] + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join(''); }
   function specCard() {
     if (!st.x) return '';
@@ -76,7 +94,7 @@
       h += '<tr' + (on ? ' class="on"' : '') + '><td><input type="radio" name="wsaPk" value="' + i + '" id="wsaPk' + i + '"' + (on ? ' checked' : '') + ' aria-label="Use peak ' + (i + 1) + ', ' + esc(hz(p.f)) + ', as the weapon fundamental"></td><td>' + (i + 1) + '</td><td><label for="wsaPk' + i + '">' + hz(p.f) + '</label></td><td>' + fmt(p.db, 1) + ' dB</td><td>' + fmt(F.rpm(p.f, N())) + ' RPM</td><td>' + rtxt + '</td></tr>';
     });
     h += '</tbody></table>';
-    if (st.sug) h += '<div class="wbnote warn">Suggestion only: ' + hz(st.sug.f) + ' (' + fmt(F.rpm(st.sug.f, N())) + ' RPM) is the lowest peak whose harmonics (×2, ×3…) add up to near the strongest family (harmonic-sum heuristic' + (Math.abs(st.sug.best - st.sug.f) > 1e-9 ? '; the strongest family starts at ' + hz(st.sug.best) : '') + '). Check it against the spectrogram, N and the motor’s Kv before trusting it.</div>';
+    if (st.sug) h += '<div class="wbnote warn">Suggestion only: ' + hz(st.sug.f) + ' (' + fmt(F.rpm(st.sug.f, N())) + ' RPM) is the lowest peak whose harmonics (×2, ×3…) add up to near the strongest family (harmonic-sum heuristic' + (Math.abs(st.sug.best - st.sug.f) > 1e-9 ? '; the strongest family starts at ' + hz(st.sug.best) : '') + '). Check it against the spectrogram, the number of impactors and the motor’s Kv before trusting it.</div>';
     return h;
   }
   function spectrumCard() {
@@ -89,10 +107,10 @@
       '<div id="wsaPeaks">' + peaksHtml() + '</div></div>';
   }
   function winText() { return st.spec ? 'Window ' + clock(Math.min(st.t0, st.t1)) + '–' + clock(Math.max(st.t0, st.t1)) + ' · ' + st.spec.frames + ' frame' + (st.spec.frames === 1 ? '' : 's') + ' averaged · ' + hz(st.fmin) + '–' + hz(st.fmax) : ''; }
-  function speedRows(Fr, src) {
-    var o = F.fromF(Fr, dIn()), di = dIn();
-    return '<div class="wsa-head">' + (isFinite(o.mph) ? '<div class="wsa-mph"><b>' + fmt(o.mph, 1) + '</b> mph</div><div class="note wsa-form">S = π × F × D ÷ 17.6 = π × ' + fmt(Fr, 2) + ' × ' + fmt(di, 2) + ' ÷ 17.6' + (src ? ' · F ' + src : '') + '</div>' :
-        '<div class="wsa-mph wsa-dim">S = — mph</div><div class="note wsa-form">Enter D (blade diameter) to get the tip speed S = π × F × D ÷ 17.6.</div>') + '</div>' +
+  function speedRows(Fr, src, tone) {
+    var o = F.fromF(Fr, dIn()), di = dIn(), tl = tone != null ? toneLine(tone, Fr) : '';
+    return '<div class="wsa-head">' + (isFinite(o.mph) ? '<div class="wsa-mph"><b>' + fmt(o.mph, 1) + '</b> mph</div>' + tl + '<div class="note wsa-form">S = π × F × D ÷ 17.6 = π × ' + fmt(Fr, 2) + ' × ' + fmt(di, 2) + ' ÷ 17.6' + (src ? ' · F ' + src : '') + '</div>' :
+        '<div class="wsa-mph wsa-dim">S = — mph</div>' + tl + '<div class="note wsa-form">Enter D (blade diameter) to get the tip speed S = π × F × D ÷ 17.6.</div>') + '</div>' +
       '<div class="wbkv wsa-kv"><span>F (weapon frequency)</span><b>' + fmt(Fr, 2) + ' Hz (rev/s)</b><span>RPM (60 × F)</span><b>' + fmt(o.rpm) + ' RPM</b>' +
       (isFinite(o.mph) ? '<span>Also</span><b>' + fmt(o.mps, 1) + ' m/s · ' + fmt(o.fts, 0) + ' ft/s</b>' : '') + '</div>';
   }
@@ -100,7 +118,7 @@
     var ceil = F.kvRpm(cfg.kv, cfg.volts, cfg.ratio), h = '';
     if (isFinite(ceil) && ceil > 0) {
       h += 'No-load ceiling ≈ ' + fmt(ceil) + ' weapon RPM (Kv × V ÷ reduction). Real weapons spin below it (load, sag, ESC limits).';
-      if (isFinite(r)) { var pct = r / ceil * 100; h += ' Measured = ' + fmt(pct) + '% of it.' + (pct > 105 ? ' <b class="wbwarn">Above the ceiling: the chosen peak is probably a harmonic, or N is too low.</b>' : pct < 35 ? ' <b class="wbwarn">Far below: maybe a subharmonic, N too high, or not at full speed.</b>' : ''); }
+      if (isFinite(r)) { var pct = r / ceil * 100; h += ' Measured = ' + fmt(pct) + '% of it.' + (pct > 105 ? ' <b class="wbwarn">Above the ceiling: the chosen peak is probably a harmonic, or the number of impactors is too low.</b>' : pct < 35 ? ' <b class="wbwarn">Far below: maybe a subharmonic, too many impactors entered, or not at full speed.</b>' : ''); }
     } else h += 'Enter Kv and voltage to compare the measured RPM with the motor’s no-load speed.';
     return h;
   }
@@ -112,10 +130,10 @@
   function curRpm() { return st.selF != null ? F.rpm(st.selF, N()) : st.manual.val ? F.fromF(manF(), dIn()).rpm : NaN; }
   function resultHtml() {
     var h = '', n = N();
-    if (!isFinite(n)) return '<div class="wbnote warn">Enter the impacts per revolution (N).</div>';
+    if (!isFinite(n)) return '<div class="wbnote warn">Enter the number of impactors (a whole number, 1 or more) in the Weapon card.</div>';
     if (st.selF != null) {
       var r = F.rpm(st.selF, n), u = st.spec ? F.rpmUncertainty(st.sr, st.fft, n) : NaN;
-      h += '<div class="note">From the chosen peak' + (st.selSrc === 'suggest' ? ' <b class="wbwarn">(suggested, not confirmed)</b>' : '') + ': ' + hz(st.selF) + ' ÷ N (' + esc(cfg.n) + ') = F.</div>' + speedRows(st.selF / n, 'from audio') +
+      h += '<div class="note">From the chosen peak' + (st.selSrc === 'suggest' ? ' <b class="wbwarn">(suggested, not confirmed)</b>' : '') + ' (tone = that peak).</div>' + speedRows(st.selF / n, 'from audio', st.selF) +
         '<div class="note">Uncertainty from bin size alone: about ±' + fmt(u) + ' RPM (F ±' + fmt(st.sr / st.fft / 2 / n, 2) + ' Hz' + (isFinite(dIn()) ? ', S ±' + fmt(F.desmosMph(st.sr / st.fft / 2 / n, dIn()), 1) + ' mph' : '') + '). Real error can be larger (see the accuracy notes).' +
         (st.selF > 0.8 * st.sr / 2 ? ' <b class="wbwarn">This is close to Nyquist (' + hz(st.sr / 2) + '): the recording may not capture it reliably.</b>' : '') + '</div>';
     } else h += '<div class="note">' + (st.x ? 'Choose a peak in the list to get the weapon speed.' : 'Load a clip, or use the plain calculator below.') + '</div>';
@@ -125,8 +143,9 @@
   function trackHtml() {
     if (!st.tr) return st.sg && st.sg.done < st.sg.frames ? '' : '';
     var t = st.tr.top, n = N();
+    if (!isFinite(n)) return '<div class="wbnote warn">Enter the number of impactors.</div>';
     if (!t) return '<div class="wbnote warn">Nothing loud enough to track in ' + hz(st.tmin) + '–' + hz(st.tmax) + '.</div>';
-    return '<div class="note">Top speed at ' + clock(t.t) + ': peak ' + hz(t.f) + ' ÷ N (' + esc(cfg.n) + ') = F.</div>' + speedRows(t.f / n, 'from the RPM track') +
+    return '<div class="note">Top speed at ' + clock(t.t) + ' (tone = the tracked peak).</div>' + speedRows(t.f / n, 'from the RPM track', t.f) +
       '<div class="note">Per frame (' + fmt(st.tr.dt * 1000) + ' ms steps) the strongest peak in the track band is taken, a 5-frame median removes spikes, and quiet frames are skipped. ' +
       'If the line jumps to double or half speed it is following a harmonic: narrow the band around the fundamental.</div>';
   }
@@ -141,12 +160,14 @@
   function manF() { var m = st.manual, v = F.num(m.val); return m.mode === 'rpm' ? v / 60 : m.mode === 'hz' ? v / N() : v; }
   function manRes() {
     var m = st.manual, v = F.num(m.val), Fr = manF();
-    return v > 0 && isFinite(Fr) ? speedRows(Fr, m.mode === 'f' ? 'typed in' : m.mode === 'rpm' ? '= RPM ÷ 60' : '= impacts ÷ N') : '<div class="note">Type F (and D above) to get S = π × F × D ÷ 17.6 in mph, same as the Desmos calculator.</div>';
+    if (m.mode === 'hz' && !isFinite(N())) return '<div class="wbnote warn">Enter the number of impactors (a whole number, 1 or more).</div>';
+    return v > 0 && isFinite(Fr) ? speedRows(Fr, m.mode === 'f' ? 'typed in' : m.mode === 'rpm' ? '= RPM ÷ 60' : '= tone ÷ impactors', m.mode === 'hz' ? v : null) : '<div class="note">' + (m.mode === 'hz' ? 'Type the tone (and D above): F = tone ÷ impactors, then S = π × F × D ÷ 17.6 in mph.' : 'Type F (and D above) to get S = π × F × D ÷ 17.6 in mph, same as the Desmos calculator.') + '</div>';
   }
   function manualHtml() {
-    var m = st.manual, lab = { f: ['F · weapon frequency', 'Hz', 'e.g. 140'], rpm: ['Weapon RPM', 'RPM', 'e.g. 8400'], hz: ['Impacts per second', 'Hz', 'e.g. 280'] }[m.mode] || ['F', 'Hz', ''];
-    var h = '<div class="fgrid">' + fld('I know', '<select data-m="mode"><option value="f"' + (m.mode === 'f' ? ' selected' : '') + '>F, revolutions per second (Hz)</option><option value="rpm"' + (m.mode === 'rpm' ? ' selected' : '') + '>Weapon RPM (F = RPM ÷ 60)</option><option value="hz"' + (m.mode === 'hz' ? ' selected' : '') + '>Impacts per second (F = that ÷ N)</option></select>') +
+    var m = st.manual, lab = { f: ['F · weapon frequency', 'Hz', 'e.g. 140'], rpm: ['Weapon RPM', 'RPM', 'e.g. 8400'], hz: ['Tone (impact frequency)', 'Hz', 'e.g. 280'] }[m.mode] || ['F', 'Hz', ''];
+    var h = '<div class="fgrid">' + fld('I know', '<select data-m="mode"><option value="f"' + (m.mode === 'f' ? ' selected' : '') + '>F, revolutions per second (Hz)</option><option value="rpm"' + (m.mode === 'rpm' ? ' selected' : '') + '>Weapon RPM (F = RPM ÷ 60)</option><option value="hz"' + (m.mode === 'hz' ? ' selected' : '') + '>Audio tone / impact frequency (F = tone ÷ impactors)</option></select>') +
       fld(lab[0], '<input type="number" inputmode="decimal" step="any" min="0" data-m="val" value="' + esc(m.val) + '" placeholder="' + lab[2] + '"><em>' + lab[1] + '</em>') + '</div>';
+    if (m.mode === 'hz') h += impHtml('m'); else h += '<div class="note">Have the tone (impact frequency) instead, e.g. from a tuner or spectrum app? Choose “Audio tone / impact frequency” to divide it by the number of impactors.</div>';
     return h + '<div id="wsaManRes">' + manRes() + '</div>';
   }
   function manualCard() { return '<div class="card"><h2>Plain calculator <b class="sgtag">no audio needed</b></h2><div id="wsaMan">' + manualHtml() + '</div></div>'; }
@@ -154,14 +175,14 @@
     var sr = st.sr || SR, res = F.resolution(sr, st.fft);
     return '<details class="card wsa-notes wsa-wide"><summary>Accuracy notes and limits (read before trusting a number)</summary><ul class="note sglist">' +
       '<li><b>This is an estimate.</b> Sanity-check it against motor Kv × voltage (above) and what you see on video.</li>' +
-      '<li><b>Resolution:</b> sample rate ÷ FFT size = ' + fmt(sr, 0) + ' ÷ ' + st.fft + ' = ' + fmt(res, 2) + ' Hz per bin, about ±' + fmt(F.rpmUncertainty(sr, st.fft, N())) + ' RPM at N = ' + esc(cfg.n) + '. Peak interpolation can do better on a clean steady tone, but the app only claims ± half a bin. Averaging more frames lowers noise, not the bin size.</li>' +
-      '<li><b>Harmonics and subharmonics:</b> a 2-tooth weapon at 100 rev/s (6,000 RPM) makes a 200 Hz fundamental plus 400, 600 Hz… An unbalanced weapon can also show the rev rate itself (100 Hz here), which looks like a subharmonic. Wrong N or picking a harmonic changes the answer by 2× or 3×.</li>' +
+      '<li><b>Resolution:</b> sample rate ÷ FFT size = ' + fmt(sr, 0) + ' ÷ ' + st.fft + ' = ' + fmt(res, 2) + ' Hz per bin, about ±' + fmt(F.rpmUncertainty(sr, st.fft, N())) + ' RPM with ' + impTxt() + '. Peak interpolation can do better on a clean steady tone, but the app only claims ± half a bin. Averaging more frames lowers noise, not the bin size.</li>' +
+      '<li><b>Harmonics and subharmonics:</b> a 2-tooth weapon at 100 rev/s (6,000 RPM) makes a 200 Hz fundamental plus 400, 600 Hz… An unbalanced weapon can also show the rev rate itself (100 Hz here), which looks like a subharmonic. Entering the wrong number of impactors or picking a harmonic changes the answer by 2× or 3×. ' + IMP_CAUTION + '</li>' +
       '<li><b>Other sounds:</b> motor whine (poles × motor rev/s), ESC PWM tones (often several kHz, constant while the speed changes), drive motors, belts, the arena and people. Use the band limits to leave them out. A tone that stays flat while the weapon spins up is not the weapon.</li>' +
       '<li><b>Doppler and movement:</b> a robot driving toward or away from the phone shifts frequencies by about v ÷ 343 m/s (≈0.9% at 3 m/s). Rolling, impacts and floor scraping add broadband noise. Film a stationary robot, phone held still, for the cleanest reading.</li>' +
-      '<li><b>Sample rate and Nyquist:</b> the audio is decoded at ' + fmt(sr) + ' Hz, so nothing above ' + hz(sr / 2) + ' can be measured (≈' + fmt(F.maxRpm(sr, 1)) + ' RPM at N = 1, plenty for weapons). The browser resamples on decode, and the original recording may have a lower rate. Phone audio is often compressed (AAC), which can cut the highest frequencies. Above about 80% of Nyquist the app warns. Tones above Nyquist are normally filtered out by the recorder, but if not they fold back (alias) as false lower tones.</li>' +
+      '<li><b>Sample rate and Nyquist:</b> the audio is decoded at ' + fmt(sr) + ' Hz, so nothing above ' + hz(sr / 2) + ' can be measured (≈' + fmt(F.maxRpm(sr, 1)) + ' RPM with 1 impactor, plenty for weapons). The browser resamples on decode, and the original recording may have a lower rate. Phone audio is often compressed (AAC), which can cut the highest frequencies. Above about 80% of Nyquist the app warns. Tones above Nyquist are normally filtered out by the recorder, but if not they fold back (alias) as false lower tones.</li>' +
       '<li><b>Phone audio processing:</b> automatic gain control, noise suppression and compression change levels and can distort or remove tones. Clipping (a very loud weapon close to the mic) adds false harmonics. Record from a few metres away and avoid “voice” or noise-reduction modes if your phone has them.</li>' +
       '<li><b>Spin-up and spin-down:</b> a long FFT averages over its length (' + fmt(st.fft / sr * 1000) + ' ms now), so fast speed changes smear and the RPM track lags. Use a smaller FFT for the track and a bigger one for a steady top speed.</li>' +
-      '<li><b>Formulas:</b> tip speed S (mph) = π × F × D ÷ 17.6 with F in Hz (rev/s) and D in inches, from ' + DESMOS + ' (17.6 = 63,360 in/mile ÷ 3,600 s/h). From audio, F = peak frequency ÷ N (our addition). RPM = 60 × F. m/s = mph × 0.44704 and ft/s = mph × 5280 ÷ 3600 (exact). The FFT is a standard radix-2 Cooley–Tukey transform with a Hann window, written for this app (no external code).</li>' +
+      '<li><b>Formulas:</b> tip speed S (mph) = π × F × D ÷ 17.6 with F in Hz (rev/s) and D in inches, from ' + DESMOS + ' (17.6 = 63,360 in/mile ÷ 3,600 s/h). From a tone (audio peak or typed), F = tone ÷ number of impactors (our addition, not part of the Desmos graph). RPM = 60 × F. m/s = mph × 0.44704 and ft/s = mph × 5280 ÷ 3600 (exact). The FFT is a standard radix-2 Cooley–Tukey transform with a Hann window, written for this app (no external code).</li>' +
       '<li>Video files: some browsers can’t decode the audio in some containers (for example iPhone .mov). Then the built-in converter (our own MP4/MOV audio extractor, no upload) copies the audio track out: AAC, Apple Lossless or MP3 are rewrapped unchanged as .m4a; uncompressed PCM is read directly. The video track (H.264 or HEVC) is never decoded, so the video codec doesn’t matter. Fragmented/streaming MP4 and other audio codecs aren’t supported; export the clip as audio (m4a/wav) or an H.264 MP4 instead.</li></ul></details>';
   }
   function render() {
@@ -170,7 +191,7 @@
     var b = bot(), h = '<div class="calcbar"><button class="back" data-back>‹ Calculators</button></div><div class="wbhead wsahead"><div><div class="wbtitle">Weapon speed analyzer <span class="tbuild">Work in progress</span></div>' +
       '<div class="note">' + esc(b ? b.name : '') + ' · frequency analyzer: tip speed S = π × F × D ÷ 17.6 (mph) with F from the sound of a video or audio clip, or typed in. Runs in this browser, nothing is uploaded.</div></div></div>';
     h += '<div class="wsa-grid">' + weaponCard() + fileCard() + specCard() + spectrumCard() + resultCard() + trackCard() + manualCard() + notesHtml() + '</div>';
-    var ae = document.activeElement, key = ae && root.contains(ae) ? (ae.id ? '#' + ae.id : ['c', 'm', 's', 'a'].map(function (k) { return ae.dataset && ae.dataset[k] ? '[data-' + k + '="' + ae.dataset[k] + '"]' : ''; }).join('')) : '';
+    var ae = document.activeElement, key = ae && root.contains(ae) ? (ae.id ? '#' + ae.id : ['c', 'm', 's', 'a', 'v', 'w'].map(function (k) { return ae.dataset && ae.dataset[k] ? '[data-' + k + '="' + ae.dataset[k] + '"]' : ''; }).join('')) : '';
     root.innerHTML = h;
     if (key) { var nf = root.querySelector(key); if (nf) try { nf.focus({ preventScroll: true }); } catch (e) {} }
     drawAll();
@@ -457,6 +478,7 @@
     if ((k = t.dataset.c)) {
       if (k === 'unit') { var d0 = F.num(cfg.d); if (d0 > 0 && t.value !== cfg.unit) cfg.d = String(+(t.value === 'mm' ? d0 * 25.4 : d0 / 25.4).toFixed(t.value === 'mm' ? 1 : 3)); cfg.unit = t.value; save(); render(); return; }
       cfg[k] = t.value; save();
+      if (k === 'imp') syncImp(t);
       if (k === 'd') { var dn = $('wsaDin'); if (dn) dn.innerHTML = (cfg.unit === 'mm' && isFinite(dIn()) ? 'D = ' + fmt(dIn(), 2) + ' in (mm ÷ 25.4; the formula uses inches). ' : '') + 'D is in inches like the Desmos calculator; switch to mm to type millimetres.'; }
       refreshParts(); return;
     }
@@ -476,6 +498,7 @@
     if (b.hasAttribute('data-back')) return; // handled by calcs.js
     if (b.name === 'wsaPk') { var p = st.peaks[+b.value]; if (p) { st.selF = p.f; st.selSrc = 'peak'; var s = st.sug; refreshParts(); st.sug = s; var pk = $('wsaPeaks'); if (pk) pk.innerHTML = peaksHtml(); var r = root.querySelector('input[name=wsaPk][value="' + b.value + '"]'); if (r) r.focus(); } return; }
     var a = b.dataset.a;
+    if (a === 'imp') { cfg.imp = String(+b.dataset.v); save(); syncImp(null); refreshParts(); return; }
     if (a === 'dlm4a' && conv && conv.m4a) { download(conv.m4a, baseName() + '-audio.m4a'); return; }
     if (a === 'dlwav' && st.x) { var M = window.MovAudio; if (M) download(new Blob([M.toWav(st.x, st.sr)], { type: 'audio/wav' }), baseName() + '-mono.wav'); else loadConverter().then(function () { download(new Blob([window.MovAudio.toWav(st.x, st.sr)], { type: 'audio/wav' }), baseName() + '-mono.wav'); }); return; }
     if (a === 'all') { st.t0 = 0; st.t1 = st.dur; updateSpectrum(); render(); }

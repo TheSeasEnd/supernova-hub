@@ -152,6 +152,11 @@
   // ---- weapon math ----
   function num(v) { var x = typeof v === 'number' ? v : parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(x) ? x : NaN; }
   function revHz(f, N) { return num(f) / num(N); }
+  // Number of impactors (our addition, not in the Desmos graph): teeth / blades / bars that hit per revolution.
+  // A whole number >= 1; anything else (0, 1.5, -2, '', 'abc') is NaN so the UI can say it's invalid.
+  function impactors(v) { var s = String(v == null ? '' : v).trim(), x = /^\d+$/.test(s) ? parseInt(s, 10) : typeof v === 'number' ? v : NaN; return isFinite(x) && x >= 1 && Math.floor(x) === x ? x : NaN; }
+  // F (rev/s) from an audio tone / impact frequency: F = tone ÷ impactors.
+  function toneToF(tone, imp) { var n = impactors(imp), t = num(tone); return isFinite(n) && t > 0 ? t / n : NaN; }
   function rpm(f, N) { return 60 * num(f) / num(N); }
   function hzFromRpm(r, N) { return num(r) * num(N) / 60; }
   function toMeters(d, unit) { return num(d) * (unit === 'in' ? 0.0254 : 0.001); }
@@ -182,7 +187,7 @@
     return x;
   }
   var api = { fft: fft, dft: dft, hann: hann, frameSpectrum: frameSpectrum, spectrogramJob: spectrogramJob, spectrogram: spectrogram, avgSpectrum: avgSpectrum, frameRange: frameRange,
-    findPeaks: findPeaks, suggest: suggest, track: track, db: db, num: num, revHz: revHz, rpm: rpm, hzFromRpm: hzFromRpm, toMeters: toMeters, tipSpeed: tipSpeed, desmosMph: desmosMph, toInches: toInches, fromF: fromF,
+    findPeaks: findPeaks, suggest: suggest, track: track, db: db, num: num, revHz: revHz, impactors: impactors, toneToF: toneToF, rpm: rpm, hzFromRpm: hzFromRpm, toMeters: toMeters, tipSpeed: tipSpeed, desmosMph: desmosMph, toInches: toInches, fromF: fromF,
     resolution: resolution, rpmUncertainty: rpmUncertainty, nyquist: nyquist, maxRpm: maxRpm, kvRpm: kvRpm, dopplerPct: dopplerPct, SPEED_OF_SOUND: SPEED_OF_SOUND, synth: synth, isPow2: isPow2 };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.FreqMath = api;
 })(typeof window !== 'undefined' ? window : this);

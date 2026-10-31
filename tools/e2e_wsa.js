@@ -15,7 +15,7 @@ const M = (process.env.WSA_MEDIA || '/tmp/pt/media') + '/', S = require('path').
     console.log(tag, 'card', JSON.stringify(card));
     await p.click('[data-open="wsa"]'); await p.waitForTimeout(400);
     console.log(tag, 'hash', await p.evaluate(() => location.hash), 'docW', await p.evaluate(() => document.documentElement.scrollWidth));
-    await p.fill('[data-c="d"]', '8'); await p.fill('[data-c="n"]', '2'); await p.fill('[data-m="val"]', '140');
+    await p.fill('[data-c="d"]', '8'); await p.fill('[data-c="imp"][data-w="w"]', '2'); await p.fill('[data-m="val"]', '140');
     console.log(tag, 'plain F=140 D=8:', (await p.textContent('#wsaManRes')).replace(/\s+/g, ' ').slice(0, 140));
     if (SHOTS) { await p.evaluate(() => scrollTo(0, 0)); await p.screenshot({ path: S + PFX + tag + '-wsa-empty.png' }); }
     for (const f of ['spinup.wav', 'spinup.mp4', 'spinup.mov', 'spinup.webm', 'noaudio.mp4', 'garbage.mp4']) {

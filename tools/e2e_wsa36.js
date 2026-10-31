@@ -21,7 +21,7 @@ const FILES = (process.env.WSA_FILES || 'iphone_h264_aac.mov,iphone_hevc_aac.mov
     await p.goto(U + '#calc/wsa', { waitUntil: 'networkidle' }); await p.waitForTimeout(500);
     const acc = await p.getAttribute('#wsaFile', 'accept'); console.log(tag, 'accept', acc, 'multiple', await p.getAttribute('#wsaFile', 'multiple'), 'capture', await p.getAttribute('#wsaFile', 'capture'));
     console.log(tag, 'converter preloaded?', await p.evaluate(() => !!window.MovAudio || !!document.querySelector('script[src*="mp4audio"]')));
-    await p.fill('[data-c="d"]', '8'); await p.fill('[data-c="n"]', '2');
+    await p.fill('[data-c="d"]', '8'); await p.fill('[data-c="imp"][data-w="w"]', '2');
     const run = async (f, mode) => {
       const tok = await p.evaluate(m => { window.WSA_FORCE_DECODE_FAIL = m; return window.FreqView._state.token; }, mode);
       await p.setInputFiles('#wsaFile', M + f);

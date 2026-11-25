@@ -20,7 +20,7 @@ Hash routes: `#overview`, `#fights`, `#team`, `#team/<botId>`, `#archetypes`, `#
 - `data/team.js` (`window.TEAM_DATA`) + `teamview.js`: Team tab (see below)
 - `tools/build_data.py`: rebuilds both data files from `/workspace/team-data` (tournament scan + NHRL wiki reconcile)
 - `data/snapshot.js`, `data/snapshot-blink.js`: bundled snapshots of BrettZone `/bots/{bot}/fights` plus round names (offline fallback)
-- `sw.js`, `manifest.webmanifest`, `icons/`, `fonts/` (Chakra Petch, SIL OFL)
+- `sw.js`, `manifest.webmanifest`, `icons/`, `img/logo/` (team logo), `fonts/` (Chakra Petch, SIL OFL)
 
 ## Battery Sag & Wh (built-in, general purpose; v22)
 See the v22 section at the end of this file. The math is in `sagmath.js` (tests: `node tools/test_sagmath.js`), the UI in `sagcalc.js`. It no longer reads or writes the robot profile.
@@ -356,3 +356,14 @@ The v35 "N · impacts per revolution" field is now a first-class **Number of imp
 - **Code:** `FreqMath.impactors(v)` (whole number ≥ 1, else NaN) and `FreqMath.toneToF(tone, impactors)`.
 - **Tests:** `node tools/test_freqmath.js` covers tone 280 Hz with 2 impactors and D = 8 → F = 140 → ≈ 199.9 mph, tone 140 Hz with 1 impactor matching the earlier result (199.9 mph, 8,400 RPM), 3 and 4 impactors, and invalid input. `node tools/test_impactors.js` checks the UI wiring. In the browser, `PW_CORE=<playwright-core> node tools/e2e_wsa37.js [url] [chrome|webkit]` tests the quick picks, typing, validation, the plain tone calculator, migration from an old `n`, and the audio path (280 Hz spin-up recording with 2 impactors → 140 Hz → 199.9 mph).
 - SW cache `supernova-v37`.
+
+## v38: team logo on the landing page
+The team's own logo (the artwork Ezequiel sent: an orange / pink / coral flame with "TOO HOT TO HANDLE · TOO HOT TO HANDLE ·" on a ring) replaces the previous plain flame mark.
+
+- **Transparent cutout.** The cream / off-white background was removed from the 1024×1024 JPEG, with JPEG fringing despilled so edges are clean (no cream halo). A high-res **original-colors** version is kept as an asset: `img/logo/th2h-logo.png` and `.webp`, plus the source JPEG `img/logo/th2h-logo-source.jpg`, and a matching flame-only crop `img/logo/th2h-flame-original.png` / `.webp`.
+- **Landing-page version.** Navy ring text and navy flame outlines would disappear on the dark page, so they are recolored to the logo's own cream (`#fafaee`). The flame fills are unchanged (`#ff7613` orange, `#fe6e53` coral, `#f75b71` pink). The wording is not changed or redrawn. File: `img/logo/th2h-logo-on-dark.webp` (PNG fallback). This is a cleaned raster of his artwork (flat colors, coverage antialiasing at 1024×1024), not a redesign. An SVG trace was tried and dropped: JPEG stairsteps produced noisy paths, so the cleaned PNG/WebP is the faithful version.
+- **Landing layout.** The full badge (flame + ring) sits where the old 112 / 136 px flame was, at `min(72vw, 264px)` on a phone and 320 px on desktop, so the ring text stays readable. The soft orange-to-magenta glow is still there, now centred behind the circular badge and fading into the vignette. The glow's pulse still only runs with `prefers-reduced-motion: no-preference`.
+- **Header, sidebar, favicon, home-screen icons.** The ring text is unreadable at 38–42 px and on a home-screen icon, so those use a **flame-only crop** of the same artwork (cream outlines, so the strokes still read on the dark UI / `#121212` tile), not the full badge.
+  - Header and desktop sidebar: `icons/flame.webp` (256×256, PNG fallback), with the same faint orange drop-shadow as v33 and no tile or ring.
+  - Favicon and home-screen: `icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png` (180), and `icon-maskable-512.png` (extra padding in the 20% safe zone). Full-bleed dark `#121212` squares, no border. A soft orange/magenta glow is baked in behind the flame so the icon still pops on a home screen, as the previous icons did. The old `icons/icon.svg` / `flame.svg` marks are retired.
+- **Tests:** `node tools/test_logo.js` (wiring plus pixel checks: transparent corners, navy vs cream ink, flame colors kept, header crop, dark-tile icons). SW cache `supernova-v38`.
